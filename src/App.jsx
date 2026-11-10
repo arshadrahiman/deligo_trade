@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from './context/AppContext';
-import TopTicker from './components/TopTicker';
 import Navbar from './components/Navbar';
 import Pillars from './components/Pillars';
 import SearchBar from './components/SearchBar';
@@ -77,10 +76,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#07090E] text-slate-100 flex flex-col font-sans selection:bg-[#FED430] selection:text-black w-full max-w-full overflow-x-hidden">
-      {/* 1. Top Industrial Ticker (Storefront only - Hidden in Admin View) */}
-      {!isAdminView && <TopTicker />}
-
-      {/* 2. Warehouse Gym Header Navbar (Storefront only - Hidden in Admin View) */}
+      {/* Header Navbar (Storefront only - Hidden in Admin View) */}
       {!isAdminView && <Navbar onOpenCart={() => setIsCartOpen(true)} />}
 
       {/* 3. Main Content View */}
@@ -110,7 +106,7 @@ export default function App() {
                 {/* Products Count Header */}
                 <div className="flex flex-wrap items-center justify-between text-xs text-slate-400 py-1 border-b border-[#1E2839] gap-2">
                   <span className="font-bold uppercase tracking-wider text-slate-300">
-                    Commercial Warehouse Stock ({displayedProducts.length} Machines)
+                    Commercial Equipment Catalog ({displayedProducts.length} Machines)
                   </span>
                   <span>
                     UAE Immediate Dispatch • 5% VAT
