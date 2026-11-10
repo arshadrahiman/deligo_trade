@@ -1506,7 +1506,89 @@ export default function AdminPortal() {
                   </span>
                 </div>
 
-                <div className="overflow-x-auto rounded-xl border border-[#26334D] bg-[#0A0D14]">
+                {/* Mobile Item Cards for Price Overrides (sm:hidden) */}
+                <div className="sm:hidden space-y-3">
+                  {overrideItems.map((item, idx) => {
+                    const original = Number(item.originalPrice || item.product.price);
+                    const current = Number(item.unitPrice);
+                    const isModified = current !== original;
+
+                    return (
+                      <div
+                        key={idx}
+                        className="p-3.5 rounded-xl bg-[#0A0D14] border border-[#26334D] space-y-2.5"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <span className="font-mono font-bold text-xs text-[#FED430]">
+                              #{idx + 1} • {item.product.code}
+                            </span>
+                            <h5 className="font-bold text-white text-xs mt-0.5 leading-snug truncate">
+                              {item.product.name}
+                            </h5>
+                            <span className="text-[10px] text-slate-400 block mt-0.5">
+                              {item.product.category}
+                            </span>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <span className="text-[10px] text-slate-400 block">Catalog</span>
+                            <span className="text-xs font-mono text-slate-400 line-through">
+                              AED {formatCurrency(original)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Price Override Input & Qty on Mobile */}
+                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#1E2839]">
+                          <div>
+                            <label className="text-[10px] font-bold text-[#FED430] uppercase block mb-1">
+                              Unit Price (AED) *
+                            </label>
+                            <div className="flex items-center gap-1 bg-[#141A26] border border-[#FED430] rounded-lg px-2 py-1.5">
+                              <span className="text-[10px] text-[#FED430] font-bold">AED</span>
+                              <input
+                                type="number"
+                                value={item.unitPrice}
+                                onChange={(e) => handleItemPriceChange(idx, e.target.value)}
+                                className="w-full text-right bg-transparent text-white font-mono font-bold text-xs focus:outline-none"
+                              />
+                            </div>
+                            {isModified && (
+                              <span className="block text-[9.5px] text-amber-400 font-bold mt-0.5">
+                                {current < original
+                                  ? `-${Math.round(((original - current) / original) * 100)}% Discount`
+                                  : `+${Math.round(((current - original) / original) * 100)}% Override`}
+                              </span>
+                            )}
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-300 uppercase block mb-1">
+                              Quantity
+                            </label>
+                            <input
+                              type="number"
+                              min={1}
+                              value={item.quantity}
+                              onChange={(e) => handleItemQuantityChange(idx, e.target.value)}
+                              className="w-full bg-[#141A26] border border-[#26334D] rounded-lg py-1.5 px-2 text-center text-white font-bold text-xs focus:outline-none focus:border-[#FED430]"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center pt-2 border-t border-[#1E2839] text-xs">
+                          <span className="text-slate-400 text-[11px]">Line Total:</span>
+                          <span className="font-mono font-black text-white text-sm">
+                            AED {formatCurrency(item.unitPrice * item.quantity)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Desktop Table (hidden sm:block) */}
+                <div className="hidden sm:block overflow-x-auto rounded-xl border border-[#26334D] bg-[#0A0D14]">
                   <table className="w-full text-xs text-left min-w-[580px]">
                     <thead>
                       <tr className="bg-[#141A26] text-slate-400 font-bold border-b border-[#26334D] text-[11px]">

@@ -326,108 +326,24 @@ export default function QuotationInvoicePage() {
         )}
       </div>
 
-      {/* 2.5 Mobile Clean Quotation Breakdown (Visible on Mobile only, perfectly fits phones) */}
-      <div className="sm:hidden space-y-3 print:hidden">
-        <div className="p-4 rounded-xl bg-[#0F1420] border border-[#26334D] space-y-3">
-          <div className="flex items-center justify-between border-b border-[#1E2839] pb-2">
-            <span className="font-oswald text-xs font-bold text-white uppercase tracking-wider">
-              Selected Equipment ({cartItemsList.length} Units)
-            </span>
-            <span className="text-xs font-bold text-[#FED430]">
-              AED {formatCurrency(cartItemsSubtotal)}
-            </span>
-          </div>
-
-          <div className="space-y-2.5">
-            {cartItemsList.map((item, idx) => (
-              <div
-                key={idx}
-                className="p-2.5 rounded-lg bg-[#141A26] border border-[#1E2839] flex items-center gap-3"
-              >
-                <div className="w-12 h-12 bg-white rounded p-1 flex-shrink-0 flex items-center justify-center">
-                  <img
-                    src={item.product.imagePath}
-                    alt={item.product.name}
-                    className="max-h-full max-w-full object-contain"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-white text-xs truncate">
-                    {item.product.name}
-                  </h4>
-                  <div className="text-[10px] text-slate-400 font-mono">
-                    #{item.product.code} • Qty: {item.quantity} × AED {formatCurrency(item.product.price)}
-                  </div>
-                  <div className="text-xs font-mono font-bold text-[#FED430] mt-0.5">
-                    AED {formatCurrency(item.product.price * item.quantity)}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Charges summary on mobile */}
-          {additionalCharges.length > 0 && (
-            <div className="pt-2 border-t border-[#1E2839] space-y-1.5 text-xs">
-              <span className="text-[10px] font-bold text-amber-400 uppercase block">
-                Additional Services
-              </span>
-              {additionalCharges.map((ch) => (
-                <div key={ch.id} className="flex justify-between text-slate-300 text-[11px]">
-                  <span className="truncate pr-2">{ch.description}</span>
-                  <span className="font-mono text-amber-300 flex-shrink-0">AED {formatCurrency(ch.amount)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Total Breakdown */}
-          <div className="pt-2 border-t border-[#1E2839] space-y-1 text-xs">
-            <div className="flex justify-between text-slate-400">
-              <span>Taxable Subtotal:</span>
-              <span className="font-mono text-white">AED {formatCurrency(netTaxableSum)}</span>
-            </div>
-            <div className="flex justify-between text-slate-400">
-              <span>UAE VAT (5%):</span>
-              <span className="font-mono text-white">AED {formatCurrency(totalVat)}</span>
-            </div>
-            <div className="flex justify-between text-sm font-black text-white pt-1.5 border-t border-[#26334D]">
-              <span className="font-oswald tracking-wide">GRAND TOTAL:</span>
-              <span className="text-[#FED430] font-mono">AED {formatCurrency(grandTotal)}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Swipe Hint */}
-      <div className="print:hidden sm:hidden flex items-center justify-between p-2.5 rounded-lg bg-[#141A26] border border-[#26334D] text-[11px] text-slate-300">
-        <span>↔ Swipe horizontally to inspect full A4 invoice</span>
-        <button
-          onClick={handleDownloadPdf}
-          className="text-[#FED430] font-bold underline"
-        >
-          Download PDF
-        </button>
-      </div>
-
-      {/* 3. Printable Commercial Invoice Document (Exact Template Styling) */}
-      <div className="overflow-x-auto pb-4 -mx-2 sm:mx-0 px-2 sm:px-0">
+      {/* 3. Fully Responsive Printable Commercial Invoice Document */}
+      <div className="w-full max-w-full pb-6">
         <div
           id="printable-commercial-invoice"
-          className="min-w-[780px] max-w-[900px] mx-auto bg-white text-slate-900 rounded-lg p-6 sm:p-8 border border-slate-300 shadow-2xl print:shadow-none print:border-none print:m-0 print:p-2"
+          className="w-full max-w-[900px] mx-auto bg-white text-slate-900 rounded-xl p-3.5 sm:p-8 border border-slate-300 shadow-2xl print:shadow-none print:border-none print:m-0 print:p-0 print:max-w-none"
         >
           {/* Top Header */}
-          <div className="flex justify-between items-start gap-4 pb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4 pb-3 sm:pb-4 border-b border-slate-200 sm:border-b-0">
             {/* Left Brand */}
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded bg-[#E63946] flex items-center justify-center text-white font-oswald text-2xl font-black flex-shrink-0 shadow-sm">
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded bg-[#E63946] flex items-center justify-center text-white font-oswald text-xl sm:text-2xl font-black flex-shrink-0 shadow-sm">
                 EF
               </div>
               <div>
-                <h1 className="font-oswald text-2xl font-black text-[#08203E] tracking-wider leading-none">
+                <h1 className="font-oswald text-xl sm:text-2xl font-black text-[#08203E] tracking-wider leading-none">
                   {companySettings.brandHeader || 'EMMA FITNESS'}
                 </h1>
-                <p className="text-[10px] font-bold text-slate-600 tracking-wider uppercase mt-1">
+                <p className="text-[9px] sm:text-[10px] font-bold text-slate-600 tracking-wider uppercase mt-1">
                   {companySettings.legalName ||
                     'SPORTS FIELDS & HALLS EQUIPMENT TRADING CO. L.L.C'}
                 </p>
@@ -435,32 +351,32 @@ export default function QuotationInvoicePage() {
             </div>
 
             {/* Right TRN & Contacts */}
-            <div className="text-right space-y-0.5">
-              <div className="inline-block px-2.5 py-0.5 rounded bg-[#E63946] text-white text-[11px] font-mono font-bold tracking-wider mb-1">
+            <div className="w-full sm:w-auto text-left sm:text-right space-y-0.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+              <div className="inline-block px-2.5 py-0.5 rounded bg-[#E63946] text-white text-[10px] sm:text-[11px] font-mono font-bold tracking-wider mb-1">
                 TRN: {companySettings.trn || '100569744400003'}
               </div>
-              <p className="text-[10.5px] font-semibold text-slate-700">
+              <p className="text-[10px] sm:text-[10.5px] font-semibold text-slate-700">
                 Phone: {companySettings.phone || '0563296585'}
               </p>
-              <p className="text-[10.5px] text-slate-700">
+              <p className="text-[10px] sm:text-[10.5px] text-slate-700">
                 Website: {companySettings.website || 'www.emmafitness.ae'}
               </p>
-              <p className="text-[10.5px] text-slate-700">
+              <p className="text-[10px] sm:text-[10.5px] text-slate-700">
                 Email: {companySettings.email || 'emmafitdxb@gmail.com'}
               </p>
-              <p className="text-[10px] text-slate-500">
+              <p className="text-[9.5px] sm:text-[10px] text-slate-500">
                 Location: {companySettings.address || 'Al Muteena, Deira, Dubai, UAE'}
               </p>
             </div>
           </div>
 
           {/* Title Bar */}
-          <div className="w-full bg-[#0D3B66] text-white text-center py-2 font-oswald text-sm font-black tracking-widest uppercase my-2">
+          <div className="w-full bg-[#0D3B66] text-white text-center py-1.5 sm:py-2 font-oswald text-xs sm:text-sm font-black tracking-widest uppercase my-2 rounded-md sm:rounded-none">
             QUOTATION / COMMERCIAL TAX INVOICE
           </div>
 
-          {/* Customer Details Table (Uniform Table matching template) */}
-          <table className="w-full border-collapse border border-[#0D3B66] text-[11px] my-3">
+          {/* Desktop/Print Customer Details Table */}
+          <table className="hidden sm:table print:table w-full border-collapse border border-[#0D3B66] text-[11px] my-3">
             <tbody>
               <tr className="border-b border-[#0D3B66]">
                 <td className="w-32 bg-slate-100 p-2 font-bold text-slate-800 border-r border-[#0D3B66]">
@@ -521,8 +437,36 @@ export default function QuotationInvoicePage() {
             </tbody>
           </table>
 
-          {/* Products & Line Items Table */}
-          <table className="w-full border-collapse border border-slate-900 text-xs my-2">
+          {/* Mobile Customer Details (Stacked Responsive Card) */}
+          <div className="sm:hidden print:hidden border border-[#0D3B66] rounded-lg text-xs my-2.5 bg-slate-50 overflow-hidden divide-y divide-[#0D3B66]/20">
+            <div className="flex justify-between p-2">
+              <span className="font-bold text-slate-600 text-[11px]">Customer:</span>
+              <span className="font-bold text-slate-900 text-right">{customerName.trim() || 'Valued Customer'}</span>
+            </div>
+            <div className="flex justify-between p-2">
+              <span className="font-bold text-slate-600 text-[11px]">Quotation #:</span>
+              <span className="font-mono font-bold text-[#0D3B66]">{quotationNumber.trim() || '102'}</span>
+            </div>
+            <div className="flex justify-between p-2">
+              <span className="font-bold text-slate-600 text-[11px]">Date:</span>
+              <span className="font-semibold text-slate-800">{quoteDate}</span>
+            </div>
+            <div className="flex justify-between p-2">
+              <span className="font-bold text-slate-600 text-[11px]">Contact:</span>
+              <span className="font-mono text-slate-800">{contactNumber.trim() || '0563296585'}</span>
+            </div>
+            <div className="flex justify-between p-2">
+              <span className="font-bold text-slate-600 text-[11px]">Billing:</span>
+              <span className="text-slate-800 text-right">{customerDetails.trim() || 'Dubai, UAE'}</span>
+            </div>
+            <div className="flex justify-between p-2 bg-emerald-50/70">
+              <span className="font-bold text-emerald-800 text-[11px]">Payment Terms:</span>
+              <span className="font-semibold text-emerald-950 text-right text-[11px]">50% Advance, 50% Before Delivery</span>
+            </div>
+          </div>
+
+          {/* Desktop/Print Products & Line Items Table */}
+          <table className="hidden sm:table print:table w-full border-collapse border border-slate-900 text-xs my-2">
             <thead>
               <tr className="bg-[#0D3B66] text-white text-[11px] font-bold">
                 <th className="border border-slate-900 p-2 text-center w-10">SL NO</th>
@@ -602,38 +546,88 @@ export default function QuotationInvoicePage() {
             </tbody>
           </table>
 
+          {/* Mobile Equipment Items (Responsive Touch Cards) */}
+          <div className="sm:hidden print:hidden border border-slate-900 rounded-lg overflow-hidden my-2.5 divide-y divide-slate-200">
+            <div className="bg-[#0D3B66] text-white text-[11px] font-bold px-3 py-2 uppercase flex justify-between items-center">
+              <span>Equipment Units ({cartItemsList.length})</span>
+              <span>Total Amount</span>
+            </div>
+            {cartItemsList.map((item, idx) => (
+              <div key={item.product.code} className="p-3 bg-white space-y-2">
+                <div className="flex items-start gap-2.5">
+                  <span className="font-mono font-bold text-xs text-slate-400 mt-0.5">#{idx + 1}</span>
+                  <div className="w-12 h-12 bg-white rounded border border-slate-200 p-0.5 flex-shrink-0 flex items-center justify-center">
+                    <img
+                      src={item.product.imagePath}
+                      alt={item.product.name}
+                      className="max-h-full max-w-full object-contain"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-slate-900 text-xs leading-snug">{item.product.name}</h4>
+                    <span className="font-mono text-[10px] text-slate-500 block">Code: {item.product.code} • {item.product.category}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center text-xs bg-slate-50 p-2 rounded border border-slate-100">
+                  <span className="text-slate-600 font-mono text-[11px]">
+                    Qty: <strong className="text-slate-900 font-bold">{item.quantity}</strong> × AED {formatCurrency(item.product.price)}
+                  </span>
+                  <span className="font-mono font-black text-slate-900 text-xs">
+                    AED {formatCurrency(item.product.price * item.quantity)}
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            {/* Additional Charges on Mobile */}
+            {additionalCharges.map((ch, idx) => (
+              <div key={ch.id} className="p-2.5 bg-amber-50/70 space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono font-bold text-xs text-amber-800">#{cartItemsList.length + idx + 1}</span>
+                  <span className="text-[9.5px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-amber-200 text-amber-900">SERVICE</span>
+                  <span className="font-bold text-slate-900 text-xs truncate">{ch.description || 'Logistics Charge'}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs pt-0.5">
+                  <span className="text-slate-500 font-mono text-[11px]">Qty: 1</span>
+                  <span className="font-mono font-bold text-amber-950 text-xs">AED {formatCurrency(ch.amount)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
           {/* Totals Section */}
-          <div className="border border-slate-900 border-t-0 text-xs">
+          <div className="border border-slate-900 border-t-0 sm:border-t text-xs rounded-b-lg overflow-hidden">
             {/* Sub Total */}
-            <div className="flex justify-between items-center px-4 py-2 border-b border-slate-900">
+            <div className="flex justify-between items-center px-3 sm:px-4 py-2 border-b border-slate-900">
               <span className="font-bold text-slate-700">Sub Total</span>
-              <span className="font-mono font-bold text-sm">
+              <span className="font-mono font-bold text-xs sm:text-sm">
                 AED {formatCurrency(netTaxableSum)}
               </span>
             </div>
 
-            {/* VAT 5% & Words */}
-            <div className="flex justify-between items-center px-4 py-2 border-b border-slate-900 bg-slate-50">
-              <div className="text-[11px] font-serif italic text-slate-800 max-w-md">
-                Amount in Words:{' '}
-                <strong className="not-italic font-sans text-slate-900">
-                  {numberToWords(grandTotal)}
-                </strong>
-              </div>
-              <div className="flex items-center gap-6">
-                <span className="font-semibold text-slate-700">VAT 5%:</span>
-                <span className="font-mono font-bold">
-                  AED {formatCurrency(totalVat)}
-                </span>
-              </div>
+            {/* VAT 5% */}
+            <div className="flex justify-between items-center px-3 sm:px-4 py-2 border-b border-slate-900 bg-slate-50">
+              <span className="font-semibold text-slate-700">UAE VAT (5%)</span>
+              <span className="font-mono font-bold text-xs sm:text-sm">
+                AED {formatCurrency(totalVat)}
+              </span>
+            </div>
+
+            {/* Amount in Words */}
+            <div className="px-3 sm:px-4 py-2 border-b border-slate-900 bg-slate-50 text-[10.5px] sm:text-[11px] font-serif italic text-slate-800">
+              Amount in Words:{' '}
+              <strong className="not-italic font-sans text-slate-900 font-bold block sm:inline mt-0.5 sm:mt-0">
+                {numberToWords(grandTotal)}
+              </strong>
             </div>
 
             {/* Grand Total */}
-            <div className="flex justify-between items-center px-4 py-2.5 bg-slate-100 text-[#0D3B66]">
-              <span className="font-oswald text-sm font-black uppercase tracking-wider">
+            <div className="flex justify-between items-center px-3 sm:px-4 py-2.5 bg-slate-100 text-[#0D3B66]">
+              <span className="font-oswald text-xs sm:text-sm font-black uppercase tracking-wider">
                 Grand Total (AED)
               </span>
-              <span className="font-mono font-black text-base text-[#0D3B66]">
+              <span className="font-mono font-black text-sm sm:text-base text-[#0D3B66]">
                 AED {formatCurrency(grandTotal)}
               </span>
             </div>
@@ -641,29 +635,29 @@ export default function QuotationInvoicePage() {
 
           {/* BANK DETAILS Section */}
           <div className="mt-4">
-            <div className="w-full bg-[#0D3B66] text-white px-3 py-1 font-bold text-[11px] tracking-wider uppercase">
+            <div className="w-full bg-[#0D3B66] text-white px-3 py-1 font-bold text-[10.5px] sm:text-[11px] tracking-wider uppercase rounded-t-sm">
               BANK DETAILS FOR WIRE TRANSFER
             </div>
-            <div className="p-3 bg-slate-50 border border-slate-300 text-[11px] font-mono space-y-1">
+            <div className="p-2.5 sm:p-3 bg-slate-50 border border-slate-300 text-[10px] sm:text-[11px] font-mono space-y-1.5 break-words">
               {bankAccounts.length > 0 ? (
                 bankAccounts.map((b) => (
-                  <div key={b.id} className="text-slate-800">
+                  <div key={b.id} className="text-slate-800 leading-relaxed">
                     • <strong>{b.accountTitle}</strong> | {b.bankName} | A/C:{' '}
-                    <strong>{b.accountNumber}</strong> | IBAN: <strong>{b.iban}</strong>{' '}
+                    <strong>{b.accountNumber}</strong> | IBAN: <strong className="break-all">{b.iban}</strong>{' '}
                     {b.swift ? `(SWIFT: ${b.swift})` : ''}
                   </div>
                 ))
               ) : (
                 <>
-                  <div className="text-slate-800">
+                  <div className="text-slate-800 leading-relaxed">
                     • <strong>EMMA GYM AND EKAVEERA KALARI LLC SPC</strong> | ADCB BANK | A/C:{' '}
                     <strong>13613665820001</strong> | IBAN:{' '}
-                    <strong>AE080030013613665820001</strong>
+                    <strong className="break-all">AE080030013613665820001</strong>
                   </div>
-                  <div className="text-slate-800">
+                  <div className="text-slate-800 leading-relaxed">
                     • <strong>EMMA GYM</strong> | FAB BANK | A/C:{' '}
                     <strong>1001327234596001</strong> | IBAN:{' '}
-                    <strong>AE660351001327234596001</strong>
+                    <strong className="break-all">AE660351001327234596001</strong>
                   </div>
                 </>
               )}
@@ -672,10 +666,10 @@ export default function QuotationInvoicePage() {
 
           {/* TERMS & CONDITIONS Section */}
           <div className="mt-3">
-            <div className="w-full bg-[#0D3B66] text-white px-3 py-1 font-bold text-[11px] tracking-wider uppercase">
+            <div className="w-full bg-[#0D3B66] text-white px-3 py-1 font-bold text-[10.5px] sm:text-[11px] tracking-wider uppercase rounded-t-sm">
               TERMS & CONDITIONS
             </div>
-            <div className="p-3 bg-slate-50 border border-slate-300 text-[10.5px] text-slate-700 space-y-1">
+            <div className="p-2.5 sm:p-3 bg-slate-50 border border-slate-300 text-[10px] sm:text-[10.5px] text-slate-700 space-y-1 leading-relaxed">
               <p>• Customer shall approve the quotation along with the signed purchase order.</p>
               <p>• Quotation validity: 7 calendar days from the date of issuance.</p>
               <p>• Payment: 50% advance booking deposit, balance 50% at least 1 day prior to warehouse delivery.</p>
@@ -685,7 +679,7 @@ export default function QuotationInvoicePage() {
           </div>
 
           {/* Document Footer */}
-          <div className="mt-6 pt-3 border-t border-slate-300 flex justify-between items-center text-[10px] text-slate-500">
+          <div className="mt-5 sm:mt-6 pt-3 border-t border-slate-300 flex flex-col sm:flex-row justify-between items-center gap-1 text-[9.5px] sm:text-[10px] text-slate-500">
             <span>
               {companySettings.brandHeader || 'Emma Fitness'} • Phone: {companySettings.phone || '0563296585'} • {companySettings.website || 'www.emmafitness.ae'}
             </span>
