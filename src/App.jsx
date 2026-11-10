@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { useApp } from './context/AppContext';
 import TopTicker from './components/TopTicker';
 import Navbar from './components/Navbar';
-import HeroSection from './components/HeroSection';
 import Pillars from './components/Pillars';
 import SearchBar from './components/SearchBar';
 import CategoryTabs from './components/CategoryTabs';
@@ -69,12 +68,6 @@ export default function App() {
           <>
             {currentPage === 'products' && (
               <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 space-y-4 flex-1">
-                {/* Hero Section */}
-                <HeroSection
-                  onBrowseClick={handleScrollToProducts}
-                  onRequestQuoteClick={() => setIsCartOpen(true)}
-                />
-
                 {/* 4 Feature Pillars */}
                 <Pillars />
 
