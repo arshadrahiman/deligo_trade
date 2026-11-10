@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from './context/AppContext';
 import TopTicker from './components/TopTicker';
 import Navbar from './components/Navbar';
@@ -6,6 +6,7 @@ import Pillars from './components/Pillars';
 import SearchBar from './components/SearchBar';
 import CategoryTabs from './components/CategoryTabs';
 import ProductCard from './components/ProductCard';
+import Pagination from './components/Pagination';
 import FloatingCartDock from './components/FloatingCartDock';
 import CartDrawer from './components/CartDrawer';
 import QuotationInvoicePage from './components/QuotationInvoicePage';
@@ -32,6 +33,15 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const productsGridRef = useRef(null);
 
+  // Pagination State
+  const [productPage, setProductPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+
+  // Reset page when category or search changes
+  useEffect(() => {
+    setProductPage(1);
+  }, [selectedCategory, searchQuery]);
+
   // Filter products by category and search
   const displayedProducts = products.filter((p) => {
     const matchesCategory =
@@ -45,6 +55,19 @@ export default function App() {
 
     return matchesCategory && matchesSearch;
   });
+
+  // Calculate paginated products
+  const totalPages = Math.max(1, Math.ceil(displayedProducts.length / itemsPerPage));
+  const validPage = Math.min(productPage, totalPages);
+  const startIndex = (validPage - 1) * itemsPerPage;
+  const paginatedProducts = displayedProducts.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (newPage) => {
+    setProductPage(newPage);
+    if (productsGridRef.current) {
+      productsGridRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const handleScrollToProducts = () => {
     if (productsGridRef.current) {
@@ -85,7 +108,7 @@ export default function App() {
                 <CategoryTabs />
 
                 {/* Products Count Header */}
-                <div className="flex items-center justify-between text-xs text-slate-400 py-1 border-b border-[#1E2839]">
+                <div className="flex flex-wrap items-center justify-between text-xs text-slate-400 py-1 border-b border-[#1E2839] gap-2">
                   <span className="font-bold uppercase tracking-wider text-slate-300">
                     Commercial Warehouse Stock ({displayedProducts.length} Machines)
                   </span>
@@ -108,20 +131,35 @@ export default function App() {
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 pt-2">
-                    {displayedProducts.map((p) => {
-                      const inCartQty = cart[p.code]?.quantity || 0;
-                      return (
-                        <ProductCard
-                          key={p.code}
-                          product={p}
-                          inCartQty={inCartQty}
-                          onAdd={() => addToCart(p)}
-                          onRemove={() => removeFromCart(p.code)}
-                        />
-                      );
-                    })}
-                  </div>
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 pt-2">
+                      {paginatedProducts.map((p) => {
+                        const inCartQty = cart[p.code]?.quantity || 0;
+                        return (
+                          <ProductCard
+                            key={p.code}
+                            product={p}
+                            inCartQty={inCartQty}
+                            onAdd={() => addToCart(p)}
+                            onRemove={() => removeFromCart(p.code)}
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* Pagination Bar */}
+                    <div className="pt-4 border-t border-[#1E2839]">
+                      <Pagination
+                        currentPage={validPage}
+                        totalItems={displayedProducts.length}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={handlePageChange}
+                        onItemsPerPageChange={setItemsPerPage}
+                        perPageOptions={[12, 24, 48]}
+                        itemLabel="commercial machines"
+                      />
+                    </div>
+                  </>
                 )}
               </div>
             )}

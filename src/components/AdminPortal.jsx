@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Lock,
   LogOut,
@@ -27,6 +27,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
 import { generateInvoicePdf } from '../utils/pdfGenerator';
+import Pagination from './Pagination';
 
 export const DEFAULT_TERMS_TEMPLATES = [
   {
@@ -91,9 +92,16 @@ export default function AdminPortal() {
   const [quoteSearch, setQuoteSearch] = useState('');
   const [quoteFilter, setQuoteFilter] = useState('ALL'); // 'ALL' | 'quotation' | 'sales_invoice'
 
-  // Search in Products
+  // Search & Pagination in Products
   const [prodSearch, setProdSearch] = useState('');
   const [prodCategoryFilter, setProdCategoryFilter] = useState('ALL');
+  const [prodPage, setProdPage] = useState(1);
+  const [prodPerPage, setProdPerPage] = useState(10);
+
+  // Reset product page when category or search changes
+  useEffect(() => {
+    setProdPage(1);
+  }, [prodCategoryFilter, prodSearch]);
 
   // Modals
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -431,6 +439,14 @@ export default function AdminPortal() {
       p.code.toLowerCase().includes(prodSearch.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  const totalProdPages = Math.max(1, Math.ceil(filteredProducts.length / prodPerPage));
+  const validProdPage = Math.min(prodPage, totalProdPages);
+  const startProdIndex = (validProdPage - 1) * prodPerPage;
+  const paginatedAdminProducts = filteredProducts.slice(
+    startProdIndex,
+    startProdIndex + prodPerPage
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fadeIn">
@@ -904,7 +920,7 @@ export default function AdminPortal() {
 
           {/* Mobile Products Cards (sm:hidden) */}
           <div className="sm:hidden space-y-3">
-            {filteredProducts.map((p) => (
+            {paginatedAdminProducts.map((p) => (
               <div
                 key={p.code}
                 className="p-3.5 rounded-xl bg-[#0F1420] border border-[#1E2839] space-y-3 shadow-lg"
@@ -996,7 +1012,7 @@ export default function AdminPortal() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1E2839]">
-                {filteredProducts.map((p) => (
+                {paginatedAdminProducts.map((p) => (
                   <tr key={p.code} className="hover:bg-[#141A26] transition-colors">
                     <td className="p-3">
                       <div className="w-12 h-12 bg-white rounded p-1 border border-slate-700 flex items-center justify-center">
@@ -1086,6 +1102,19 @@ export default function AdminPortal() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Products Pagination Bar */}
+          <div className="pt-4 border-t border-[#1E2839]">
+            <Pagination
+              currentPage={validProdPage}
+              totalItems={filteredProducts.length}
+              itemsPerPage={prodPerPage}
+              onPageChange={(page) => setProdPage(page)}
+              onItemsPerPageChange={(limit) => setProdPerPage(limit)}
+              perPageOptions={[10, 20, 50]}
+              itemLabel="equipment products"
+            />
           </div>
         </div>
       )}
