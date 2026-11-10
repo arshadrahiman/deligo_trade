@@ -8,12 +8,14 @@ A high-performance **React.js + Vite + Tailwind CSS** platform for commercial fi
 
 This repository is pre-configured for automated and manual deployment to **GitHub Pages**:
 
-- **Relative Asset Base (`base: './'`)**: Works out-of-the-box on `https://<username>.github.io/<repo>/` or custom domains.
+- **Live Storefront URL:** **[https://arshadrahiman.github.io/deligo_trade/](https://arshadrahiman.github.io/deligo_trade/)**
+- **Admin Portal URL:** **[https://arshadrahiman.github.io/deligo_trade/#admin](https://arshadrahiman.github.io/deligo_trade/#admin)**
+- **Relative Asset Base (`base: './'`)**: Works out-of-the-box on `https://arshadrahiman.github.io/deligo_trade/` or custom domains.
 - **SPA 404 Routing Fallback (`404.html`)**: Automatically created on build so refreshing sub-routes like `/#admin` or direct URLs loads smoothly.
 - **GitHub Actions Automated Deployment**: Every push to `main` automatically triggers `.github/workflows/deploy.yml` to build and deploy to GitHub Pages.
 
 ### Enabling GitHub Pages on GitHub:
-1. Go to your repository on GitHub (`Settings` → `Pages`).
+1. Go to your repository on GitHub: [https://github.com/arshadrahiman/deligo_trade/settings/pages](https://github.com/arshadrahiman/deligo_trade/settings/pages)
 2. Under **Build and deployment** → **Source**, select:
    - **GitHub Actions** (recommended — zero config, runs automatically on every `git push`).
    - *Or* select **Deploy from a branch** and choose `gh-pages` if deploying via `npm run deploy`.
@@ -43,7 +45,7 @@ npm run deploy
 The Admin Portal is **completely unlisted and hidden** from the storefront (no buttons in header, navigation bar, or footer). It is accessible exclusively by visiting the direct link:
 
 - **Local Admin Path:** `http://localhost:3000/#admin`
-- **GitHub Pages Admin Path:** `https://<username>.github.io/<repo>/#admin`
+- **GitHub Pages Admin Path:** `https://arshadrahiman.github.io/deligo_trade/#admin`
 
 ---
 
