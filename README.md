@@ -4,13 +4,19 @@ A high-performance **React.js + Vite + Tailwind CSS** platform for commercial fi
 
 ---
 
-## 🌐 Live Production Deployment (Netlify)
+## 🌐 GitHub Pages Deployment
 
-- **Client Storefront URL:** **[https://delitrade-warehouse-uat.netlify.app/](https://delitrade-warehouse-uat.netlify.app/)**
-- **Admin Portal URL:** **[https://delitrade-warehouse-uat.netlify.app/#admin](https://delitrade-warehouse-uat.netlify.app/#admin)** (or `/admin`)
-- **Admin Credentials:**
-  - **Username:** `admin` (or `delitrade`)
-  - **Password:** `delitrade2026` (or `admin`)
+This repository is pre-configured for automated and manual deployment to **GitHub Pages**:
+
+- **Relative Asset Base (`base: './'`)**: Works out-of-the-box on `https://<username>.github.io/<repo>/` or custom domains.
+- **SPA 404 Routing Fallback (`404.html`)**: Automatically created on build so refreshing sub-routes like `/#admin` or direct URLs loads smoothly.
+- **GitHub Actions Automated Deployment**: Every push to `main` automatically triggers `.github/workflows/deploy.yml` to build and deploy to GitHub Pages.
+
+### Enabling GitHub Pages on GitHub:
+1. Go to your repository on GitHub (`Settings` → `Pages`).
+2. Under **Build and deployment** → **Source**, select:
+   - **GitHub Actions** (recommended — zero config, runs automatically on every `git push`).
+   - *Or* select **Deploy from a branch** and choose `gh-pages` if deploying via `npm run deploy`.
 
 ---
 
@@ -20,13 +26,13 @@ A high-performance **React.js + Vite + Tailwind CSS** platform for commercial fi
 # 1. Start local dev server (port 3000)
 npm run dev
 
-# 2. Build for production
+# 2. Build for production (compiles assets and generates 404.html fallback)
 npm run build
 
 # 3. Preview production build locally
 npm run preview
 
-# 4. Deploy directly to Netlify production
+# 4. Manual deploy to gh-pages branch (optional alternative to GitHub Actions)
 npm run deploy
 ```
 
@@ -36,8 +42,8 @@ npm run deploy
 
 The Admin Portal is **completely unlisted and hidden** from the storefront (no buttons in header, navigation bar, or footer). It is accessible exclusively by visiting the direct link:
 
-- **Production Admin Path:** `https://delitrade-warehouse-uat.netlify.app/#admin`
 - **Local Admin Path:** `http://localhost:3000/#admin`
+- **GitHub Pages Admin Path:** `https://<username>.github.io/<repo>/#admin`
 
 ---
 
@@ -52,6 +58,7 @@ The Admin Portal is **completely unlisted and hidden** from the storefront (no b
 - **Commercial Catalog (82 Machines):** Plate Loaded, Strength & Cables, Cardio, Free Weights, and Core & Specialty with specifications and pricing.
 - **Cart & Commercial Quotation Generator:** Interactive line items, 5% UAE VAT, Dirhams & Fils words conversion, and wire transfer bank details.
 - **PDF Download & Print:** Instant client-side PDF export (`jsPDF`) and native browser print styles.
+- **Full Touch Optimization:** Responsive for all screen sizes (mobile, tablet, desktop) with multi-finger and gesture pinch-to-zoom disabled.
 
 ### 2. Administrator Portal
 - **Standalone Login Page:** Clean, focused login with no storefront navigation or banners.
@@ -60,6 +67,7 @@ The Admin Portal is **completely unlisted and hidden** from the storefront (no b
 - **Interactive Bill Preview & Price Override:**
   - **Admin-Only Price Modification:** Admins can manually override unit prices on any line item before generating the sales invoice.
   - Compares catalog price vs. custom negotiated price with discount percentage calculation.
+- **Terms & Conditions Template Selector (Mandatory):** Select and edit 2 customizable T&C templates before finalizing invoices.
 - **Dynamic "+ Add Additional Charge" Button:** Add custom fields for site delivery, turnkey assembly, rubber matting, or logistics fees in real time.
 - **Product & Stock Management (CRUD + Qty):** Add, update, and delete machinery; quick inline stock quantity modifiers (`+` / `-`).
 - **Logo & Branding Customizer:** Upload a custom logo or use the default typography logo.
