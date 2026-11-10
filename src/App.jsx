@@ -12,7 +12,6 @@ import CartDrawer from './components/CartDrawer';
 import QuotationInvoicePage from './components/QuotationInvoicePage';
 import ServicesPage from './components/ServicesPage';
 import AboutPage from './components/AboutPage';
-import ContactPage from './components/ContactPage';
 import SupportPage from './components/SupportPage';
 import Footer from './components/Footer';
 import AdminPortal from './components/AdminPortal';
@@ -131,11 +130,6 @@ export default function App() {
                     })}
                   </div>
                 )}
-
-                {/* Bottom Contact Section */}
-                <div className="pt-12">
-                  <ContactPage />
-                </div>
               </div>
             )}
 
@@ -144,8 +138,6 @@ export default function App() {
             {currentPage === 'services' && <ServicesPage />}
 
             {currentPage === 'aboutUs' && <AboutPage />}
-
-            {currentPage === 'contact' && <ContactPage />}
 
             {currentPage === 'support' && <SupportPage />}
           </>

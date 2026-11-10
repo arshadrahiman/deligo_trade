@@ -19,7 +19,6 @@ export default function Navbar({ onOpenCart }) {
     { id: 'products', label: 'EQUIPMENT CATALOG' },
     { id: 'services', label: 'GYM MACHINERY & SERVICES' },
     { id: 'aboutUs', label: 'ABOUT WAREHOUSE' },
-    { id: 'contact', label: 'CONTACT HUB' },
     { id: 'support', label: 'WARRANTY & SUPPORT' },
   ];
 

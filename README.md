@@ -54,7 +54,7 @@ The Admin Portal is **completely unlisted and hidden** from the storefront (no b
 ### 1. Storefront (Public)
 - **Zero Admin Footprint:** No admin links in navbar, mobile menu, or footer.
 - **Top Announcement Marquee:** Warehouse direct stock, 5% UAE VAT, and factory direct pricing.
-- **Header & Responsive Navigation:** Catalog, Services, About, Contact, Support, and animated Cart CTA.
+- **Header & Responsive Navigation:** Catalog, Services, About, Support, and animated Cart CTA.
 - **Hero Banner & 4 Pillars:** Industrial gym equipment branding, certified stations, 10,500 sq ft warehouse in Al Muteena.
 - **Real-Time Live Search:** Autocomplete suggestions dropdown by product name, model code (`LP-045`, `B072`), and trending chips.
 - **Commercial Catalog (82 Machines):** Plate Loaded, Strength & Cables, Cardio, Free Weights, and Core & Specialty with specifications and pricing.

@@ -43,15 +43,6 @@ export default function Footer() {
           >
             About Warehouse
           </button>
-          <button
-            onClick={() => {
-              setCurrentPage('contact');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="hover:text-white transition-colors"
-          >
-            Contact Hub
-          </button>
         </div>
       </div>
     </footer>
