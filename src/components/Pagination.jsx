@@ -37,27 +37,27 @@ export default function Pagination({
   const pages = getPageNumbers();
 
   return (
-    <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 py-4 px-2 select-none">
+    <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 py-3 px-3 pos-glass rounded-2xl select-none">
       {/* Left: Summary and Per Page Selector */}
       <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs text-slate-400">
-        <div>
+        <div className="font-mono">
           Showing{' '}
-          <span className="font-mono font-bold text-white">
+          <span className="font-bold text-white">
             {startIndex}–{endIndex}
           </span>{' '}
-          of <span className="font-mono font-bold text-[#FED430]">{totalItems}</span> {itemLabel}
+          of <span className="font-bold text-amber-400">{totalItems}</span> {itemLabel}
         </div>
 
         {onItemsPerPageChange && perPageOptions.length > 0 && (
-          <div className="flex items-center gap-1.5 pl-2 sm:border-l border-[#26334D]">
-            <span>Show:</span>
+          <div className="flex items-center gap-1.5 pl-3 sm:border-l border-white/[0.08]">
+            <span className="text-[11px] font-mono text-slate-400">Density:</span>
             <select
               value={itemsPerPage}
               onChange={(e) => {
                 onItemsPerPageChange(Number(e.target.value));
                 onPageChange(1);
               }}
-              className="bg-[#141A26] border border-[#26334D] text-white text-xs rounded px-2 py-1 focus:outline-none focus:border-[#FED430] cursor-pointer font-bold"
+              className="bg-[#090D17] border border-white/[0.1] text-white text-xs rounded-lg px-2.5 py-1 focus:outline-none focus:border-amber-400 cursor-pointer font-mono font-bold"
             >
               {perPageOptions.map((opt) => (
                 <option key={opt} value={opt}>
@@ -76,7 +76,7 @@ export default function Pagination({
           <button
             onClick={() => onPageChange(1)}
             disabled={currentPage === 1}
-            className="w-8 h-8 rounded-lg bg-[#141A26] border border-[#26334D] text-slate-300 hover:text-white hover:border-[#FED430]/50 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-xl bg-white/[0.03] border border-white/[0.08] text-slate-300 hover:text-white hover:border-amber-400/40 disabled:opacity-25 disabled:pointer-events-none flex items-center justify-center transition-all"
             title="First Page"
           >
             <ChevronsLeft className="w-4 h-4" />
@@ -86,7 +86,7 @@ export default function Pagination({
           <button
             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="w-8 h-8 rounded-lg bg-[#141A26] border border-[#26334D] text-slate-300 hover:text-white hover:border-[#FED430]/50 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-xl bg-white/[0.03] border border-white/[0.08] text-slate-300 hover:text-white hover:border-amber-400/40 disabled:opacity-25 disabled:pointer-events-none flex items-center justify-center transition-all"
             title="Previous Page"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -99,7 +99,7 @@ export default function Pagination({
                 return (
                   <span
                     key={`ellipsis-${idx}`}
-                    className="w-8 text-center text-slate-500 font-bold text-xs"
+                    className="w-7 text-center text-slate-500 font-bold text-xs"
                   >
                     •••
                   </span>
@@ -111,10 +111,10 @@ export default function Pagination({
                 <button
                   key={p}
                   onClick={() => onPageChange(p)}
-                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                  className={`w-8 h-8 rounded-xl text-xs font-mono font-bold transition-all ${
                     isCurrent
-                      ? 'bg-[#FED430] text-black font-black shadow-md shadow-[#FED430]/20 scale-105'
-                      : 'bg-[#141A26] border border-[#26334D] text-slate-300 hover:bg-[#1E2839] hover:text-white hover:border-[#FED430]/40'
+                      ? 'bg-amber-400 text-black font-black shadow-md shadow-amber-400/25 scale-105'
+                      : 'bg-white/[0.03] border border-white/[0.08] text-slate-300 hover:bg-white/[0.08] hover:text-white hover:border-white/[0.15]'
                   }`}
                 >
                   {p}
@@ -127,7 +127,7 @@ export default function Pagination({
           <button
             onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className="w-8 h-8 rounded-lg bg-[#141A26] border border-[#26334D] text-slate-300 hover:text-white hover:border-[#FED430]/50 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-xl bg-white/[0.03] border border-white/[0.08] text-slate-300 hover:text-white hover:border-amber-400/40 disabled:opacity-25 disabled:pointer-events-none flex items-center justify-center transition-all"
             title="Next Page"
           >
             <ChevronRight className="w-4 h-4" />
@@ -137,7 +137,7 @@ export default function Pagination({
           <button
             onClick={() => onPageChange(totalPages)}
             disabled={currentPage === totalPages}
-            className="w-8 h-8 rounded-lg bg-[#141A26] border border-[#26334D] text-slate-300 hover:text-white hover:border-[#FED430]/50 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-xl bg-white/[0.03] border border-white/[0.08] text-slate-300 hover:text-white hover:border-amber-400/40 disabled:opacity-25 disabled:pointer-events-none flex items-center justify-center transition-all"
             title="Last Page"
           >
             <ChevronsRight className="w-4 h-4" />
@@ -147,4 +147,3 @@ export default function Pagination({
     </div>
   );
 }
-

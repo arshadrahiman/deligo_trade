@@ -340,16 +340,16 @@ export default function AdminPortal() {
   // -------------------------------------------------------------
   if (!isAdminLoggedIn) {
     return (
-      <div className="min-h-screen w-full bg-[#07090E] flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden select-none">
+      <div className="min-h-screen w-full bg-[#070A12] flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden select-none">
         {/* Subtle background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#FED430]/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="w-full max-w-md bg-[#0F1420] border border-[#26334D] rounded-2xl p-7 sm:p-9 shadow-2xl shadow-black relative z-10 space-y-6">
+        <div className="w-full max-w-md bg-surface border border-white/10 rounded-2xl p-7 sm:p-9 shadow-2xl shadow-black relative z-10 space-y-6">
           <div className="text-center space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-[#FED430] text-black flex items-center justify-center mx-auto shadow-lg shadow-[#FED430]/20">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold flex items-center justify-center mx-auto shadow-lg shadow-amber-500/20">
               <Lock className="w-7 h-7" />
             </div>
-            <h1 className="font-oswald text-2xl font-black text-white tracking-wider uppercase pt-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight uppercase pt-1">
               ADMINISTRATOR LOGIN
             </h1>
             <p className="text-slate-400 text-xs">
@@ -375,7 +375,7 @@ export default function AdminPortal() {
                 value={loginUsername}
                 onChange={(e) => setLoginUsername(e.target.value)}
                 placeholder="Enter username"
-                className="w-full bg-[#141A26] border border-[#26334D] rounded-lg px-3.5 py-2.5 text-white focus:outline-none focus:border-[#FED430] text-sm"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-500/60 text-sm"
               />
             </div>
 
@@ -389,22 +389,22 @@ export default function AdminPortal() {
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full bg-[#141A26] border border-[#26334D] rounded-lg px-3.5 py-2.5 text-white focus:outline-none focus:border-[#FED430] text-sm"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-500/60 text-sm"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3.5 rounded-lg bg-[#FED430] text-black font-black uppercase tracking-wider hover:bg-[#e5be2b] shadow-lg shadow-[#FED430]/20 transition-all text-xs active:scale-98"
+              className="w-full py-3.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black uppercase tracking-wider hover:brightness-110 shadow-lg shadow-amber-500/20 transition-all text-xs active:scale-98"
             >
               Sign In to Admin Portal
             </button>
           </form>
 
-          <div className="pt-2 border-t border-[#1E2839] flex items-center justify-between text-xs text-slate-400">
+          <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
             <button
               onClick={() => navigateToStorefront('products')}
-              className="flex items-center gap-1.5 text-slate-400 hover:text-[#FED430] transition-colors"
+              className="flex items-center gap-1.5 text-slate-400 hover:text-amber-400 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Return to Storefront</span>
@@ -451,15 +451,15 @@ export default function AdminPortal() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fadeIn">
       {/* Admin Top Navigation & Header */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-[#0F1420] border border-[#26334D] flex flex-wrap items-center justify-between gap-4 shadow-xl">
+      <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-white/10 flex flex-wrap items-center justify-between gap-4 shadow-xl">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#FED430] flex items-center justify-center text-black font-black shadow-md shadow-[#FED430]/20">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold shadow-md shadow-amber-500/20">
             <Lock className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-oswald text-xl sm:text-2xl font-black text-white tracking-wider leading-none">
-                DELITRADE ADMIN DASHBOARD
+              <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight leading-none">
+                DELITRADE TRADING TERMINAL • ADMIN ERP
               </h1>
             </div>
             <p className="text-slate-400 text-xs mt-1">
@@ -471,7 +471,7 @@ export default function AdminPortal() {
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => navigateToStorefront('products')}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#141A26] border border-[#26334D] text-xs font-bold text-slate-300 hover:text-white"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#070A12] border border-white/10 text-xs font-bold text-slate-300 hover:text-white"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Storefront</span>
@@ -488,13 +488,13 @@ export default function AdminPortal() {
       </div>
 
       {/* Admin Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#1E2839] pb-3 overflow-x-auto no-scrollbar sm:flex-wrap">
+      <div className="flex items-center gap-2 border-b border-white/10 pb-3 overflow-x-auto no-scrollbar sm:flex-wrap">
         <button
           onClick={() => setActiveTab('quotes')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
             activeTab === 'quotes'
-              ? 'bg-[#FED430] text-black shadow-md shadow-[#FED430]/20'
-              : 'bg-[#0F1420] text-slate-300 border border-[#1E2839] hover:bg-[#141A26] hover:text-white'
+              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+              : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
           }`}
         >
           <Receipt className="w-4 h-4" />
@@ -505,8 +505,8 @@ export default function AdminPortal() {
           onClick={() => setActiveTab('products')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
             activeTab === 'products'
-              ? 'bg-[#FED430] text-black shadow-md shadow-[#FED430]/20'
-              : 'bg-[#0F1420] text-slate-300 border border-[#1E2839] hover:bg-[#141A26] hover:text-white'
+              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+              : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
           }`}
         >
           <Package className="w-4 h-4" />
@@ -517,8 +517,8 @@ export default function AdminPortal() {
           onClick={() => setActiveTab('branding')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
             activeTab === 'branding'
-              ? 'bg-[#FED430] text-black shadow-md shadow-[#FED430]/20'
-              : 'bg-[#0F1420] text-slate-300 border border-[#1E2839] hover:bg-[#141A26] hover:text-white'
+              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+              : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
           }`}
         >
           <Building className="w-4 h-4" />
@@ -529,8 +529,8 @@ export default function AdminPortal() {
           onClick={() => setActiveTab('banks')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
             activeTab === 'banks'
-              ? 'bg-[#FED430] text-black shadow-md shadow-[#FED430]/20'
-              : 'bg-[#0F1420] text-slate-300 border border-[#1E2839] hover:bg-[#141A26] hover:text-white'
+              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+              : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
           }`}
         >
           <CreditCard className="w-4 h-4" />
@@ -545,35 +545,35 @@ export default function AdminPortal() {
         <div className="space-y-4">
           {/* Quotes KPI Summary */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-            <div className="p-4 rounded-xl bg-[#0F1420] border border-[#1E2839]">
+            <div className="p-4 rounded-xl bg-surface border border-white/10">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">
                 Total Quotes Logged
               </span>
-              <span className="font-oswald text-2xl font-black text-white">
+              <span className="text-2xl font-mono font-bold text-white">
                 {quotesRecords.length}
               </span>
             </div>
-            <div className="p-4 rounded-xl bg-[#0F1420] border border-[#1E2839]">
+            <div className="p-4 rounded-xl bg-surface border border-white/10">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">
                 Converted to Sales Invoices
               </span>
-              <span className="font-oswald text-2xl font-black text-emerald-400">
+              <span className="text-2xl font-mono font-bold text-emerald-400">
                 {quotesRecords.filter((q) => q.type === 'sales_invoice').length}
               </span>
             </div>
-            <div className="p-4 rounded-xl bg-[#0F1420] border border-[#1E2839]">
+            <div className="p-4 rounded-xl bg-surface border border-white/10">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">
                 Pending Quotations
               </span>
-              <span className="font-oswald text-2xl font-black text-amber-400">
+              <span className="text-2xl font-mono font-bold text-amber-400">
                 {quotesRecords.filter((q) => q.type !== 'sales_invoice').length}
               </span>
             </div>
-            <div className="p-4 rounded-xl bg-[#0F1420] border border-[#1E2839]">
+            <div className="p-4 rounded-xl bg-surface border border-white/10">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">
                 Total Pipeline Value (AED)
               </span>
-              <span className="font-oswald text-2xl font-black text-[#FED430]">
+              <span className="text-2xl font-mono font-bold text-amber-400">
                 AED{' '}
                 {formatCurrency(
                   quotesRecords.reduce((sum, q) => sum + (q.grandTotal || 0), 0)
@@ -583,7 +583,7 @@ export default function AdminPortal() {
           </div>
 
           {/* Search & Filters */}
-          <div className="p-3 rounded-xl bg-[#0F1420] border border-[#1E2839] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 text-xs">
+          <div className="p-3 rounded-xl bg-surface border border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 text-xs">
             <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
               <Search className="w-4 h-4 text-slate-400 ml-1 flex-shrink-0" />
               <input
@@ -591,7 +591,7 @@ export default function AdminPortal() {
                 value={quoteSearch}
                 onChange={(e) => setQuoteSearch(e.target.value)}
                 placeholder="Search quotes by client, quote #, invoice #, phone..."
-                className="w-full bg-[#141A26] border border-[#26334D] rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-[#FED430]"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-amber-500/60"
               />
             </div>
 
@@ -601,8 +601,8 @@ export default function AdminPortal() {
                 onClick={() => setQuoteFilter('ALL')}
                 className={`px-2.5 py-1 rounded text-xs font-bold ${
                   quoteFilter === 'ALL'
-                    ? 'bg-[#FED430] text-black'
-                    : 'bg-[#141A26] text-slate-300'
+                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold'
+                    : 'bg-[#070A12] text-slate-300'
                 }`}
               >
                 All
@@ -612,7 +612,7 @@ export default function AdminPortal() {
                 className={`px-2.5 py-1 rounded text-xs font-bold ${
                   quoteFilter === 'quotation'
                     ? 'bg-amber-400 text-black'
-                    : 'bg-[#141A26] text-slate-300'
+                    : 'bg-[#070A12] text-slate-300'
                 }`}
               >
                 Quotations Only
@@ -622,7 +622,7 @@ export default function AdminPortal() {
                 className={`px-2.5 py-1 rounded text-xs font-bold ${
                   quoteFilter === 'sales_invoice'
                     ? 'bg-emerald-500 text-black'
-                    : 'bg-[#141A26] text-slate-300'
+                    : 'bg-[#070A12] text-slate-300'
                 }`}
               >
                 Sales Invoices
@@ -633,7 +633,7 @@ export default function AdminPortal() {
           {/* Mobile Quotes & Invoices Cards (sm:hidden) */}
           <div className="sm:hidden space-y-3">
             {filteredQuotes.length === 0 ? (
-              <div className="p-6 rounded-xl bg-[#0F1420] border border-[#1E2839] text-center text-slate-400 text-xs">
+              <div className="p-6 rounded-xl bg-surface border border-white/10 text-center text-slate-400 text-xs">
                 No quotation or sales invoice records found.
               </div>
             ) : (
@@ -642,7 +642,7 @@ export default function AdminPortal() {
                 return (
                   <div
                     key={rec.id}
-                    className="p-3.5 rounded-xl bg-[#0F1420] border border-[#1E2839] space-y-2.5 shadow-lg"
+                    className="p-3.5 rounded-xl bg-surface border border-white/10 space-y-2.5 shadow-lg"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -660,25 +660,25 @@ export default function AdminPortal() {
                         </span>
                       </div>
                       <div className="text-right">
-                        <div className="font-mono font-black text-[#FED430] text-sm">
+                        <div className="font-mono font-black text-amber-400 text-sm">
                           AED {formatCurrency(rec.grandTotal)}
                         </div>
                         <span className="text-[9.5px] text-slate-400 block">(Inc. 5% VAT)</span>
                       </div>
                     </div>
 
-                    <div className="p-2.5 rounded-lg bg-[#141A26] border border-[#26334D] text-xs space-y-1">
+                    <div className="p-2.5 rounded-lg bg-[#070A12] border border-white/10 text-xs space-y-1">
                       <div className="text-white font-bold">{rec.customerName}</div>
                       <div className="text-slate-400 text-[11px] truncate">
                         {rec.contactNumber} • {rec.customerDetails}
                       </div>
-                      <div className="text-slate-400 text-[10.5px] pt-1 border-t border-[#1E2839] flex justify-between">
+                      <div className="text-slate-400 text-[10.5px] pt-1 border-t border-white/10 flex justify-between">
                         <span>Date: {isInvoice && rec.invoiceDate ? rec.invoiceDate : rec.date}</span>
                         <span>{rec.items?.length || 0} machines {rec.additionalCharges?.length > 0 ? `+${rec.additionalCharges.length} charges` : ''}</span>
                       </div>
                       {isInvoice && rec.selectedTerms && (
                         <div className="pt-1 flex items-center gap-1 text-[10.5px] text-amber-300">
-                          <FileText className="w-3 h-3 text-[#FED430] flex-shrink-0" />
+                          <FileText className="w-3 h-3 text-amber-400 flex-shrink-0" />
                           <span className="truncate">{rec.selectedTerms.name}</span>
                         </div>
                       )}
@@ -688,7 +688,7 @@ export default function AdminPortal() {
                       {!isInvoice ? (
                         <button
                           onClick={() => openInvoicePreview(rec)}
-                          className="flex-1 py-2 px-3 rounded-lg bg-[#FED430] hover:bg-[#e5be2b] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-[#FED430]/20 active:scale-95"
+                          className="flex-1 py-2 px-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20 active:scale-95"
                         >
                           <Percent className="w-3.5 h-3.5" />
                           <span>Convert to Invoice</span>
@@ -727,10 +727,10 @@ export default function AdminPortal() {
           </div>
 
           {/* Records Table (Desktop / Tablet) */}
-          <div className="hidden sm:block overflow-x-auto rounded-xl border border-[#1E2839] bg-[#0F1420]">
+          <div className="hidden sm:block overflow-x-auto rounded-xl border border-white/10 bg-surface">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-[#0A0D14] text-slate-400 font-bold uppercase border-b border-[#1E2839] text-[11px]">
+                <tr className="bg-[#0A0D14] text-slate-400 font-bold uppercase border-b border-white/10 text-[11px]">
                   <th className="p-3">Doc ID / Status</th>
                   <th className="p-3">Customer & Contact</th>
                   <th className="p-3">Date</th>
@@ -750,7 +750,7 @@ export default function AdminPortal() {
                   filteredQuotes.map((rec) => {
                     const isInvoice = rec.type === 'sales_invoice';
                     return (
-                      <tr key={rec.id} className="hover:bg-[#141A26] transition-colors">
+                      <tr key={rec.id} className="hover:bg-[#070A12] transition-colors">
                         {/* Doc ID & Type */}
                         <td className="p-3">
                           <div className="font-mono font-bold text-white text-xs">
@@ -767,7 +767,7 @@ export default function AdminPortal() {
                           </span>
                           {isInvoice && rec.selectedTerms && (
                             <div className="mt-1 flex items-center gap-1 max-w-[190px]" title={rec.selectedTerms.name}>
-                              <FileText className="w-3 h-3 text-[#FED430] flex-shrink-0" />
+                              <FileText className="w-3 h-3 text-amber-400 flex-shrink-0" />
                               <span className="text-[10px] text-amber-300 font-semibold truncate">
                                 {rec.selectedTerms.name}
                               </span>
@@ -828,7 +828,7 @@ export default function AdminPortal() {
                             {!isInvoice ? (
                               <button
                                 onClick={() => openInvoicePreview(rec)}
-                                className="px-2.5 py-1 rounded bg-[#FED430] hover:bg-[#e5be2b] text-black font-black text-[11px] uppercase tracking-wider flex items-center gap-1 shadow-sm"
+                                className="px-2.5 py-1 rounded bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1 shadow-sm"
                                 title="Preview bill, modify price, and convert to Sales Invoice"
                               >
                                 <Percent className="w-3.5 h-3.5" />
@@ -879,7 +879,7 @@ export default function AdminPortal() {
       {/* ========================================================= */}
       {activeTab === 'products' && (
         <div className="space-y-4">
-          <div className="p-3.5 sm:p-4 rounded-xl bg-[#0F1420] border border-[#1E2839] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 text-xs">
+          <div className="p-3.5 sm:p-4 rounded-xl bg-surface border border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 text-xs">
             <div className="flex items-center gap-2.5 flex-1 w-full sm:w-auto">
               <Search className="w-4 h-4 text-slate-400 flex-shrink-0 ml-1" />
               <input
@@ -887,7 +887,7 @@ export default function AdminPortal() {
                 value={prodSearch}
                 onChange={(e) => setProdSearch(e.target.value)}
                 placeholder="Search products by model code or equipment name..."
-                className="w-full bg-[#141A26] border border-[#26334D] rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-[#FED430]"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-amber-500/60"
               />
             </div>
 
@@ -895,7 +895,7 @@ export default function AdminPortal() {
               <select
                 value={prodCategoryFilter}
                 onChange={(e) => setProdCategoryFilter(e.target.value)}
-                className="bg-[#141A26] border border-[#26334D] rounded-lg px-3 py-1.5 text-white flex-1 sm:flex-initial"
+                className="bg-[#070A12] border border-white/10 rounded-lg px-3 py-1.5 text-white flex-1 sm:flex-initial"
               >
                 <option value="ALL">All Categories</option>
                 <option value="Plate Loaded">Plate Loaded</option>
@@ -910,7 +910,7 @@ export default function AdminPortal() {
                   setEditingProduct(null);
                   setIsAddProductOpen(true);
                 }}
-                className="px-3.5 py-1.5 sm:py-2 rounded-lg bg-[#FED430] text-black font-black uppercase text-xs flex items-center gap-1.5 hover:bg-[#e5be2b] whitespace-nowrap flex-shrink-0"
+                className="px-3.5 py-1.5 sm:py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black uppercase text-xs flex items-center gap-1.5 hover:brightness-110 whitespace-nowrap flex-shrink-0"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Product</span>
@@ -923,7 +923,7 @@ export default function AdminPortal() {
             {paginatedAdminProducts.map((p) => (
               <div
                 key={p.code}
-                className="p-3.5 rounded-xl bg-[#0F1420] border border-[#1E2839] space-y-3 shadow-lg"
+                className="p-3.5 rounded-xl bg-surface border border-white/10 space-y-3 shadow-lg"
               >
                 <div className="flex items-start gap-3">
                   <div className="w-14 h-14 bg-white rounded-lg p-1 border border-slate-700 flex items-center justify-center flex-shrink-0">
@@ -936,10 +936,10 @@ export default function AdminPortal() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-mono font-bold text-[#FED430] text-xs">
+                      <span className="font-mono font-bold text-amber-400 text-xs">
                         #{p.code}
                       </span>
-                      <span className="text-[9.5px] px-1.5 py-0.5 rounded bg-[#141A26] border border-[#26334D] text-slate-300 uppercase">
+                      <span className="text-[9.5px] px-1.5 py-0.5 rounded bg-[#070A12] border border-white/10 text-slate-300 uppercase">
                         {p.category}
                       </span>
                     </div>
@@ -950,8 +950,8 @@ export default function AdminPortal() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-[#1E2839]">
-                  <div className="flex items-center gap-1 bg-[#141A26] border border-[#26334D] rounded-lg p-1">
+                <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                  <div className="flex items-center gap-1 bg-[#070A12] border border-white/10 rounded-lg p-1">
                     <button
                       onClick={() => updateProductStock(p.code, (p.stockQty || 0) - 1)}
                       className="w-7 h-7 rounded bg-[#1E2839] hover:bg-red-500 hover:text-white text-slate-200 flex items-center justify-center font-bold"
@@ -963,7 +963,7 @@ export default function AdminPortal() {
                     </span>
                     <button
                       onClick={() => updateProductStock(p.code, (p.stockQty || 0) + 1)}
-                      className="w-7 h-7 rounded bg-[#FED430] text-black hover:bg-[#e5be2b] flex items-center justify-center font-bold"
+                      className="w-7 h-7 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold hover:brightness-110 flex items-center justify-center font-bold"
                     >
                       +
                     </button>
@@ -999,10 +999,10 @@ export default function AdminPortal() {
           </div>
 
           {/* Products Table (Desktop / Tablet) */}
-          <div className="hidden sm:block overflow-x-auto rounded-xl border border-[#1E2839] bg-[#0F1420]">
+          <div className="hidden sm:block overflow-x-auto rounded-xl border border-white/10 bg-surface">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-[#0A0D14] text-slate-400 font-bold uppercase border-b border-[#1E2839] text-[11px]">
+                <tr className="bg-[#0A0D14] text-slate-400 font-bold uppercase border-b border-white/10 text-[11px]">
                   <th className="p-3 w-16">Image</th>
                   <th className="p-3">Code / Category</th>
                   <th className="p-3">Product Name & Specifications</th>
@@ -1013,7 +1013,7 @@ export default function AdminPortal() {
               </thead>
               <tbody className="divide-y divide-[#1E2839]">
                 {paginatedAdminProducts.map((p) => (
-                  <tr key={p.code} className="hover:bg-[#141A26] transition-colors">
+                  <tr key={p.code} className="hover:bg-[#070A12] transition-colors">
                     <td className="p-3">
                       <div className="w-12 h-12 bg-white rounded p-1 border border-slate-700 flex items-center justify-center">
                         <img
@@ -1026,7 +1026,7 @@ export default function AdminPortal() {
                     </td>
 
                     <td className="p-3">
-                      <span className="font-mono font-bold text-[#FED430] text-xs block">
+                      <span className="font-mono font-bold text-amber-400 text-xs block">
                         #{p.code}
                       </span>
                       <span className="text-[10px] text-slate-400 uppercase font-semibold">
@@ -1049,7 +1049,7 @@ export default function AdminPortal() {
 
                     {/* Stock Qty Modifier */}
                     <td className="p-3 text-center">
-                      <div className="inline-flex items-center gap-1.5 bg-[#141A26] border border-[#26334D] rounded-lg p-1">
+                      <div className="inline-flex items-center gap-1.5 bg-[#070A12] border border-white/10 rounded-lg p-1">
                         <button
                           onClick={() => updateProductStock(p.code, (p.stockQty || 0) - 1)}
                           className="w-6 h-6 rounded bg-[#1E2839] hover:bg-red-500 hover:text-white text-slate-200 flex items-center justify-center font-bold"
@@ -1064,7 +1064,7 @@ export default function AdminPortal() {
                         />
                         <button
                           onClick={() => updateProductStock(p.code, (p.stockQty || 0) + 1)}
-                          className="w-6 h-6 rounded bg-[#FED430] text-black hover:bg-[#e5be2b] flex items-center justify-center font-bold"
+                          className="w-6 h-6 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold hover:brightness-110 flex items-center justify-center font-bold"
                         >
                           +
                         </button>
@@ -1105,7 +1105,7 @@ export default function AdminPortal() {
           </div>
 
           {/* Products Pagination Bar */}
-          <div className="pt-4 border-t border-[#1E2839]">
+          <div className="pt-4 border-t border-white/10">
             <Pagination
               currentPage={validProdPage}
               totalItems={filteredProducts.length}
@@ -1123,7 +1123,7 @@ export default function AdminPortal() {
       {/* TAB 3: EDIT LOGO & BRANDING SETTINGS                      */}
       {/* ========================================================= */}
       {activeTab === 'branding' && (
-        <div className="max-w-3xl mx-auto p-6 rounded-2xl bg-[#0F1420] border border-[#26334D] space-y-6">
+        <div className="max-w-3xl mx-auto p-6 rounded-2xl bg-surface border border-white/10 space-y-6">
           <div>
             <h2 className="font-oswald text-xl font-bold text-white uppercase tracking-wider">
               EDIT COMPANY LOGO & CORPORATE BRANDING
@@ -1134,8 +1134,8 @@ export default function AdminPortal() {
           </div>
 
           {/* Logo Customizer */}
-          <div className="p-4 rounded-xl bg-[#141A26] border border-[#26334D] space-y-4">
-            <label className="text-xs font-bold text-[#FED430] uppercase tracking-wider block">
+          <div className="p-4 rounded-xl bg-[#070A12] border border-white/10 space-y-4">
+            <label className="text-xs font-bold text-amber-400 uppercase tracking-wider block">
               Logo Configuration
             </label>
 
@@ -1147,7 +1147,7 @@ export default function AdminPortal() {
                   value="default"
                   checked={companySettings.logoType === 'default'}
                   onChange={() => setCompanySettings((prev) => ({ ...prev, logoType: 'default' }))}
-                  className="accent-[#FED430]"
+                  className="accent-amber-500"
                 />
                 <span>Default Stylized Typography Logo (DELITRADE)</span>
               </label>
@@ -1159,7 +1159,7 @@ export default function AdminPortal() {
                   value="custom"
                   checked={companySettings.logoType === 'custom'}
                   onChange={() => setCompanySettings((prev) => ({ ...prev, logoType: 'custom' }))}
-                  className="accent-[#FED430]"
+                  className="accent-amber-500"
                 />
                 <span>Custom Image Logo</span>
               </label>
@@ -1188,7 +1188,7 @@ export default function AdminPortal() {
                         reader.readAsDataURL(file);
                       }
                     }}
-                    className="w-full text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-[#FED430] file:text-black cursor-pointer"
+                    className="w-full text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950 font-bold cursor-pointer"
                   />
                 </div>
 
@@ -1206,13 +1206,13 @@ export default function AdminPortal() {
                       }))
                     }
                     placeholder="https://example.com/logo.png"
-                    className="w-full bg-[#0F1420] border border-[#26334D] rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#FED430]"
+                    className="w-full bg-surface border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60"
                   />
                 </div>
 
                 {/* Preview */}
                 {companySettings.customLogoUrl && (
-                  <div className="p-3 bg-[#0A0D14] rounded-lg border border-[#26334D] flex items-center gap-3">
+                  <div className="p-3 bg-[#0A0D14] rounded-lg border border-white/10 flex items-center gap-3">
                     <span className="text-[11px] text-slate-400">Current Logo Preview:</span>
                     <img
                       src={companySettings.customLogoUrl}
@@ -1235,7 +1235,7 @@ export default function AdminPortal() {
                 onChange={(e) =>
                   setCompanySettings((prev) => ({ ...prev, companyName: e.target.value }))
                 }
-                className="w-full bg-[#141A26] border border-[#26334D] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#FED430]"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500/60"
               />
             </div>
 
@@ -1247,7 +1247,7 @@ export default function AdminPortal() {
                 onChange={(e) =>
                   setCompanySettings((prev) => ({ ...prev, brandHeader: e.target.value }))
                 }
-                className="w-full bg-[#141A26] border border-[#26334D] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#FED430]"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500/60"
               />
             </div>
 
@@ -1259,7 +1259,7 @@ export default function AdminPortal() {
                 onChange={(e) =>
                   setCompanySettings((prev) => ({ ...prev, legalName: e.target.value }))
                 }
-                className="w-full bg-[#141A26] border border-[#26334D] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#FED430]"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500/60"
               />
             </div>
 
@@ -1271,7 +1271,7 @@ export default function AdminPortal() {
                 onChange={(e) =>
                   setCompanySettings((prev) => ({ ...prev, trn: e.target.value }))
                 }
-                className="w-full bg-[#141A26] border border-[#26334D] rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-[#FED430]"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-amber-500/60"
               />
             </div>
 
@@ -1283,7 +1283,7 @@ export default function AdminPortal() {
                 onChange={(e) =>
                   setCompanySettings((prev) => ({ ...prev, phone: e.target.value }))
                 }
-                className="w-full bg-[#141A26] border border-[#26334D] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#FED430]"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500/60"
               />
             </div>
 
@@ -1295,7 +1295,7 @@ export default function AdminPortal() {
                 onChange={(e) =>
                   setCompanySettings((prev) => ({ ...prev, website: e.target.value }))
                 }
-                className="w-full bg-[#141A26] border border-[#26334D] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#FED430]"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500/60"
               />
             </div>
 
@@ -1307,7 +1307,7 @@ export default function AdminPortal() {
                 onChange={(e) =>
                   setCompanySettings((prev) => ({ ...prev, email: e.target.value }))
                 }
-                className="w-full bg-[#141A26] border border-[#26334D] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#FED430]"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500/60"
               />
             </div>
 
@@ -1319,7 +1319,7 @@ export default function AdminPortal() {
                 onChange={(e) =>
                   setCompanySettings((prev) => ({ ...prev, address: e.target.value }))
                 }
-                className="w-full bg-[#141A26] border border-[#26334D] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#FED430]"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500/60"
               />
             </div>
           </div>
@@ -1327,7 +1327,7 @@ export default function AdminPortal() {
           <div className="pt-2">
             <button
               onClick={() => alert('Brand & Logo settings saved and persisted successfully!')}
-              className="px-6 py-2.5 rounded-lg bg-[#FED430] text-black font-black uppercase text-xs hover:bg-[#e5be2b] shadow-md shadow-[#FED430]/20"
+              className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black uppercase text-xs hover:brightness-110 shadow-md shadow-amber-500/20"
             >
               Save Branding Settings
             </button>
@@ -1340,7 +1340,7 @@ export default function AdminPortal() {
       {/* ========================================================= */}
       {activeTab === 'banks' && (
         <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-[#0F1420] border border-[#1E2839] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="p-4 rounded-xl bg-surface border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
               <h2 className="font-oswald text-lg font-bold text-white uppercase tracking-wider">
                 COMPANY BANK ACCOUNTS FOR INVOICE WIRE TRANSFERS
@@ -1355,7 +1355,7 @@ export default function AdminPortal() {
                 setEditingBank(null);
                 setIsAddBankOpen(true);
               }}
-              className="px-3.5 py-2 rounded-lg bg-[#FED430] text-black font-black uppercase text-xs flex items-center gap-1.5 hover:bg-[#e5be2b]"
+              className="px-3.5 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black uppercase text-xs flex items-center gap-1.5 hover:brightness-110"
             >
               <Plus className="w-4 h-4" />
               <span>Add Bank Account</span>
@@ -1366,11 +1366,11 @@ export default function AdminPortal() {
             {bankAccounts.map((b) => (
               <div
                 key={b.id}
-                className="p-5 rounded-xl bg-[#0F1420] border border-[#1E2839] space-y-3 relative group"
+                className="p-5 rounded-xl bg-surface border border-white/10 space-y-3 relative group"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-[#FED430]" />
+                    <CreditCard className="w-5 h-5 text-amber-400" />
                     <h3 className="font-bold text-white text-sm">{b.bankName}</h3>
                   </div>
 
@@ -1408,7 +1408,7 @@ export default function AdminPortal() {
                     <span className="text-slate-500 font-sans">Account No:</span>{' '}
                     <strong>{b.accountNumber}</strong>
                   </p>
-                  <p className="text-[#FED430]">
+                  <p className="text-amber-400">
                     <span className="text-slate-500 font-sans">IBAN:</span>{' '}
                     <strong>{b.iban}</strong>
                   </p>
@@ -1437,11 +1437,11 @@ export default function AdminPortal() {
       {/* ========================================================= */}
       {previewingQuote && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm p-2 sm:p-6 flex items-center justify-center">
-          <div className="w-full max-w-5xl bg-[#0F1420] border-2 border-[#FED430] rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[96vh] sm:max-h-[92vh]">
+          <div className="w-full max-w-5xl bg-surface border-2 border-amber-500/40 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[96vh] sm:max-h-[92vh]">
             {/* Modal Header */}
-            <div className="p-4 sm:p-5 bg-[#0A0D14] border-b border-[#1E2839] flex items-center justify-between gap-3">
+            <div className="p-4 sm:p-5 bg-[#0A0D14] border-b border-white/10 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-[#FED430] text-black font-black">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black">
                   <Percent className="w-5 h-5" />
                 </div>
                 <div>
@@ -1465,7 +1465,7 @@ export default function AdminPortal() {
             {/* Modal Scrollable Body */}
             <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
               {/* Customer & Invoice Metadata */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-[#141A26] border border-[#26334D] text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-[#070A12] border border-white/10 text-xs">
                 <div>
                   <span className="text-slate-400 block font-bold">Client / Gym Name</span>
                   <span className="text-white font-bold text-sm">
@@ -1489,7 +1489,7 @@ export default function AdminPortal() {
                     type="text"
                     value={overrideInvoiceDate}
                     onChange={(e) => setOverrideInvoiceDate(e.target.value)}
-                    className="w-full bg-[#0F1420] border border-[#26334D] rounded px-2.5 py-1 text-white font-semibold focus:outline-none focus:border-[#FED430]"
+                    className="w-full bg-surface border border-white/10 rounded px-2.5 py-1 text-white font-semibold focus:outline-none focus:border-amber-500/60"
                   />
                 </div>
               </div>
@@ -1498,7 +1498,7 @@ export default function AdminPortal() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="font-oswald text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-[#FED430]" />
+                    <ShieldCheck className="w-4 h-4 text-amber-400" />
                     <span>EQUIPMENT LINE ITEMS (ADMIN PRICING CONTROL)</span>
                   </h4>
                   <span className="text-[11px] text-amber-400 font-semibold">
@@ -1516,11 +1516,11 @@ export default function AdminPortal() {
                     return (
                       <div
                         key={idx}
-                        className="p-3.5 rounded-xl bg-[#0A0D14] border border-[#26334D] space-y-2.5"
+                        className="p-3.5 rounded-xl bg-[#0A0D14] border border-white/10 space-y-2.5"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
-                            <span className="font-mono font-bold text-xs text-[#FED430]">
+                            <span className="font-mono font-bold text-xs text-amber-400">
                               #{idx + 1} • {item.product.code}
                             </span>
                             <h5 className="font-bold text-white text-xs mt-0.5 leading-snug truncate">
@@ -1539,13 +1539,13 @@ export default function AdminPortal() {
                         </div>
 
                         {/* Price Override Input & Qty on Mobile */}
-                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#1E2839]">
+                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
                           <div>
-                            <label className="text-[10px] font-bold text-[#FED430] uppercase block mb-1">
+                            <label className="text-[10px] font-bold text-amber-400 uppercase block mb-1">
                               Unit Price (AED) *
                             </label>
-                            <div className="flex items-center gap-1 bg-[#141A26] border border-[#FED430] rounded-lg px-2 py-1.5">
-                              <span className="text-[10px] text-[#FED430] font-bold">AED</span>
+                            <div className="flex items-center gap-1 bg-[#070A12] border border-amber-500/40 rounded-lg px-2 py-1.5">
+                              <span className="text-[10px] text-amber-400 font-bold">AED</span>
                               <input
                                 type="number"
                                 value={item.unitPrice}
@@ -1571,12 +1571,12 @@ export default function AdminPortal() {
                               min={1}
                               value={item.quantity}
                               onChange={(e) => handleItemQuantityChange(idx, e.target.value)}
-                              className="w-full bg-[#141A26] border border-[#26334D] rounded-lg py-1.5 px-2 text-center text-white font-bold text-xs focus:outline-none focus:border-[#FED430]"
+                              className="w-full bg-[#070A12] border border-white/10 rounded-lg py-1.5 px-2 text-center text-white font-bold text-xs focus:outline-none focus:border-amber-500/60"
                             />
                           </div>
                         </div>
 
-                        <div className="flex justify-between items-center pt-2 border-t border-[#1E2839] text-xs">
+                        <div className="flex justify-between items-center pt-2 border-t border-white/10 text-xs">
                           <span className="text-slate-400 text-[11px]">Line Total:</span>
                           <span className="font-mono font-black text-white text-sm">
                             AED {formatCurrency(item.unitPrice * item.quantity)}
@@ -1588,14 +1588,14 @@ export default function AdminPortal() {
                 </div>
 
                 {/* Desktop Table (hidden sm:block) */}
-                <div className="hidden sm:block overflow-x-auto rounded-xl border border-[#26334D] bg-[#0A0D14]">
+                <div className="hidden sm:block overflow-x-auto rounded-xl border border-white/10 bg-[#0A0D14]">
                   <table className="w-full text-xs text-left min-w-[580px]">
                     <thead>
-                      <tr className="bg-[#141A26] text-slate-400 font-bold border-b border-[#26334D] text-[11px]">
+                      <tr className="bg-[#070A12] text-slate-400 font-bold border-b border-white/10 text-[11px]">
                         <th className="p-3">#</th>
                         <th className="p-3">Product Station</th>
                         <th className="p-3 text-right">Catalog Price</th>
-                        <th className="p-3 text-right text-[#FED430]">
+                        <th className="p-3 text-right text-amber-400">
                           Admin Unit Price (AED) *
                         </th>
                         <th className="p-3 text-center">Qty</th>
@@ -1609,7 +1609,7 @@ export default function AdminPortal() {
                         const isModified = current !== original;
 
                         return (
-                          <tr key={idx} className="hover:bg-[#141A26]/50">
+                          <tr key={idx} className="hover:bg-[#070A12]/50">
                             <td className="p-3 font-bold text-slate-400">{idx + 1}</td>
                             <td className="p-3">
                               <div className="font-bold text-white text-xs">
@@ -1623,8 +1623,8 @@ export default function AdminPortal() {
                               AED {formatCurrency(original)}
                             </td>
                             <td className="p-3 text-right">
-                              <div className="inline-flex items-center gap-1 bg-[#0F1420] border border-[#FED430] rounded-lg px-2 py-1">
-                                <span className="text-[10px] text-[#FED430] font-bold">AED</span>
+                              <div className="inline-flex items-center gap-1 bg-surface border border-amber-500/40 rounded-lg px-2 py-1">
+                                <span className="text-[10px] text-amber-400 font-bold">AED</span>
                                 <input
                                   type="number"
                                   value={item.unitPrice}
@@ -1646,7 +1646,7 @@ export default function AdminPortal() {
                                 min={1}
                                 value={item.quantity}
                                 onChange={(e) => handleItemQuantityChange(idx, e.target.value)}
-                                className="w-14 text-center bg-[#0F1420] border border-[#26334D] rounded py-1 text-white font-bold"
+                                className="w-14 text-center bg-surface border border-white/10 rounded py-1 text-white font-bold"
                               />
                             </td>
                             <td className="p-3 text-right font-mono font-bold text-white">
@@ -1661,7 +1661,7 @@ export default function AdminPortal() {
               </div>
 
               {/* Additional Charges Section */}
-              <div className="space-y-3 p-4 rounded-xl bg-[#141A26] border border-[#26334D]">
+              <div className="space-y-3 p-4 rounded-xl bg-[#070A12] border border-white/10">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-oswald text-xs font-bold text-white uppercase tracking-wider">
@@ -1675,7 +1675,7 @@ export default function AdminPortal() {
                   <button
                     type="button"
                     onClick={handleAddPreviewCharge}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FED430] text-black font-black text-xs uppercase hover:bg-[#e5be2b]"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black text-xs uppercase hover:brightness-110"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>+ Add Additional Charge</span>
@@ -1691,7 +1691,7 @@ export default function AdminPortal() {
                     {overrideCharges.map((ch) => (
                       <div
                         key={ch.id}
-                        className="flex items-center gap-2 bg-[#0F1420] p-2 rounded-lg border border-[#26334D]"
+                        className="flex items-center gap-2 bg-surface p-2 rounded-lg border border-white/10"
                       >
                         <input
                           type="text"
@@ -1700,10 +1700,10 @@ export default function AdminPortal() {
                             handleUpdatePreviewCharge(ch.id, 'description', e.target.value)
                           }
                           placeholder="Charge Description (e.g. Delivery & Rigging across Dubai)"
-                          className="flex-1 bg-[#141A26] border border-[#26334D] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#FED430]"
+                          className="flex-1 bg-[#070A12] border border-white/10 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60"
                         />
                         <div className="flex items-center gap-1">
-                          <span className="text-xs font-bold text-[#FED430]">AED</span>
+                          <span className="text-xs font-bold text-amber-400">AED</span>
                           <input
                             type="number"
                             value={ch.amount}
@@ -1711,7 +1711,7 @@ export default function AdminPortal() {
                               handleUpdatePreviewCharge(ch.id, 'amount', e.target.value)
                             }
                             placeholder="500"
-                            className="w-24 bg-[#141A26] border border-[#26334D] rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#FED430]"
+                            className="w-24 bg-[#070A12] border border-white/10 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60"
                           />
                         </div>
                         <button
@@ -1728,12 +1728,12 @@ export default function AdminPortal() {
               </div>
 
               {/* Mandatory Terms & Conditions Template Selection */}
-              <div className="space-y-4 p-4 sm:p-5 rounded-xl bg-[#141A26] border border-[#26334D]">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1E2839] pb-3">
+              <div className="space-y-4 p-4 sm:p-5 rounded-xl bg-[#070A12] border border-white/10">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
                   <div>
                     <div className="flex items-center gap-2">
                       <h4 className="font-oswald text-sm sm:text-base font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                        <FileText className="w-4 h-4 text-[#FED430]" />
+                        <FileText className="w-4 h-4 text-amber-400" />
                         <span>SELECT TERMS & CONDITIONS TEMPLATE</span>
                       </h4>
                       <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/40">
@@ -1748,7 +1748,7 @@ export default function AdminPortal() {
                   <button
                     type="button"
                     onClick={handleResetTermsToDefaults}
-                    className="text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-colors px-2.5 py-1 rounded bg-[#0F1420] border border-[#26334D]"
+                    className="text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-colors px-2.5 py-1 rounded bg-surface border border-white/10"
                     title="Reset templates to factory defaults"
                   >
                     <RotateCcw className="w-3 h-3 text-slate-400" />
@@ -1774,10 +1774,10 @@ export default function AdminPortal() {
                       return (
                         <div
                           key={template.id}
-                          className="p-4 rounded-xl bg-[#0A0D14] border-2 border-[#FED430] space-y-3 shadow-lg shadow-[#FED430]/10"
+                          className="p-4 rounded-xl bg-[#0A0D14] border-2 border-amber-500/40 space-y-3 shadow-lg shadow-amber-500/10"
                         >
-                          <div className="flex items-center justify-between border-b border-[#26334D] pb-2">
-                            <span className="text-xs font-bold text-[#FED430] uppercase flex items-center gap-1">
+                          <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                            <span className="text-xs font-bold text-amber-400 uppercase flex items-center gap-1">
                               <Edit2 className="w-3.5 h-3.5" />
                               <span>Editing Template #{tIdx + 1}</span>
                             </span>
@@ -1785,14 +1785,14 @@ export default function AdminPortal() {
                               <button
                                 type="button"
                                 onClick={handleCancelEditTemplate}
-                                className="px-2.5 py-1 rounded bg-[#141A26] border border-[#26334D] text-[10px] font-bold text-slate-300 hover:text-white"
+                                className="px-2.5 py-1 rounded bg-[#070A12] border border-white/10 text-[10px] font-bold text-slate-300 hover:text-white"
                               >
                                 Cancel
                               </button>
                               <button
                                 type="button"
                                 onClick={handleSaveEditedTemplate}
-                                className="px-3 py-1 rounded bg-[#FED430] text-black font-black text-[10px] uppercase hover:bg-[#e5be2b] shadow-sm"
+                                className="px-3 py-1 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black text-[10px] uppercase hover:brightness-110 shadow-sm"
                               >
                                 Save Template
                               </button>
@@ -1809,7 +1809,7 @@ export default function AdminPortal() {
                               onChange={(e) =>
                                 setEditingTemplateForm({ ...editingTemplateForm, name: e.target.value })
                               }
-                              className="w-full bg-[#141A26] border border-[#26334D] rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-[#FED430]"
+                              className="w-full bg-[#070A12] border border-white/10 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-amber-500/60"
                             />
                           </div>
 
@@ -1824,7 +1824,7 @@ export default function AdminPortal() {
                                 onChange={(e) =>
                                   setEditingTemplateForm({ ...editingTemplateForm, badge: e.target.value })
                                 }
-                                className="w-full bg-[#141A26] border border-[#26334D] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-[#FED430]"
+                                className="w-full bg-[#070A12] border border-white/10 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-amber-500/60"
                               />
                             </div>
                             <div>
@@ -1840,7 +1840,7 @@ export default function AdminPortal() {
                                     description: e.target.value,
                                   })
                                 }
-                                className="w-full bg-[#141A26] border border-[#26334D] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-[#FED430]"
+                                className="w-full bg-[#070A12] border border-white/10 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-amber-500/60"
                               />
                             </div>
                           </div>
@@ -1853,7 +1853,7 @@ export default function AdminPortal() {
                               <button
                                 type="button"
                                 onClick={handleAddEditClause}
-                                className="text-[10px] text-[#FED430] hover:underline font-bold flex items-center gap-0.5"
+                                className="text-[10px] text-amber-400 hover:underline font-bold flex items-center gap-0.5"
                               >
                                 <Plus className="w-3 h-3" />
                                 <span>Add Clause</span>
@@ -1870,7 +1870,7 @@ export default function AdminPortal() {
                                     type="text"
                                     value={clause}
                                     onChange={(e) => handleUpdateEditClause(cIdx, e.target.value)}
-                                    className="flex-1 bg-[#141A26] border border-[#26334D] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-[#FED430]"
+                                    className="flex-1 bg-[#070A12] border border-white/10 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-amber-500/60"
                                   />
                                   <button
                                     type="button"
@@ -1897,15 +1897,15 @@ export default function AdminPortal() {
                         }}
                         className={`cursor-pointer rounded-xl p-4 transition-all flex flex-col justify-between relative border-2 ${
                           isSelected
-                            ? 'bg-[#FED430]/10 border-[#FED430] shadow-lg shadow-[#FED430]/10 ring-2 ring-[#FED430]/40'
-                            : 'bg-[#0A0D14] border-[#26334D] hover:border-slate-500'
+                            ? 'bg-amber-500/10 border-amber-500/40 shadow-lg shadow-amber-500/10 ring-1 ring-amber-500/50'
+                            : 'bg-[#0A0D14] border-white/10 hover:border-slate-500'
                         }`}
                       >
                         <div className="space-y-2.5">
                           {/* Card Header */}
                           <div className="flex items-start justify-between gap-2">
                             <div>
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#1E2839] text-[#FED430] border border-[#26334D]">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#1E2839] text-amber-400 border border-white/10">
                                 {template.badge || `Template #${tIdx + 1}`}
                               </span>
                               <h5 className="font-oswald text-sm font-bold text-white uppercase tracking-wide mt-1.5">
@@ -1922,7 +1922,7 @@ export default function AdminPortal() {
                                 e.stopPropagation();
                                 handleStartEditTemplate(template);
                               }}
-                              className="p-1.5 rounded-lg bg-[#141A26] border border-[#26334D] text-slate-400 hover:text-white hover:border-[#FED430] transition-colors"
+                              className="p-1.5 rounded-lg bg-[#070A12] border border-white/10 text-slate-400 hover:text-white hover:border-amber-500/40 transition-colors"
                               title="Edit this template clauses"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
@@ -1930,10 +1930,10 @@ export default function AdminPortal() {
                           </div>
 
                           {/* Clauses List */}
-                          <div className="p-2.5 rounded-lg bg-[#0F1420] border border-[#1E2839] space-y-1.5 text-[11px]">
+                          <div className="p-2.5 rounded-lg bg-surface border border-white/10 space-y-1.5 text-[11px]">
                             {template.terms.map((term, idx) => (
                               <div key={idx} className="flex items-start gap-1.5 text-slate-300">
-                                <span className="text-[#FED430] font-bold mt-0.5">•</span>
+                                <span className="text-amber-400 font-bold mt-0.5">•</span>
                                 <span className="leading-tight">{term}</span>
                               </div>
                             ))}
@@ -1941,7 +1941,7 @@ export default function AdminPortal() {
                         </div>
 
                         {/* Selection indicator & Action */}
-                        <div className="pt-3 mt-3 border-t border-[#1E2839] flex items-center justify-between">
+                        <div className="pt-3 mt-3 border-t border-white/10 flex items-center justify-between">
                           <span className="text-[11px] font-bold text-slate-400">
                             {template.terms.length} clauses
                           </span>
@@ -1955,8 +1955,8 @@ export default function AdminPortal() {
                             }}
                             className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all ${
                               isSelected
-                                ? 'bg-[#FED430] text-black shadow-md shadow-[#FED430]/20'
-                                : 'bg-[#141A26] border border-[#26334D] text-slate-300 hover:text-white hover:border-[#FED430]'
+                                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+                                : 'bg-[#070A12] border border-white/10 text-slate-300 hover:text-white hover:border-amber-500/40'
                             }`}
                           >
                             {isSelected ? (
@@ -1976,7 +1976,7 @@ export default function AdminPortal() {
               </div>
 
               {/* Calculated Totals Preview */}
-              <div className="p-4 rounded-xl bg-[#0A0D14] border border-[#26334D] space-y-2 text-xs">
+              <div className="p-4 rounded-xl bg-[#0A0D14] border border-white/10 space-y-2 text-xs">
                 <div className="flex justify-between text-slate-300">
                   <span>Net Taxable Equipment Subtotal:</span>
                   <span className="font-mono text-white">AED {formatCurrency(previewItemsSum)}</span>
@@ -1991,9 +1991,9 @@ export default function AdminPortal() {
                   <span>UAE VAT (5%):</span>
                   <span className="font-mono text-white">AED {formatCurrency(previewVat)}</span>
                 </div>
-                <div className="flex justify-between text-base font-black text-white pt-2 border-t border-[#1E2839]">
+                <div className="flex justify-between text-base font-black text-white pt-2 border-t border-white/10">
                   <span className="font-oswald tracking-wide">FINAL SALES INVOICE GRAND TOTAL (AED):</span>
-                  <span className="text-[#FED430] font-mono text-lg">
+                  <span className="text-amber-400 font-mono text-lg">
                     AED {formatCurrency(previewGrandTotal)}
                   </span>
                 </div>
@@ -2004,11 +2004,11 @@ export default function AdminPortal() {
             </div>
 
             {/* Modal Footer Actions */}
-            <div className="p-3 sm:p-5 bg-[#0A0D14] border-t border-[#1E2839] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+            <div className="p-3 sm:p-5 bg-[#0A0D14] border-t border-white/10 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
               <button
                 type="button"
                 onClick={() => setPreviewingQuote(null)}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-[#141A26] border border-[#26334D] text-xs font-bold text-slate-300 hover:text-white text-center"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-[#070A12] border border-white/10 text-xs font-bold text-slate-300 hover:text-white text-center"
               >
                 Cancel
               </button>
@@ -2101,7 +2101,7 @@ function ProductFormModal({ product, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-3 sm:p-4 flex items-center justify-center overflow-y-auto">
-      <div className="w-full max-w-lg bg-[#0F1420] border border-[#26334D] rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+      <div className="w-full max-w-lg bg-surface border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
         <h3 className="font-oswald text-base sm:text-lg font-bold text-white uppercase tracking-wider">
           {product ? 'EDIT PRODUCT EQUIPMENT' : 'ADD NEW COMMERCIAL PRODUCT'}
         </h3>
@@ -2116,7 +2116,7 @@ function ProductFormModal({ product, onClose, onSave }) {
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="e.g. LP-045"
-                className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-2 text-white font-mono"
+                className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white font-mono"
               />
             </div>
 
@@ -2125,7 +2125,7 @@ function ProductFormModal({ product, onClose, onSave }) {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-2 text-white"
+                className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white"
               >
                 {categories.map((c) => (
                   <option key={c} value={c}>
@@ -2144,7 +2144,7 @@ function ProductFormModal({ product, onClose, onSave }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. 45-Degree Commercial Leg Press"
-              className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-2 text-white"
+              className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white"
             />
           </div>
 
@@ -2156,7 +2156,7 @@ function ProductFormModal({ product, onClose, onSave }) {
                 required
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-2 text-white font-mono"
+                className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white font-mono"
               />
             </div>
 
@@ -2166,7 +2166,7 @@ function ProductFormModal({ product, onClose, onSave }) {
                 type="number"
                 value={stockQty}
                 onChange={(e) => setStockQty(e.target.value)}
-                className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-2 text-white font-mono"
+                className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white font-mono"
               />
             </div>
           </div>
@@ -2178,7 +2178,7 @@ function ProductFormModal({ product, onClose, onSave }) {
               value={imagePath}
               onChange={(e) => setImagePath(e.target.value)}
               placeholder="/assets/products/prod_1.png"
-              className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-2 text-white font-mono text-[11px]"
+              className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white font-mono text-[11px]"
             />
           </div>
 
@@ -2189,7 +2189,7 @@ function ProductFormModal({ product, onClose, onSave }) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Weight: 260kg | Size: 2400×1610×1480mm | Heavy plate loaded sled with linear bearings..."
-              className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-2 text-white"
+              className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white"
             />
           </div>
 
@@ -2197,13 +2197,13 @@ function ProductFormModal({ product, onClose, onSave }) {
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:w-auto px-4 py-2.5 rounded bg-[#141A26] text-slate-300 font-bold text-xs hover:text-white"
+              className="w-full sm:w-auto px-4 py-2.5 rounded bg-[#070A12] text-slate-300 font-bold text-xs hover:text-white"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="w-full sm:w-auto px-5 py-2.5 rounded bg-[#FED430] text-black font-black uppercase text-xs hover:bg-[#e5be2b]"
+              className="w-full sm:w-auto px-5 py-2.5 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black uppercase text-xs hover:brightness-110"
             >
               Save Product
             </button>
@@ -2243,7 +2243,7 @@ function BankFormModal({ bank, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-3 sm:p-4 flex items-center justify-center overflow-y-auto">
-      <div className="w-full max-w-md bg-[#0F1420] border border-[#26334D] rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+      <div className="w-full max-w-md bg-surface border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
         <h3 className="font-oswald text-base sm:text-lg font-bold text-white uppercase tracking-wider">
           {bank ? 'EDIT BANK ACCOUNT' : 'ADD NEW COMPANY BANK ACCOUNT'}
         </h3>
@@ -2257,7 +2257,7 @@ function BankFormModal({ bank, onClose, onSave }) {
               value={bankName}
               onChange={(e) => setBankName(e.target.value)}
               placeholder="e.g. ADCB Bank / Emirates NBD"
-              className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-2 text-white"
+              className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white"
             />
           </div>
 
@@ -2268,7 +2268,7 @@ function BankFormModal({ bank, onClose, onSave }) {
               value={accountTitle}
               onChange={(e) => setAccountTitle(e.target.value)}
               placeholder="e.g. EMMA GYM AND EKAVEERA KALARI LLC SPC"
-              className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-2 text-white"
+              className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white"
             />
           </div>
 
@@ -2280,7 +2280,7 @@ function BankFormModal({ bank, onClose, onSave }) {
               value={accountNumber}
               onChange={(e) => setAccountNumber(e.target.value)}
               placeholder="e.g. 13613665820001"
-              className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-2 text-white font-mono"
+              className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white font-mono"
             />
           </div>
 
@@ -2292,7 +2292,7 @@ function BankFormModal({ bank, onClose, onSave }) {
               value={iban}
               onChange={(e) => setIban(e.target.value)}
               placeholder="e.g. AE080030013613665820001"
-              className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-2 text-white font-mono"
+              className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white font-mono"
             />
           </div>
 
@@ -2304,7 +2304,7 @@ function BankFormModal({ bank, onClose, onSave }) {
                 value={swift}
                 onChange={(e) => setSwift(e.target.value)}
                 placeholder="ADCBUS33"
-                className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-2 text-white font-mono"
+                className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white font-mono"
               />
             </div>
             <div>
@@ -2314,7 +2314,7 @@ function BankFormModal({ bank, onClose, onSave }) {
                 value={branch}
                 onChange={(e) => setBranch(e.target.value)}
                 placeholder="Dubai Main Branch"
-                className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-2 text-white"
+                className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white"
               />
             </div>
           </div>
@@ -2323,13 +2323,13 @@ function BankFormModal({ bank, onClose, onSave }) {
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:w-auto px-4 py-2.5 rounded bg-[#141A26] text-slate-300 font-bold text-xs hover:text-white"
+              className="w-full sm:w-auto px-4 py-2.5 rounded bg-[#070A12] text-slate-300 font-bold text-xs hover:text-white"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="w-full sm:w-auto px-5 py-2.5 rounded bg-[#FED430] text-black font-black uppercase text-xs hover:bg-[#e5be2b]"
+              className="w-full sm:w-auto px-5 py-2.5 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black uppercase text-xs hover:brightness-110"
             >
               Save Bank
             </button>

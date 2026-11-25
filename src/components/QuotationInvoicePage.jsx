@@ -12,6 +12,10 @@ import {
   Receipt,
   Building,
   CreditCard,
+  FileCheck2,
+  ShieldCheck,
+  Send,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { numberToWords, formatCurrency } from '../utils/numberToWords';
@@ -46,7 +50,6 @@ export default function QuotationInvoicePage() {
   } = useApp();
 
   const [isExporting, setIsExporting] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Automatically record this quote into quotesRecords when viewed
   useEffect(() => {
@@ -66,7 +69,7 @@ export default function QuotationInvoicePage() {
         type: 'QUOTATION',
         documentNumber: quotationNumber || '102',
         date: quoteDate,
-        customerName: customerName.trim() || 'Valued Customer',
+        customerName: customerName.trim() || 'Valued Commercial Client',
         contactNumber: contactNumber.trim() || companySettings.phone,
         customerDetails: customerDetails.trim() || 'Dubai / UAE',
         items: cartItemsList.map((it) => ({
@@ -95,7 +98,7 @@ export default function QuotationInvoicePage() {
   const handleShareWhatsApp = () => {
     const summary =
       `*DELITRADE COMMERCIAL QUOTATION #QT-${quotationNumber || '102'}*\n` +
-      `Client: ${customerName || 'Valued Customer'}\n` +
+      `Client: ${customerName || 'Valued Commercial Client'}\n` +
       `Date: ${quoteDate}\n` +
       `---------------------------\n` +
       cartItemsList
@@ -105,17 +108,17 @@ export default function QuotationInvoicePage() {
         )
         .join('\n') +
       (additionalCharges.length > 0
-        ? `\nAdditional Charges:\n` +
+        ? `\nAdditional Services / Charges:\n` +
           additionalCharges
             .map((c) => `- ${c.description}: AED ${formatCurrency(c.amount)}`)
             .join('\n')
         : '') +
       `\n---------------------------\n` +
-      `Subtotal: AED ${formatCurrency(netTaxableSum)}\n` +
-      `VAT (5%): AED ${formatCurrency(totalVat)}\n` +
+      `Net Subtotal: AED ${formatCurrency(netTaxableSum)}\n` +
+      `UAE FTA VAT (5%): AED ${formatCurrency(totalVat)}\n` +
       `*Grand Total: AED ${formatCurrency(grandTotal)}*\n` +
       `Amount in words: ${numberToWords(grandTotal)}\n\n` +
-      `View official catalog: ${companySettings.website || 'www.emmafitness.ae'}`;
+      `Trading Facility: ${companySettings.website || 'www.emmafitness.ae'}`;
 
     const phone = (companySettings.phone || '971563296585').replace(/[^0-9]/g, '');
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(summary)}`, '_blank');
@@ -124,35 +127,36 @@ export default function QuotationInvoicePage() {
   if (cartItemsList.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
-        <div className="w-20 h-20 rounded-2xl bg-[#0F1420] border border-[#26334D] flex items-center justify-center mx-auto text-slate-500">
-          <Receipt className="w-10 h-10" />
+        <div className="w-16 h-16 rounded-2xl bg-surface border border-white/10 flex items-center justify-center mx-auto text-slate-500 shadow-xl">
+          <Receipt className="w-8 h-8" />
         </div>
-        <h2 className="font-oswald text-2xl font-black text-white">
-          No Invoice / Quote Generated Yet
+        <h2 className="text-xl sm:text-2xl font-bold text-white">
+          No Commercial Invoice / Quote Generated Yet
         </h2>
-        <p className="text-slate-400 text-sm max-w-md mx-auto">
-          Please browse our commercial gym machinery catalog, add items to cart, and click "Generate Quote" to view your commercial invoice bill.
+        <p className="text-slate-400 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+          Select equipment units from our certified commercial machinery terminal to compile a real-time quotation and tax invoice bill.
         </p>
         <button
           onClick={() => setCurrentPage('products')}
-          className="px-6 py-3 rounded-lg bg-[#FED430] text-black font-black text-xs uppercase tracking-wider hover:bg-[#e5be2b] shadow-lg shadow-[#FED430]/20 inline-flex items-center gap-2"
+          className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs uppercase tracking-wider hover:brightness-110 shadow-lg shadow-amber-500/20 inline-flex items-center gap-2 transition-all"
         >
           <Dumbbell className="w-4 h-4" />
-          <span>Browse Warehouse Equipment</span>
+          <span>Browse Machinery Terminal</span>
         </button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-6 py-6 space-y-6">
-      {/* 1. Top Action Bar (Hidden in Print) */}
-      <div className="print:hidden p-4 rounded-xl bg-[#0F1420] border border-[#26334D] flex flex-wrap items-center justify-between gap-3 shadow-xl">
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
-            OFFICIAL QUOTATION GENERATED
+    <div className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-6 py-6 space-y-5">
+      {/* 1. Top Enterprise Action Bar (Hidden in Print) */}
+      <div className="print:hidden p-3.5 sm:p-4 rounded-xl bg-surface/90 border border-white/10 flex flex-wrap items-center justify-between gap-3 shadow-2xl backdrop-blur-md">
+        <div className="flex items-center gap-2.5">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            OFFICIAL B2B QUOTATION READY
           </span>
-          <span className="text-sm font-bold text-white hidden sm:inline">
+          <span className="text-xs font-mono font-bold text-slate-200 hidden sm:inline">
             #QT-2026-{quotationNumber || '102'} {customerName ? `• ${customerName}` : ''}
           </span>
         </div>
@@ -160,126 +164,127 @@ export default function QuotationInvoicePage() {
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setCurrentPage('products')}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#141A26] border border-[#26334D] text-xs font-bold text-slate-300 hover:text-white hover:bg-[#1E2839]"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-lg bg-surface border border-white/10 text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Catalog</span>
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Terminal</span>
           </button>
 
           <button
             onClick={() => {
-              if (confirm('Clear active quote and start a fresh quote?')) {
+              if (confirm('Clear active quote and start a fresh quotation ledger?')) {
                 clearCart();
                 setCurrentPage('products');
               }
             }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#FED430]/60 text-xs font-bold text-[#FED430] hover:bg-[#FED430]/10"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-lg border border-white/10 text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-all"
           >
-            <RefreshCw className="w-4 h-4" />
-            <span>New Quote</span>
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Reset</span>
           </button>
 
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#FED430] text-black text-xs font-black uppercase hover:bg-[#e5be2b] shadow-md shadow-[#FED430]/20"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-xs font-bold uppercase tracking-wider hover:brightness-110 shadow-md shadow-amber-500/20 active:scale-95 transition-all"
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-3.5 h-3.5" />
             <span>Print PDF</span>
           </button>
 
           <button
             onClick={handleDownloadPdf}
             disabled={isExporting}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/20"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-lg bg-surface border border-white/10 hover:border-amber-500/40 text-white text-xs font-semibold transition-all shadow-sm"
           >
-            <Download className="w-4 h-4" />
-            <span>{isExporting ? 'Generating...' : 'Download PDF'}</span>
+            <Download className="w-3.5 h-3.5 text-amber-400" />
+            <span>{isExporting ? 'Generating...' : 'Export PDF'}</span>
           </button>
 
           <button
             onClick={handleShareWhatsApp}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold shadow-md shadow-[#25D366]/20"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-lg bg-[#25D366] hover:bg-[#20bd5a] text-slate-950 text-xs font-bold transition-all shadow-sm shadow-[#25D366]/20"
           >
-            <Share2 className="w-4 h-4" />
+            <Share2 className="w-3.5 h-3.5" />
             <span>Share (WhatsApp)</span>
           </button>
         </div>
       </div>
 
       {/* 2. Client Quick Editor Banner (Hidden in Print) */}
-      <div className="print:hidden p-4 rounded-xl bg-[#0F1420] border border-[#1E2839] space-y-3">
+      <div className="print:hidden p-4 rounded-xl bg-surface/70 border border-white/10 space-y-3.5 shadow-xl">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#FED430]">
-            Customize Quotation Details & Additional Charges
+          <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400 flex items-center gap-1.5">
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            Quotation Parameters & Dispatch Surcharges
           </span>
-          <span className="text-[11px] text-slate-400">
-            Real-time update on document below
+          <span className="text-[10px] font-mono text-slate-400">
+            Real-time synchronization with document below
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
           <div>
-            <label className="text-slate-400 block mb-1 font-semibold">Customer / Gym Name</label>
+            <label className="text-slate-400 block mb-1 font-medium text-[11px]">Customer / Gym Entity</label>
             <input
               type="text"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
               placeholder="e.g. Metroflex Fitness UAE"
-              className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-1.5 text-white focus:outline-none focus:border-[#FED430]"
+              className="w-full bg-[#070A12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60 font-sans"
             />
           </div>
 
           <div>
-            <label className="text-slate-400 block mb-1 font-semibold">Contact Phone / Mobile</label>
+            <label className="text-slate-400 block mb-1 font-medium text-[11px]">Contact / WhatsApp Phone</label>
             <input
               type="text"
               value={contactNumber}
               onChange={(e) => setContactNumber(e.target.value)}
               placeholder="e.g. +971 50 123 4567"
-              className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-1.5 text-white focus:outline-none focus:border-[#FED430]"
+              className="w-full bg-[#070A12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60 font-mono"
             />
           </div>
 
           <div>
-            <label className="text-slate-400 block mb-1 font-semibold">Quote Number</label>
+            <label className="text-slate-400 block mb-1 font-medium text-[11px]">Quotation Ref Code</label>
             <input
               type="text"
               value={quotationNumber}
               onChange={(e) => setQuotationNumber(e.target.value)}
               placeholder="102"
-              className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-1.5 text-white focus:outline-none focus:border-[#FED430]"
+              className="w-full bg-[#070A12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60 font-mono"
             />
           </div>
 
           <div>
-            <label className="text-slate-400 block mb-1 font-semibold">Billing Address / City</label>
+            <label className="text-slate-400 block mb-1 font-medium text-[11px]">Dispatch Location / Emirate</label>
             <input
               type="text"
               value={customerDetails}
               onChange={(e) => setCustomerDetails(e.target.value)}
               placeholder="Dubai, UAE"
-              className="w-full bg-[#141A26] border border-[#26334D] rounded px-3 py-1.5 text-white focus:outline-none focus:border-[#FED430]"
+              className="w-full bg-[#070A12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60 font-sans"
             />
           </div>
         </div>
 
         {/* Additional Charges Section */}
-        <div className="pt-2 border-t border-[#1E2839] flex flex-wrap items-center justify-between gap-2">
+        <div className="pt-2 border-t border-white/5 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-300">
-              Additional Charges ({additionalCharges.length}):
+            <span className="text-xs font-semibold text-slate-300">
+              Additional Services / Surcharges ({additionalCharges.length}):
             </span>
             <button
               onClick={() => addAdditionalCharge()}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-[#FED430]/15 border border-[#FED430]/40 text-[#FED430] hover:bg-[#FED430]/25 text-xs font-bold transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-medium transition-colors"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>+ Add Additional Charge</span>
+              <Plus className="w-3 h-3" />
+              <span>+ Add Service Line</span>
             </button>
           </div>
 
           {additionalCharges.length > 0 && (
-            <span className="text-xs text-slate-400">
+            <span className="text-xs font-mono text-slate-400">
               Total Additional: AED{' '}
               {formatCurrency(
                 additionalCharges.reduce((s, c) => s + (parseFloat(c.amount) || 0), 0)
@@ -290,35 +295,35 @@ export default function QuotationInvoicePage() {
 
         {/* List of Additional Charge inputs */}
         {additionalCharges.length > 0 && (
-          <div className="space-y-2 pt-2">
+          <div className="space-y-2 pt-1">
             {additionalCharges.map((charge) => (
               <div
                 key={charge.id}
-                className="flex items-center gap-2 bg-[#141A26] p-2 rounded-lg border border-[#26334D]"
+                className="flex items-center gap-2 bg-[#070A12] p-2 rounded-lg border border-white/10"
               >
                 <input
                   type="text"
                   value={charge.description}
                   onChange={(e) => updateAdditionalCharge(charge.id, 'description', e.target.value)}
-                  placeholder="Charge Description (e.g. Delivery & Assembly, Rubber Flooring)"
-                  className="flex-1 bg-[#0F1420] border border-[#26334D] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#FED430]"
+                  placeholder="Charge Description (e.g. Turnkey Rigging & Delivery, Rubber Flooring Installation)"
+                  className="flex-1 bg-transparent border-0 rounded px-2 py-1 text-xs text-white focus:outline-none"
                 />
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-bold text-[#FED430]">AED</span>
+                <div className="flex items-center gap-1.5 bg-surface px-2 py-1 rounded border border-white/5">
+                  <span className="text-[10px] font-mono text-amber-400">AED</span>
                   <input
                     type="number"
                     value={charge.amount}
                     onChange={(e) => updateAdditionalCharge(charge.id, 'amount', e.target.value)}
                     placeholder="500"
-                    className="w-24 bg-[#0F1420] border border-[#26334D] rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#FED430]"
+                    className="w-20 bg-transparent border-0 text-xs text-white focus:outline-none font-mono"
                   />
                 </div>
                 <button
                   onClick={() => removeAdditionalCharge(charge.id)}
-                  className="p-1.5 rounded text-slate-400 hover:text-red-400 hover:bg-white/5"
+                  className="p-1.5 rounded text-slate-400 hover:text-red-400 hover:bg-white/5 transition-colors"
                   title="Remove charge"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
@@ -327,173 +332,175 @@ export default function QuotationInvoicePage() {
       </div>
 
       {/* 3. Fully Responsive Printable Commercial Invoice Document */}
-      <div className="w-full max-w-full pb-6">
+      <div className="w-full max-w-full pb-8">
         <div
           id="printable-commercial-invoice"
-          className="w-full max-w-[900px] mx-auto bg-white text-slate-900 rounded-xl p-3.5 sm:p-8 border border-slate-300 shadow-2xl print:shadow-none print:border-none print:m-0 print:p-0 print:max-w-none"
+          className="w-full max-w-[900px] mx-auto bg-white text-slate-900 rounded-xl p-4 sm:p-8 border border-slate-300 shadow-2xl print:shadow-none print:border-none print:m-0 print:p-0 print:max-w-none"
         >
           {/* Top Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4 pb-3 sm:pb-4 border-b border-slate-200 sm:border-b-0">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-4 border-b border-slate-200">
             {/* Left Brand */}
-            <div className="flex items-center gap-2.5 sm:gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded bg-[#E63946] flex items-center justify-center text-white font-oswald text-xl sm:text-2xl font-black flex-shrink-0 shadow-sm">
-                EF
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-slate-900 flex items-center justify-center text-amber-400 font-mono text-lg sm:text-xl font-black flex-shrink-0 shadow-sm border border-slate-800">
+                DT
               </div>
               <div>
-                <h1 className="font-oswald text-xl sm:text-2xl font-black text-[#08203E] tracking-wider leading-none">
-                  {companySettings.brandHeader || 'EMMA FITNESS'}
+                <h1 className="text-lg sm:text-xl font-black text-slate-950 tracking-tight leading-none uppercase">
+                  {companySettings.brandHeader || 'DELITRADE • EMMA FITNESS'}
                 </h1>
-                <p className="text-[9px] sm:text-[10px] font-bold text-slate-600 tracking-wider uppercase mt-1">
+                <p className="text-[9px] sm:text-[10px] font-semibold text-slate-600 tracking-wider uppercase mt-1">
                   {companySettings.legalName ||
                     'SPORTS FIELDS & HALLS EQUIPMENT TRADING CO. L.L.C'}
+                </p>
+                <p className="text-[9px] text-slate-500 font-mono">
+                  COMMERCIAL GYM MACHINERY DIVISION • DUBAI WH-1
                 </p>
               </div>
             </div>
 
             {/* Right TRN & Contacts */}
             <div className="w-full sm:w-auto text-left sm:text-right space-y-0.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-              <div className="inline-block px-2.5 py-0.5 rounded bg-[#E63946] text-white text-[10px] sm:text-[11px] font-mono font-bold tracking-wider mb-1">
+              <div className="inline-block px-2.5 py-0.5 rounded bg-slate-900 text-amber-400 text-[10px] sm:text-[11px] font-mono font-bold tracking-wider mb-1 border border-slate-800">
                 TRN: {companySettings.trn || '100569744400003'}
               </div>
-              <p className="text-[10px] sm:text-[10.5px] font-semibold text-slate-700">
-                Phone: {companySettings.phone || '0563296585'}
+              <p className="text-[10px] sm:text-[10.5px] font-semibold text-slate-800">
+                Phone: {companySettings.phone || '+971 56 329 6585'}
               </p>
-              <p className="text-[10px] sm:text-[10.5px] text-slate-700">
+              <p className="text-[10px] sm:text-[10.5px] text-slate-600">
                 Website: {companySettings.website || 'www.emmafitness.ae'}
               </p>
-              <p className="text-[10px] sm:text-[10.5px] text-slate-700">
+              <p className="text-[10px] sm:text-[10.5px] text-slate-600">
                 Email: {companySettings.email || 'emmafitdxb@gmail.com'}
               </p>
               <p className="text-[9.5px] sm:text-[10px] text-slate-500">
-                Location: {companySettings.address || 'Al Muteena, Deira, Dubai, UAE'}
+                Facility: {companySettings.address || 'Al Muteena, Deira, Dubai, UAE'}
               </p>
             </div>
           </div>
 
           {/* Title Bar */}
-          <div className="w-full bg-[#0D3B66] text-white text-center py-1.5 sm:py-2 font-oswald text-xs sm:text-sm font-black tracking-widest uppercase my-2 rounded-md sm:rounded-none">
-            QUOTATION / COMMERCIAL TAX INVOICE
+          <div className="w-full bg-slate-900 text-white text-center py-2 font-mono text-xs sm:text-sm font-bold tracking-widest uppercase my-3 rounded-md border border-slate-800 flex items-center justify-center gap-2">
+            <span>OFFICIAL COMMERCIAL QUOTATION / TAX INVOICE</span>
           </div>
 
           {/* Desktop/Print Customer Details Table */}
-          <table className="hidden sm:table print:table w-full border-collapse border border-[#0D3B66] text-[11px] my-3">
+          <table className="hidden sm:table print:table w-full border-collapse border border-slate-300 text-[11px] my-3">
             <tbody>
-              <tr className="border-b border-[#0D3B66]">
-                <td className="w-32 bg-slate-100 p-2 font-bold text-slate-800 border-r border-[#0D3B66]">
-                  Customer Name
+              <tr className="border-b border-slate-300">
+                <td className="w-32 bg-slate-100 p-2 font-bold text-slate-800 border-r border-slate-300">
+                  Customer Entity
                 </td>
-                <td className="p-2 border-r border-[#0D3B66] font-semibold">
-                  {customerName.trim() || 'Valued Customer'}
+                <td className="p-2 border-r border-slate-300 font-semibold text-slate-900">
+                  {customerName.trim() || 'Valued Commercial Client'}
                 </td>
-                <td className="w-32 bg-slate-100 p-2 font-bold text-slate-800 border-r border-[#0D3B66]">
-                  Quotation Number
+                <td className="w-32 bg-slate-100 p-2 font-bold text-slate-800 border-r border-slate-300">
+                  Document Reference
                 </td>
-                <td className="p-2 font-mono font-bold">
-                  {quotationNumber.trim() || '102'}
+                <td className="p-2 font-mono font-bold text-slate-900">
+                  #QT-2026-{quotationNumber.trim() || '102'}
                 </td>
               </tr>
-              <tr className="border-b border-[#0D3B66]">
-                <td className="bg-slate-100 p-2 font-bold text-slate-800 border-r border-[#0D3B66]">
-                  TRN Number
+              <tr className="border-b border-slate-300">
+                <td className="bg-slate-100 p-2 font-bold text-slate-800 border-r border-slate-300">
+                  TRN Reference
                 </td>
-                <td className="p-2 border-r border-[#0D3B66] font-mono">
+                <td className="p-2 border-r border-slate-300 font-mono text-slate-800">
                   {companySettings.trn || '100569744400003'}
                 </td>
-                <td className="bg-slate-100 p-2 font-bold text-slate-800 border-r border-[#0D3B66]">
+                <td className="bg-slate-100 p-2 font-bold text-slate-800 border-r border-slate-300">
                   Contact Number
                 </td>
-                <td className="p-2 font-mono">
-                  {contactNumber.trim() || '0563296585'}
+                <td className="p-2 font-mono text-slate-800">
+                  {contactNumber.trim() || '+971 56 329 6585'}
                 </td>
               </tr>
-              <tr className="border-b border-[#0D3B66]">
-                <td className="bg-slate-100 p-2 font-bold text-slate-800 border-r border-[#0D3B66]">
-                  Billing Address
+              <tr className="border-b border-slate-300">
+                <td className="bg-slate-100 p-2 font-bold text-slate-800 border-r border-slate-300">
+                  Dispatch Location
                 </td>
-                <td className="p-2 border-r border-[#0D3B66]">
+                <td className="p-2 border-r border-slate-300 text-slate-800">
                   {customerDetails.trim() || 'Dubai / UAE'}
                 </td>
-                <td className="bg-slate-100 p-2 font-bold text-slate-800 border-r border-[#0D3B66]">
-                  Quotation Date
+                <td className="bg-slate-100 p-2 font-bold text-slate-800 border-r border-slate-300">
+                  Issuance Date
                 </td>
-                <td className="p-2 font-semibold">
+                <td className="p-2 font-semibold text-slate-800">
                   {quoteDate}
                 </td>
               </tr>
               <tr>
-                <td className="bg-slate-100 p-2 font-bold text-slate-800 border-r border-[#0D3B66]">
-                  Customer Details
+                <td className="bg-slate-100 p-2 font-bold text-slate-800 border-r border-slate-300">
+                  Tax Status
                 </td>
-                <td className="p-2 border-r border-[#0D3B66]">
-                  {customerDetails.trim() || 'United Arab Emirates'}
+                <td className="p-2 border-r border-slate-300 text-slate-800">
+                  Standard Rated (5% UAE FTA VAT Included)
                 </td>
-                <td className="bg-slate-100 p-2 font-bold text-slate-800 border-r border-[#0D3B66]">
+                <td className="bg-slate-100 p-2 font-bold text-slate-800 border-r border-slate-300">
                   Payment Terms
                 </td>
                 <td className="p-2 font-semibold text-emerald-800">
-                  50% Advance Booking, 50% Before Delivery
+                  50% Advance Booking, 50% Prior to Dispatch
                 </td>
               </tr>
             </tbody>
           </table>
 
           {/* Mobile Customer Details (Stacked Responsive Card) */}
-          <div className="sm:hidden print:hidden border border-[#0D3B66] rounded-lg text-xs my-2.5 bg-slate-50 overflow-hidden divide-y divide-[#0D3B66]/20">
+          <div className="sm:hidden print:hidden border border-slate-300 rounded-lg text-xs my-2.5 bg-slate-50 overflow-hidden divide-y divide-slate-200">
             <div className="flex justify-between p-2">
-              <span className="font-bold text-slate-600 text-[11px]">Customer:</span>
-              <span className="font-bold text-slate-900 text-right">{customerName.trim() || 'Valued Customer'}</span>
+              <span className="font-semibold text-slate-600 text-[11px]">Customer:</span>
+              <span className="font-bold text-slate-900 text-right">{customerName.trim() || 'Valued Commercial Client'}</span>
             </div>
             <div className="flex justify-between p-2">
-              <span className="font-bold text-slate-600 text-[11px]">Quotation #:</span>
-              <span className="font-mono font-bold text-[#0D3B66]">{quotationNumber.trim() || '102'}</span>
+              <span className="font-semibold text-slate-600 text-[11px]">Quotation #:</span>
+              <span className="font-mono font-bold text-slate-900">#QT-2026-{quotationNumber.trim() || '102'}</span>
             </div>
             <div className="flex justify-between p-2">
-              <span className="font-bold text-slate-600 text-[11px]">Date:</span>
-              <span className="font-semibold text-slate-800">{quoteDate}</span>
+              <span className="font-semibold text-slate-600 text-[11px]">Issuance Date:</span>
+              <span className="font-medium text-slate-800">{quoteDate}</span>
             </div>
             <div className="flex justify-between p-2">
-              <span className="font-bold text-slate-600 text-[11px]">Contact:</span>
-              <span className="font-mono text-slate-800">{contactNumber.trim() || '0563296585'}</span>
+              <span className="font-semibold text-slate-600 text-[11px]">Contact:</span>
+              <span className="font-mono text-slate-800">{contactNumber.trim() || '+971 56 329 6585'}</span>
             </div>
             <div className="flex justify-between p-2">
-              <span className="font-bold text-slate-600 text-[11px]">Billing:</span>
+              <span className="font-semibold text-slate-600 text-[11px]">Location:</span>
               <span className="text-slate-800 text-right">{customerDetails.trim() || 'Dubai, UAE'}</span>
             </div>
             <div className="flex justify-between p-2 bg-emerald-50/70">
-              <span className="font-bold text-emerald-800 text-[11px]">Payment Terms:</span>
-              <span className="font-semibold text-emerald-950 text-right text-[11px]">50% Advance, 50% Before Delivery</span>
+              <span className="font-semibold text-emerald-800 text-[11px]">Payment Terms:</span>
+              <span className="font-semibold text-emerald-950 text-right text-[11px]">50% Advance, 50% Prior to Delivery</span>
             </div>
           </div>
 
           {/* Desktop/Print Products & Line Items Table */}
-          <table className="hidden sm:table print:table w-full border-collapse border border-slate-900 text-xs my-2">
+          <table className="hidden sm:table print:table w-full border-collapse border border-slate-300 text-xs my-2">
             <thead>
-              <tr className="bg-[#0D3B66] text-white text-[11px] font-bold">
-                <th className="border border-slate-900 p-2 text-center w-10">SL NO</th>
-                <th className="border border-slate-900 p-2 text-left">PRODUCT / MODEL & CODE</th>
-                <th className="border border-slate-900 p-2 text-center w-16">IMAGE</th>
-                <th className="border border-slate-900 p-2 text-right w-24">UNIT PRICE (AED)</th>
-                <th className="border border-slate-900 p-2 text-right w-24">DISCOUNT PRICE</th>
-                <th className="border border-slate-900 p-2 text-center w-12">QTY</th>
-                <th className="border border-slate-900 p-2 text-right w-28">TOTAL (AED)</th>
+              <tr className="bg-slate-900 text-white text-[11px] font-bold">
+                <th className="border border-slate-300 p-2 text-center w-10">#</th>
+                <th className="border border-slate-300 p-2 text-left">EQUIPMENT MODEL & SPECIFICATION</th>
+                <th className="border border-slate-300 p-2 text-center w-16">IMAGE</th>
+                <th className="border border-slate-300 p-2 text-right w-24">UNIT (AED)</th>
+                <th className="border border-slate-300 p-2 text-center w-12">QTY</th>
+                <th className="border border-slate-300 p-2 text-right w-28">LINE TOTAL (AED)</th>
               </tr>
             </thead>
             <tbody>
               {cartItemsList.map((item, idx) => (
-                <tr key={item.product.code} className="border-b border-slate-300">
-                  <td className="border border-slate-900 p-2 text-center font-bold">
+                <tr key={item.product.code} className="border-b border-slate-200">
+                  <td className="border border-slate-300 p-2 text-center font-mono font-bold text-slate-600">
                     {idx + 1}
                   </td>
-                  <td className="border border-slate-900 p-2">
+                  <td className="border border-slate-300 p-2">
                     <div className="font-bold text-slate-900 text-xs">
                       {item.product.name}
                     </div>
-                    <div className="text-[10px] font-mono font-bold text-slate-500">
-                      Code: {item.product.code} • {item.product.category}
+                    <div className="text-[10px] font-mono text-slate-500 mt-0.5">
+                      CODE: {item.product.code} • DIVISION: {item.product.category}
                     </div>
                   </td>
-                  <td className="border border-slate-900 p-1 text-center">
-                    <div className="w-12 h-12 mx-auto border border-slate-200 rounded p-0.5 flex items-center justify-center bg-white">
+                  <td className="border border-slate-300 p-1 text-center">
+                    <div className="w-12 h-12 mx-auto border border-slate-200 rounded p-0.5 flex items-center justify-center bg-white shadow-xs">
                       <img
                         src={item.product.imagePath}
                         alt={item.product.name}
@@ -504,16 +511,13 @@ export default function QuotationInvoicePage() {
                       />
                     </div>
                   </td>
-                  <td className="border border-slate-900 p-2 text-right font-mono">
+                  <td className="border border-slate-300 p-2 text-right font-mono text-slate-800">
                     {formatCurrency(item.product.price)}
                   </td>
-                  <td className="border border-slate-900 p-2 text-right font-mono">
-                    {formatCurrency(item.product.price)}
-                  </td>
-                  <td className="border border-slate-900 p-2 text-center font-bold">
+                  <td className="border border-slate-300 p-2 text-center font-mono font-bold text-slate-900">
                     {item.quantity}
                   </td>
-                  <td className="border border-slate-900 p-2 text-right font-mono font-bold">
+                  <td className="border border-slate-300 p-2 text-right font-mono font-bold text-slate-950">
                     {formatCurrency(item.product.price * item.quantity)}
                   </td>
                 </tr>
@@ -521,24 +525,21 @@ export default function QuotationInvoicePage() {
 
               {/* Additional Charges as Line Items */}
               {additionalCharges.map((ch, idx) => (
-                <tr key={ch.id} className="border-b border-slate-300 bg-amber-50/40">
-                  <td className="border border-slate-900 p-2 text-center font-bold text-amber-800">
+                <tr key={ch.id} className="border-b border-slate-200 bg-amber-50/40">
+                  <td className="border border-slate-300 p-2 text-center font-mono font-bold text-amber-800">
                     {cartItemsList.length + idx + 1}
                   </td>
-                  <td colSpan={2} className="border border-slate-900 p-2 font-bold text-slate-800">
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 mr-2">
-                      SERVICE / SURCHARGE
+                  <td colSpan={2} className="border border-slate-300 p-2 font-medium text-slate-900">
+                    <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-amber-200/80 text-amber-900 font-bold mr-2">
+                      LOGISTICS / SERVICE
                     </span>
-                    {ch.description || 'Logistics & Assembly Charge'}
+                    {ch.description || 'Turnkey Delivery & Assembly'}
                   </td>
-                  <td className="border border-slate-900 p-2 text-right font-mono">
+                  <td className="border border-slate-300 p-2 text-right font-mono text-slate-800">
                     {formatCurrency(ch.amount)}
                   </td>
-                  <td className="border border-slate-900 p-2 text-right font-mono">
-                    {formatCurrency(ch.amount)}
-                  </td>
-                  <td className="border border-slate-900 p-2 text-center font-bold">1</td>
-                  <td className="border border-slate-900 p-2 text-right font-mono font-bold text-amber-900">
+                  <td className="border border-slate-300 p-2 text-center font-mono font-bold text-slate-900">1</td>
+                  <td className="border border-slate-300 p-2 text-right font-mono font-bold text-amber-900">
                     {formatCurrency(ch.amount)}
                   </td>
                 </tr>
@@ -547,10 +548,10 @@ export default function QuotationInvoicePage() {
           </table>
 
           {/* Mobile Equipment Items (Responsive Touch Cards) */}
-          <div className="sm:hidden print:hidden border border-slate-900 rounded-lg overflow-hidden my-2.5 divide-y divide-slate-200">
-            <div className="bg-[#0D3B66] text-white text-[11px] font-bold px-3 py-2 uppercase flex justify-between items-center">
+          <div className="sm:hidden print:hidden border border-slate-300 rounded-lg overflow-hidden my-2.5 divide-y divide-slate-200">
+            <div className="bg-slate-900 text-white text-[11px] font-mono font-bold px-3 py-2 uppercase flex justify-between items-center">
               <span>Equipment Units ({cartItemsList.length})</span>
-              <span>Total Amount</span>
+              <span>Line Total</span>
             </div>
             {cartItemsList.map((item, idx) => (
               <div key={item.product.code} className="p-3 bg-white space-y-2">
@@ -566,14 +567,14 @@ export default function QuotationInvoicePage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-slate-900 text-xs leading-snug">{item.product.name}</h4>
-                    <span className="font-mono text-[10px] text-slate-500 block">Code: {item.product.code} • {item.product.category}</span>
+                    <span className="font-mono text-[10px] text-slate-500 block">CODE: {item.product.code} • {item.product.category}</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center text-xs bg-slate-50 p-2 rounded border border-slate-100">
                   <span className="text-slate-600 font-mono text-[11px]">
                     Qty: <strong className="text-slate-900 font-bold">{item.quantity}</strong> × AED {formatCurrency(item.product.price)}
                   </span>
-                  <span className="font-mono font-black text-slate-900 text-xs">
+                  <span className="font-mono font-bold text-slate-950 text-xs">
                     AED {formatCurrency(item.product.price * item.quantity)}
                   </span>
                 </div>
@@ -585,8 +586,8 @@ export default function QuotationInvoicePage() {
               <div key={ch.id} className="p-2.5 bg-amber-50/70 space-y-1">
                 <div className="flex items-center gap-1.5">
                   <span className="font-mono font-bold text-xs text-amber-800">#{cartItemsList.length + idx + 1}</span>
-                  <span className="text-[9.5px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-amber-200 text-amber-900">SERVICE</span>
-                  <span className="font-bold text-slate-900 text-xs truncate">{ch.description || 'Logistics Charge'}</span>
+                  <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-amber-200 text-amber-900">SERVICE</span>
+                  <span className="font-semibold text-slate-900 text-xs truncate">{ch.description || 'Logistics Charge'}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs pt-0.5">
                   <span className="text-slate-500 font-mono text-[11px]">Qty: 1</span>
@@ -597,37 +598,37 @@ export default function QuotationInvoicePage() {
           </div>
 
           {/* Totals Section */}
-          <div className="border border-slate-900 border-t-0 sm:border-t text-xs rounded-b-lg overflow-hidden">
+          <div className="border border-slate-300 text-xs rounded-b-lg overflow-hidden mt-1">
             {/* Sub Total */}
-            <div className="flex justify-between items-center px-3 sm:px-4 py-2 border-b border-slate-900">
-              <span className="font-bold text-slate-700">Sub Total</span>
-              <span className="font-mono font-bold text-xs sm:text-sm">
+            <div className="flex justify-between items-center px-3 sm:px-4 py-2 border-b border-slate-200 bg-white">
+              <span className="font-semibold text-slate-600">Net Taxable Subtotal</span>
+              <span className="font-mono font-bold text-xs sm:text-sm text-slate-900">
                 AED {formatCurrency(netTaxableSum)}
               </span>
             </div>
 
             {/* VAT 5% */}
-            <div className="flex justify-between items-center px-3 sm:px-4 py-2 border-b border-slate-900 bg-slate-50">
-              <span className="font-semibold text-slate-700">UAE VAT (5%)</span>
-              <span className="font-mono font-bold text-xs sm:text-sm">
+            <div className="flex justify-between items-center px-3 sm:px-4 py-2 border-b border-slate-200 bg-slate-50/70">
+              <span className="font-semibold text-slate-600">UAE FTA VAT (5%)</span>
+              <span className="font-mono font-bold text-xs sm:text-sm text-emerald-700">
                 AED {formatCurrency(totalVat)}
               </span>
             </div>
 
             {/* Amount in Words */}
-            <div className="px-3 sm:px-4 py-2 border-b border-slate-900 bg-slate-50 text-[10.5px] sm:text-[11px] font-serif italic text-slate-800">
-              Amount in Words:{' '}
-              <strong className="not-italic font-sans text-slate-900 font-bold block sm:inline mt-0.5 sm:mt-0">
+            <div className="px-3 sm:px-4 py-2 border-b border-slate-200 bg-slate-50 text-[10.5px] sm:text-[11px] font-mono text-slate-700">
+              AMOUNT IN WORDS:{' '}
+              <strong className="font-sans text-slate-950 font-bold block sm:inline mt-0.5 sm:mt-0">
                 {numberToWords(grandTotal)}
               </strong>
             </div>
 
             {/* Grand Total */}
-            <div className="flex justify-between items-center px-3 sm:px-4 py-2.5 bg-slate-100 text-[#0D3B66]">
-              <span className="font-oswald text-xs sm:text-sm font-black uppercase tracking-wider">
+            <div className="flex justify-between items-center px-3 sm:px-4 py-2.5 bg-slate-900 text-white">
+              <span className="font-mono text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-400">
                 Grand Total (AED)
               </span>
-              <span className="font-mono font-black text-sm sm:text-base text-[#0D3B66]">
+              <span className="font-mono font-black text-sm sm:text-base text-amber-400">
                 AED {formatCurrency(grandTotal)}
               </span>
             </div>
@@ -635,10 +636,11 @@ export default function QuotationInvoicePage() {
 
           {/* BANK DETAILS Section */}
           <div className="mt-4">
-            <div className="w-full bg-[#0D3B66] text-white px-3 py-1 font-bold text-[10.5px] sm:text-[11px] tracking-wider uppercase rounded-t-sm">
-              BANK DETAILS FOR WIRE TRANSFER
+            <div className="w-full bg-slate-900 text-white px-3 py-1 font-mono font-bold text-[10px] sm:text-[11px] tracking-wider uppercase rounded-t-sm flex items-center justify-between">
+              <span>OFFICIAL WIRE TRANSFER & BANK SETTLEMENT</span>
+              <span className="text-[9px] text-amber-400">FTA COMPLIANT</span>
             </div>
-            <div className="p-2.5 sm:p-3 bg-slate-50 border border-slate-300 text-[10px] sm:text-[11px] font-mono space-y-1.5 break-words">
+            <div className="p-3 bg-slate-50 border border-slate-300 text-[10px] sm:text-[11px] font-mono space-y-1.5 break-words">
               {bankAccounts.length > 0 ? (
                 bankAccounts.map((b) => (
                   <div key={b.id} className="text-slate-800 leading-relaxed">
@@ -666,28 +668,38 @@ export default function QuotationInvoicePage() {
 
           {/* TERMS & CONDITIONS Section */}
           <div className="mt-3">
-            <div className="w-full bg-[#0D3B66] text-white px-3 py-1 font-bold text-[10.5px] sm:text-[11px] tracking-wider uppercase rounded-t-sm">
-              TERMS & CONDITIONS
+            <div className="w-full bg-slate-900 text-white px-3 py-1 font-mono font-bold text-[10px] sm:text-[11px] tracking-wider uppercase rounded-t-sm">
+              COMMERCIAL TRADING TERMS & WARRANTY
             </div>
-            <div className="p-2.5 sm:p-3 bg-slate-50 border border-slate-300 text-[10px] sm:text-[10.5px] text-slate-700 space-y-1 leading-relaxed">
-              <p>• Customer shall approve the quotation along with the signed purchase order.</p>
-              <p>• Quotation validity: 7 calendar days from the date of issuance.</p>
-              <p>• Payment: 50% advance booking deposit, balance 50% at least 1 day prior to warehouse delivery.</p>
-              <p>• Delivery & turnkey installation performed across Dubai, Abu Dhabi & Northern Emirates.</p>
-              <p>• Includes 1-Year Comprehensive Structural Frame & AC Motor Warranty.</p>
+            <div className="p-3 bg-slate-50 border border-slate-300 text-[10px] sm:text-[10.5px] text-slate-700 space-y-1 leading-relaxed">
+              <p>• Commercial validity: 7 calendar days from issuance. Factory direct inventory subject to prior allocation.</p>
+              <p>• Milestone Payment: 50% advance booking deposit; balance 50% prior to warehouse dispatch or site delivery.</p>
+              <p>• Turnkey delivery & positioning handled across Dubai, Abu Dhabi, Sharjah, Ajman, and Northern Emirates.</p>
+              <p>• Includes 1-Year Comprehensive Structural Frame & AC Motor Commercial Refurbishment Warranty.</p>
+            </div>
+          </div>
+
+          {/* Authorized Signature & Stamp Section */}
+          <div className="mt-6 pt-4 border-t border-slate-200 grid grid-cols-2 gap-4 text-[10px] text-slate-600">
+            <div>
+              <p className="font-semibold text-slate-900 uppercase">Prepared By Operations Desk</p>
+              <p className="text-slate-500 font-mono mt-1">Delitrade Dubai Commercial Hub</p>
+            </div>
+            <div className="text-right">
+              <p className="font-semibold text-slate-900 uppercase">Authorized Corporate Stamp</p>
+              <p className="text-slate-400 italic text-[9px] mt-1">Certified B2B Transaction Record</p>
             </div>
           </div>
 
           {/* Document Footer */}
-          <div className="mt-5 sm:mt-6 pt-3 border-t border-slate-300 flex flex-col sm:flex-row justify-between items-center gap-1 text-[9.5px] sm:text-[10px] text-slate-500">
+          <div className="mt-4 pt-3 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-1 text-[9px] sm:text-[9.5px] text-slate-500 font-mono">
             <span>
-              {companySettings.brandHeader || 'Emma Fitness'} • Phone: {companySettings.phone || '0563296585'} • {companySettings.website || 'www.emmafitness.ae'}
+              {companySettings.brandHeader || 'DELITRADE'} • PHONE: {companySettings.phone || '+971 56 329 6585'} • {companySettings.website || 'WWW.EMMAFITNESS.AE'}
             </span>
-            <span>Commercial Document • Page 1 of 1</span>
+            <span>OFFICIAL TRANSACTION DOCUMENT • PAGE 1 OF 1</span>
           </div>
         </div>
       </div>
     </div>
   );
 }
-
