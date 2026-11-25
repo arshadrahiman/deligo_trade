@@ -8,7 +8,6 @@ import {
   CheckCircle,
   RefreshCw,
   Printer,
-  Download,
   AlertCircle,
   Send,
   Building,
@@ -26,7 +25,6 @@ import {
 } from 'lucide-react';
 import { useApp, sanitizeInput } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
-import { generateInvoicePdf } from '../utils/pdfGenerator';
 
 // Robust category matching for gym equipment families
 export const matchProductCategory = (pCategory, selectedCategory) => {
@@ -313,13 +311,6 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
       setIsSubmitting(false);
       setValidationError('Failed to record quotation. Please try again.');
     }
-  };
-
-  // Handle PDF Export (Restricted to Generated Sales Invoices)
-  const handleDownloadPdf = () => {
-    alert(
-      'Access Policy: Quotations must be approved and converted into an official Sales Invoice before downloading or previewing the PDF document. Once the invoice is generated, the PDF is unlocked in the Quotations & Invoices Ledger.'
-    );
   };
 
   return (
@@ -958,25 +949,14 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
                 </span>
               </button>
 
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={handleDownloadPdf}
-                  className="py-2 rounded-xl bg-[#070A12] border border-white/10 text-slate-500 font-mono text-xs font-bold flex items-center justify-center gap-1.5 cursor-not-allowed opacity-70 hover:opacity-100 transition-all"
-                  title="PDF Download is available once the Quotation is approved and generated into a Sales Invoice"
-                >
-                  <Lock className="w-3.5 h-3.5 text-slate-500" />
-                  <span>PDF (Invoice Only)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={clearCart}
-                  disabled={cartItemsList.length === 0}
-                  className="py-2 rounded-xl bg-[#070A12] border border-white/10 hover:border-red-500/40 text-slate-400 hover:text-red-400 font-mono text-xs transition-colors disabled:opacity-40"
-                >
-                  Reset Draft
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={clearCart}
+                disabled={cartItemsList.length === 0}
+                className="w-full py-2.5 rounded-xl bg-[#070A12] border border-white/10 hover:border-red-500/40 text-slate-400 hover:text-red-400 font-mono text-xs transition-colors disabled:opacity-40 flex items-center justify-center gap-1.5"
+              >
+                Reset Draft
+              </button>
             </div>
           </div>
         </div>
