@@ -539,7 +539,7 @@ export default function QuotationInvoicePage() {
                         />
                       </div>
                     </td>
-                    <td className="border border-slate-300 p-2 text-right font-mono text-slate-500 line-through">
+                    <td className="border border-slate-300 p-2 text-right font-mono text-slate-800">
                       {formatCurrency(unitPrice)}
                     </td>
                     <td className="border border-slate-300 p-2 text-right font-mono font-bold text-slate-950 bg-amber-50/60">
@@ -613,7 +613,7 @@ export default function QuotationInvoicePage() {
                   <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded border border-slate-100 font-mono">
                     <div>
                       <span className="text-[10px] text-slate-500 block uppercase">Unit Price</span>
-                      <span className="text-slate-500 line-through">AED {formatCurrency(unitPrice)}</span>
+                      <span className="text-slate-800">AED {formatCurrency(unitPrice)}</span>
                     </div>
                     <div>
                       <span className="text-[10px] text-amber-700 block uppercase font-bold">Offer Price</span>
