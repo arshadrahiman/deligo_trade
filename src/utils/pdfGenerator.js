@@ -36,24 +36,54 @@ export async function generateInvoicePdf({
   const lightGray = [248, 250, 252];
 
   // 1. Company Brand Header Left
-  doc.setFillColor(...redColor);
-  doc.roundedRect(margin, 12, 12, 12, 2, 2, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.text('EF', margin + 3.2, 20);
+  const companyName = companySettings.companyName || companySettings.brandHeader || 'DELITRADE';
+  const initials =
+    companyName
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join('')
+      .toUpperCase() || 'DT';
+
+  let textLeftX = margin + 16;
+  let customLogoDrawn = false;
+
+  if (companySettings.customLogoUrl && typeof companySettings.customLogoUrl === 'string') {
+    try {
+      const isPng = companySettings.customLogoUrl.startsWith('data:image/png');
+      const isJpeg =
+        companySettings.customLogoUrl.startsWith('data:image/jpeg') ||
+        companySettings.customLogoUrl.startsWith('data:image/jpg');
+      const imgFormat = isPng ? 'PNG' : isJpeg ? 'JPEG' : undefined;
+      doc.addImage(companySettings.customLogoUrl, imgFormat, margin, 11, 22, 14, undefined, 'FAST');
+      textLeftX = margin + 25;
+      customLogoDrawn = true;
+    } catch {
+      customLogoDrawn = false;
+    }
+  }
+
+  if (!customLogoDrawn) {
+    doc.setFillColor(...redColor);
+    doc.roundedRect(margin, 12, 12, 12, 2, 2, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text(initials, margin + (initials.length === 1 ? 4.5 : 2.5), 20.2);
+  }
 
   doc.setTextColor(8, 32, 62);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text(companySettings.brandHeader || 'EMMA FITNESS', margin + 16, 18);
+  doc.text(companyName, textLeftX, 18);
 
   doc.setTextColor(71, 85, 105);
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
   doc.text(
     (companySettings.legalName || 'SPORTS FIELDS & HALLS EQUIPMENT TRADING CO. L.L.C').toUpperCase(),
-    margin + 16,
+    textLeftX,
     23
   );
 

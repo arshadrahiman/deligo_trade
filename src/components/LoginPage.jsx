@@ -12,6 +12,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import CompanyLogo from './CompanyLogo';
 
 export default function LoginPage() {
   const { adminLogin, companySettings, checkLockout } = useApp();
@@ -87,20 +88,10 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md bg-surface border border-white/10 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl shadow-black relative z-10 space-y-6">
         {/* Brand & Security Header */}
-        <div className="text-center space-y-2">
-          {companySettings.logoType === 'custom' && companySettings.customLogoUrl ? (
-            <div className="flex justify-center mb-2">
-              <img
-                src={companySettings.customLogoUrl}
-                alt={companySettings.companyName || 'DELITRADE'}
-                className="max-h-14 max-w-[200px] object-contain rounded-lg"
-              />
-            </div>
-          ) : (
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-black flex items-center justify-center mx-auto shadow-xl shadow-amber-500/20 border border-amber-300/40">
-              <Lock className="w-7 h-7 sm:w-8 sm:h-8" />
-            </div>
-          )}
+        <div className="text-center space-y-3">
+          <div className="flex justify-center">
+            <CompanyLogo size="lg" showText={false} />
+          </div>
 
           <div className="pt-1">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-mono font-bold uppercase tracking-wider mb-2">

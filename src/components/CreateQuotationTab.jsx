@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useApp, sanitizeInput } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
+import CompanyLogo from './CompanyLogo';
 
 // Robust category matching for gym equipment families
 export const matchProductCategory = (pCategory, selectedCategory) => {
@@ -318,9 +319,7 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
       {/* Top Header Banner */}
       <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 flex-shrink-0">
-            <FileText className="w-5 h-5" />
-          </div>
+          <CompanyLogo size="md" showText={false} />
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-white uppercase tracking-tight">

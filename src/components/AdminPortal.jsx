@@ -53,6 +53,7 @@ import FinancialDashboardGraph from './FinancialDashboardGraph';
 import LoginPage from './LoginPage';
 import CreateQuotationTab from './CreateQuotationTab';
 import SystemConfigTab from './SystemConfigTab';
+import CompanyLogo from './CompanyLogo';
 
 export const DEFAULT_TERMS_TEMPLATES = [
   {
@@ -838,29 +839,14 @@ export default function AdminPortal() {
       {/* Admin Top Navigation & Header */}
       <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-white/10 flex flex-wrap items-center justify-between gap-4 shadow-xl">
         <div className="flex items-center gap-3">
-          <div
-            className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold shadow-md border ${
-              currentRole === ROLES.SUPER_ADMIN
-                ? 'bg-gradient-to-br from-red-500/20 to-amber-600/10 border-red-500/40 text-red-400 shadow-red-500/20'
-                : currentRole === ROLES.ADMIN_AGENT
-                ? 'bg-gradient-to-br from-amber-500/20 to-amber-600/10 border-amber-500/40 text-amber-400 shadow-amber-500/20'
-                : currentRole === ROLES.FINANCE_AGENT
-                ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 border-cyan-500/40 text-cyan-400 shadow-cyan-500/20'
-                : 'bg-gradient-to-br from-purple-500/20 to-indigo-600/10 border-purple-500/40 text-purple-400 shadow-purple-500/20'
-            }`}
-          >
-            {currentRole === ROLES.SUPER_ADMIN && <Sparkles className="w-5 h-5 text-red-400" />}
-            {currentRole === ROLES.ADMIN_AGENT && <Crown className="w-5 h-5" />}
-            {currentRole === ROLES.FINANCE_AGENT && <Briefcase className="w-5 h-5" />}
-            {currentRole === ROLES.SALES_AGENT && <Tag className="w-5 h-5" />}
-          </div>
+          <CompanyLogo size="md" showText={false} />
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight leading-none uppercase">
-                DELITRADE • COMMERCIAL GYM EQUIPMENT & MACHINERY ERP
+                {companySettings.companyName || 'DELITRADE'} • COMMERCIAL GYM EQUIPMENT & MACHINERY ERP
               </h1>
               <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border flex items-center gap-1.5 ${
                   currentRole === ROLES.SUPER_ADMIN
                     ? 'bg-red-500/15 text-red-400 border-red-500/30'
                     : currentRole === ROLES.ADMIN_AGENT
@@ -870,7 +856,11 @@ export default function AdminPortal() {
                     : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
                 }`}
               >
-                {ROLE_DEFINITIONS[currentRole]?.name || currentRole}
+                {currentRole === ROLES.SUPER_ADMIN && <Sparkles className="w-3.5 h-3.5 text-red-400" />}
+                {currentRole === ROLES.ADMIN_AGENT && <Crown className="w-3.5 h-3.5" />}
+                {currentRole === ROLES.FINANCE_AGENT && <Briefcase className="w-3.5 h-3.5" />}
+                {currentRole === ROLES.SALES_AGENT && <Tag className="w-3.5 h-3.5" />}
+                <span>{ROLE_DEFINITIONS[currentRole]?.name || currentRole}</span>
               </span>
             </div>
             <p className="text-slate-400 text-xs mt-1.5 flex flex-wrap items-center gap-2">
@@ -2206,8 +2196,8 @@ export default function AdminPortal() {
                   type="radio"
                   name="logoType"
                   value="default"
-                  checked={companySettings.logoType === 'default'}
-                  onChange={() => setCompanySettings((prev) => ({ ...prev, logoType: 'default' }))}
+                  checked={companySettings.logoType === 'default' && !companySettings.customLogoUrl}
+                  onChange={() => setCompanySettings((prev) => ({ ...prev, logoType: 'default', customLogoUrl: '' }))}
                   className="accent-amber-500"
                 />
                 <span>Default Stylized Typography Logo (DELITRADE)</span>
@@ -2218,7 +2208,7 @@ export default function AdminPortal() {
                   type="radio"
                   name="logoType"
                   value="custom"
-                  checked={companySettings.logoType === 'custom'}
+                  checked={companySettings.logoType === 'custom' || Boolean(companySettings.customLogoUrl)}
                   onChange={() => setCompanySettings((prev) => ({ ...prev, logoType: 'custom' }))}
                   className="accent-amber-500"
                 />
@@ -2227,7 +2217,7 @@ export default function AdminPortal() {
             </div>
 
             {/* Custom Logo Upload / URL */}
-            {companySettings.logoType === 'custom' && (
+            {(companySettings.logoType === 'custom' || Boolean(companySettings.customLogoUrl)) && (
               <div className="space-y-3 pt-2">
                 <div>
                   <label className="text-[11px] font-bold text-slate-300 block mb-1">
@@ -2243,6 +2233,7 @@ export default function AdminPortal() {
                         reader.onload = (ev) => {
                           setCompanySettings((prev) => ({
                             ...prev,
+                            logoType: 'custom',
                             customLogoUrl: ev.target.result,
                           }));
                         };
@@ -2263,6 +2254,7 @@ export default function AdminPortal() {
                     onChange={(e) =>
                       setCompanySettings((prev) => ({
                         ...prev,
+                        logoType: e.target.value ? 'custom' : prev.logoType,
                         customLogoUrl: e.target.value,
                       }))
                     }
@@ -2271,19 +2263,36 @@ export default function AdminPortal() {
                   />
                 </div>
 
-                {/* Preview */}
                 {companySettings.customLogoUrl && (
-                  <div className="p-3 bg-[#0A0D14] rounded-lg border border-white/10 flex items-center gap-3">
-                    <span className="text-[11px] text-slate-400">Current Logo Preview:</span>
-                    <img
-                      src={companySettings.customLogoUrl}
-                      alt="Logo Preview"
-                      className="h-10 w-auto object-contain bg-white/10 p-1 rounded"
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCompanySettings((prev) => ({
+                        ...prev,
+                        logoType: 'default',
+                        customLogoUrl: '',
+                      }))
+                    }
+                    className="px-3 py-1 rounded bg-white/5 hover:bg-white/10 text-red-400 text-xs font-mono"
+                  >
+                    Remove Custom Logo (Revert to Default)
+                  </button>
                 )}
               </div>
             )}
+
+            {/* Live Cross-App Logo Preview */}
+            <div className="p-3.5 bg-[#0A0D14] rounded-xl border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <span className="text-xs font-bold text-white block">Active Application Logo Preview</span>
+                <span className="text-[10.5px] text-slate-400">
+                  This logo automatically displays across the Login Page, Top Header, Create Quotation hub, and PDF Invoices.
+                </span>
+              </div>
+              <div className="p-2 rounded-xl bg-surface border border-white/10 flex items-center justify-center flex-shrink-0">
+                <CompanyLogo size="md" showText={true} customSettings={companySettings} />
+              </div>
+            </div>
           </div>
 
           {/* Company Text Details */}
@@ -2518,15 +2527,7 @@ export default function AdminPortal() {
               {/* Modal Header */}
               <div className="p-4 sm:p-5 bg-[#0A0D14] border-b border-white/10 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <div
-                    className={`p-2 rounded-lg font-bold font-black ${
-                      isApproved
-                        ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950'
-                        : 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950'
-                    }`}
-                  >
-                    {isApproved ? <ShieldCheck className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                  </div>
+                  <CompanyLogo size="sm" showText={false} />
                   <div>
                     <h3 className="font-oswald text-lg sm:text-xl font-black text-white tracking-wide uppercase">
                       {isApproved
@@ -3019,10 +3020,8 @@ export default function AdminPortal() {
           <div className="w-full max-w-5xl bg-surface border-2 border-emerald-500/40 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[96vh] sm:max-h-[92vh]">
             {/* Modal Header */}
             <div className="p-4 sm:p-5 bg-[#0A0D14] border-b border-white/10 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 font-bold font-black">
-                  <Percent className="w-5 h-5" />
-                </div>
+              <div className="flex items-center gap-3">
+                <CompanyLogo size="sm" showText={false} />
                 <div>
                   <h3 className="font-oswald text-lg sm:text-xl font-black text-white tracking-wide uppercase">
                     OFFICIAL SALES INVOICE GENERATOR
