@@ -135,6 +135,40 @@ const INITIAL_DEMO_QUOTES = [
   },
 ];
 
+// Helper: Auto-generate the next unique sequential Quotation Reference Code
+export const getNextQuotationNumber = (records = []) => {
+  let highestSequence = 101;
+  records.forEach((rec) => {
+    const candidates = [rec.quoteNumber, rec.id, rec.invoiceNumber];
+    candidates.forEach((field) => {
+      if (field) {
+        const matches = String(field).match(/\d+/g);
+        if (matches) {
+          const num = parseInt(matches[matches.length - 1], 10);
+          if (!isNaN(num) && num >= highestSequence && num < 1000000) {
+            highestSequence = num;
+          }
+        }
+      }
+    });
+  });
+
+  let nextCandidate = highestSequence + 1;
+  while (
+    records.some(
+      (r) =>
+        r.quoteNumber === String(nextCandidate) ||
+        r.quoteNumber === String(nextCandidate).padStart(3, '0') ||
+        r.id === `QT-${nextCandidate}` ||
+        r.id === `QT-${String(nextCandidate).padStart(3, '0')}`
+    )
+  ) {
+    nextCandidate++;
+  }
+
+  return String(nextCandidate).padStart(3, '0');
+};
+
 export function AppProvider({ children }) {
   // Navigation State
   const [currentPage, setCurrentPage] = useState('products'); // 'products'|'services'|'aboutUs'|'contact'|'support'|'invoiceBill'|'admin'
@@ -166,18 +200,6 @@ export function AppProvider({ children }) {
   // Cart State { [code]: { product, quantity } }
   const [cart, setCart] = useState({});
 
-  // Active Quote Form in Storefront
-  const [customerName, setCustomerName] = useState('');
-  const [contactNumber, setContactNumber] = useState('');
-  const [customerDetails, setCustomerDetails] = useState('');
-  const [quotationNumber, setQuotationNumber] = useState('102');
-  const [quoteDate, setQuoteDate] = useState(() => {
-    const today = new Date();
-    return `${today.getDate()}-${today.toLocaleString('en-US', { month: 'short' })}-${today.getFullYear()}`;
-  });
-  const [hasGeneratedQuote, setHasGeneratedQuote] = useState(false);
-  const [additionalCharges, setAdditionalCharges] = useState([]);
-
   // Quotes Records
   const [quotesRecords, setQuotesRecords] = useState(() => {
     try {
@@ -187,6 +209,34 @@ export function AppProvider({ children }) {
       return INITIAL_DEMO_QUOTES;
     }
   });
+
+  // Active Quote Form in Storefront (Quotation Ref Code auto-generated)
+  const [customerName, setCustomerName] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+  const [customerDetails, setCustomerDetails] = useState('');
+  const [quotationNumber, setQuotationNumber] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.QUOTES);
+      const records = saved ? JSON.parse(saved) : INITIAL_DEMO_QUOTES;
+      return getNextQuotationNumber(records);
+    } catch {
+      return getNextQuotationNumber(INITIAL_DEMO_QUOTES);
+    }
+  });
+
+  // Function to explicitly auto-generate the next unique reference code
+  const generateNewQuotationNumber = () => {
+    const nextCode = getNextQuotationNumber(quotesRecords);
+    setQuotationNumber(nextCode);
+    return nextCode;
+  };
+
+  const [quoteDate, setQuoteDate] = useState(() => {
+    const today = new Date();
+    return `${today.getDate()}-${today.toLocaleString('en-US', { month: 'short' })}-${today.getFullYear()}`;
+  });
+  const [hasGeneratedQuote, setHasGeneratedQuote] = useState(false);
+  const [additionalCharges, setAdditionalCharges] = useState([]);
 
   // Company & Logo Settings
   const [companySettings, setCompanySettings] = useState(() => {
@@ -324,6 +374,8 @@ export function AppProvider({ children }) {
     setCustomerDetails('');
     setAdditionalCharges([]);
     setHasGeneratedQuote(false);
+    // Auto-generate fresh quotation reference code for subsequent quote
+    setQuotationNumber(getNextQuotationNumber(quotesRecords));
   };
 
   // Cart Totals
@@ -367,12 +419,17 @@ export function AppProvider({ children }) {
     setAdditionalCharges((prev) => prev.filter((c) => c.id !== id));
   };
 
-  // Save Quote into Records
+  // Save Quote into Records (using auto-generated clean sequence code)
   const recordCurrentQuote = () => {
     if (cartItemsList.length === 0) return null;
+    const cleanNum =
+      quotationNumber && quotationNumber.trim() !== ''
+        ? quotationNumber.trim().replace(/^#?QT-?(2026)?-?/i, '')
+        : getNextQuotationNumber(quotesRecords);
+
     const newRecord = {
-      id: `QT-${quotationNumber || Date.now().toString().slice(-4)}`,
-      quoteNumber: quotationNumber || '102',
+      id: `QT-${cleanNum}`,
+      quoteNumber: cleanNum,
       invoiceNumber: null,
       type: 'quotation',
       status: 'Pending Quote',
@@ -632,6 +689,7 @@ export function AppProvider({ children }) {
         setCustomerDetails,
         quotationNumber,
         setQuotationNumber,
+        generateNewQuotationNumber,
         quoteDate,
         setQuoteDate,
         hasGeneratedQuote,

@@ -36,6 +36,7 @@ export default function QuotationInvoicePage() {
     setCustomerDetails,
     quotationNumber,
     setQuotationNumber,
+    generateNewQuotationNumber,
     quoteDate,
     setQuoteDate,
     additionalCharges,
@@ -50,6 +51,10 @@ export default function QuotationInvoicePage() {
   } = useApp();
 
   const [isExporting, setIsExporting] = useState(false);
+
+  // Clean, normalized quotation reference number (e.g. '102', '103')
+  const cleanQuotationNumber =
+    (quotationNumber || '').replace(/^#?QT-?(2026)?-?/i, '') || '102';
 
   // Calculate quote totals based on offer price (unit price - 500)
   const quoteItemsSubtotal = cartItemsList.reduce((sum, item) => {
@@ -72,7 +77,7 @@ export default function QuotationInvoicePage() {
     if (cartItemsList.length > 0) {
       recordCurrentQuote();
     }
-  }, [customerName, contactNumber, customerDetails, additionalCharges, cartItemsList]);
+  }, [customerName, contactNumber, customerDetails, additionalCharges, cartItemsList, quotationNumber]);
 
   const handlePrint = () => {
     window.print();
@@ -83,7 +88,7 @@ export default function QuotationInvoicePage() {
     try {
       const doc = await generateInvoicePdf({
         type: 'QUOTATION',
-        documentNumber: quotationNumber || '102',
+        documentNumber: cleanQuotationNumber,
         date: quoteDate,
         customerName: customerName.trim() || 'Valued Commercial Client',
         contactNumber: contactNumber.trim() || companySettings.phone,
@@ -106,7 +111,7 @@ export default function QuotationInvoicePage() {
         bankAccounts,
       });
 
-      doc.save(`Delitrade_Quotation_${quotationNumber || '102'}.pdf`);
+      doc.save(`Delitrade_Quotation_QT-2026-${cleanQuotationNumber}.pdf`);
     } catch (err) {
       console.error('PDF export error:', err);
       alert('Unable to generate PDF document. Falling back to print.');
@@ -118,7 +123,7 @@ export default function QuotationInvoicePage() {
 
   const handleShareWhatsApp = () => {
     const summary =
-      `*DELITRADE COMMERCIAL QUOTATION #QT-${quotationNumber || '102'}*\n` +
+      `*DELITRADE COMMERCIAL QUOTATION #QT-2026-${cleanQuotationNumber}*\n` +
       `Client: ${customerName || 'Valued Commercial Client'}\n` +
       `Date: ${quoteDate}\n` +
       `---------------------------\n` +
@@ -179,7 +184,7 @@ export default function QuotationInvoicePage() {
             OFFICIAL B2B QUOTATION READY
           </span>
           <span className="text-xs font-mono font-bold text-slate-200 hidden sm:inline">
-            #QT-2026-{quotationNumber || '102'} {customerName ? `• ${customerName}` : ''}
+            #QT-2026-{cleanQuotationNumber} {customerName ? `• ${customerName}` : ''}
           </span>
         </div>
 
@@ -268,14 +273,46 @@ export default function QuotationInvoicePage() {
           </div>
 
           <div>
-            <label className="text-slate-400 block mb-1 font-medium text-[11px]">Quotation Ref Code</label>
-            <input
-              type="text"
-              value={quotationNumber}
-              onChange={(e) => setQuotationNumber(e.target.value)}
-              placeholder="102"
-              className="w-full bg-[#070A12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60 font-mono"
-            />
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-slate-400 font-medium text-[11px] flex items-center gap-1.5">
+                <span>Quotation Ref Code</span>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                  AUTO-GENERATED
+                </span>
+              </label>
+              <button
+                type="button"
+                onClick={() => generateNewQuotationNumber()}
+                className="text-[10px] text-amber-400 hover:text-amber-300 font-mono font-semibold flex items-center gap-1 hover:underline cursor-pointer"
+                title="Auto-Generate next sequential code"
+              >
+                <RefreshCw className="w-3 h-3" />
+                <span>Regenerate</span>
+              </button>
+            </div>
+            <div className="relative flex items-center">
+              <span className="absolute left-2.5 font-mono font-bold text-amber-400 text-xs pointer-events-none select-none">
+                #QT-2026-
+              </span>
+              <input
+                type="text"
+                value={cleanQuotationNumber}
+                onChange={(e) => setQuotationNumber(e.target.value.replace(/^#?QT-?(2026)?-?/i, ''))}
+                placeholder="102"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg pl-20 pr-8 py-1.5 text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60 font-mono text-xs font-bold"
+              />
+              <button
+                type="button"
+                onClick={() => generateNewQuotationNumber()}
+                className="absolute right-2 text-slate-400 hover:text-amber-400 transition-colors cursor-pointer"
+                title="Generate next auto sequence number"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <p className="text-[10px] text-slate-500 mt-0.5">
+              Official ERP reference: #QT-2026-{cleanQuotationNumber}
+            </p>
           </div>
 
           <div>
@@ -419,7 +456,7 @@ export default function QuotationInvoicePage() {
                   Document Reference
                 </td>
                 <td className="p-2 font-mono font-bold text-slate-900">
-                  #QT-2026-{quotationNumber.trim() || '102'}
+                  #QT-2026-{cleanQuotationNumber}
                 </td>
               </tr>
               <tr className="border-b border-slate-300">
@@ -475,7 +512,7 @@ export default function QuotationInvoicePage() {
             </div>
             <div className="flex justify-between p-2">
               <span className="font-semibold text-slate-600 text-[11px]">Quotation #:</span>
-              <span className="font-mono font-bold text-slate-900">#QT-2026-{quotationNumber.trim() || '102'}</span>
+              <span className="font-mono font-bold text-slate-900">#QT-2026-{cleanQuotationNumber}</span>
             </div>
             <div className="flex justify-between p-2">
               <span className="font-semibold text-slate-600 text-[11px]">Issuance Date:</span>

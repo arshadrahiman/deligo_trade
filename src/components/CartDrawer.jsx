@@ -20,6 +20,8 @@ export default function CartDrawer({ isOpen, onClose }) {
     setContactNumber,
     customerDetails,
     setCustomerDetails,
+    quotationNumber,
+    generateNewQuotationNumber,
     setCurrentPage,
     recordCurrentQuote,
   } = useApp();
@@ -27,6 +29,9 @@ export default function CartDrawer({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const handleProceedToInvoice = () => {
+    if (!quotationNumber) {
+      generateNewQuotationNumber();
+    }
     recordCurrentQuote();
     setCurrentPage('invoiceBill');
     onClose();
@@ -56,9 +61,13 @@ export default function CartDrawer({ isOpen, onClose }) {
                   </h2>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                 </div>
-                <p className="text-[11px] font-mono text-slate-400">
-                  {cartCount} {cartCount === 1 ? 'UNIT ALLOCATED' : 'UNITS ALLOCATED'}
-                </p>
+                <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-400 mt-0.5">
+                  <span>{cartCount} {cartCount === 1 ? 'UNIT' : 'UNITS'}</span>
+                  <span className="text-slate-600">•</span>
+                  <span className="text-amber-400 font-bold">
+                    #QT-2026-{(quotationNumber || '').replace(/^#?QT-?(2026)?-?/i, '') || '102'}
+                  </span>
+                </div>
               </div>
             </div>
 

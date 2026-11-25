@@ -107,7 +107,15 @@ export async function generateInvoicePdf({
         { content: 'Customer Name', styles: { fontStyle: 'bold', fillColor: [241, 245, 249], textColor: [15, 23, 42] } },
         { content: customerName || 'Valued Customer' },
         { content: type === 'SALES INVOICE' ? 'Invoice Number' : 'Quotation Number', styles: { fontStyle: 'bold', fillColor: [241, 245, 249], textColor: [15, 23, 42] } },
-        { content: documentNumber, styles: { fontStyle: 'bold' } },
+        {
+          content:
+            String(documentNumber).startsWith('QT-') || String(documentNumber).startsWith('INV-')
+              ? String(documentNumber)
+              : type === 'SALES INVOICE'
+              ? `INV-2026-${documentNumber}`
+              : `QT-2026-${documentNumber}`,
+          styles: { fontStyle: 'bold' },
+        },
       ],
       [
         { content: 'Billing Address', styles: { fontStyle: 'bold', fillColor: [241, 245, 249], textColor: [15, 23, 42] } },
