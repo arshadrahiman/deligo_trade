@@ -581,8 +581,16 @@ export default function AdminPortal() {
     setTermsValidationError('');
   };
 
-  // Download PDF from Admin
+  // Download PDF from Admin (Restricted: Approved Quotations & Sales Invoices Only)
   const handleDownloadInvoicePdf = async (quoteOrInvoice) => {
+    const isApproved =
+      quoteOrInvoice.status === 'Approved' || quoteOrInvoice.type === 'sales_invoice';
+    if (!isApproved) {
+      alert(
+        'Access Policy: PDF download is strictly allowed only for records with "Approved" status or converted Sales Invoices.'
+      );
+      return;
+    }
     const isInvoice = quoteOrInvoice.type === 'sales_invoice';
     const doc = await generateInvoicePdf({
       type: isInvoice ? 'SALES INVOICE' : 'QUOTATION',
@@ -604,8 +612,16 @@ export default function AdminPortal() {
     doc.save(`Delitrade_${isInvoice ? 'Sales_Invoice' : 'Quotation'}_${quoteOrInvoice.id}.pdf`);
   };
 
-  // Preview PDF in Live Modal
+  // Preview PDF in Live Modal (Restricted: Approved Quotations & Sales Invoices Only)
   const handlePreviewInvoicePdf = async (quoteOrInvoice) => {
+    const isApproved =
+      quoteOrInvoice.status === 'Approved' || quoteOrInvoice.type === 'sales_invoice';
+    if (!isApproved) {
+      alert(
+        'Access Policy: PDF preview is strictly allowed only for records with "Approved" status or converted Sales Invoices.'
+      );
+      return;
+    }
     try {
       const isInvoice = quoteOrInvoice.type === 'sales_invoice';
       const doc = await generateInvoicePdf({
@@ -1509,23 +1525,36 @@ export default function AdminPortal() {
                         </div>
                       )}
 
-                      {/* Preview PDF */}
-                      <button
-                        onClick={() => handlePreviewInvoicePdf(rec)}
-                        className="p-2 rounded-lg bg-[#1E2839] hover:bg-emerald-600 text-slate-200 hover:text-white transition-colors"
-                        title={isInvoice ? 'Preview Sales Invoice PDF' : 'Preview Quotation PDF'}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
+                      {/* If Approved or Sales Invoice: Show Preview & Download */}
+                      {isApproved || isInvoice ? (
+                        <>
+                          {/* Preview PDF */}
+                          <button
+                            onClick={() => handlePreviewInvoicePdf(rec)}
+                            className="p-2 rounded-lg bg-[#1E2839] hover:bg-emerald-600 text-slate-200 hover:text-white transition-colors"
+                            title={isInvoice ? 'Preview Sales Invoice PDF' : 'Preview Approved Quotation PDF'}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
 
-                      {/* Download PDF */}
-                      <button
-                        onClick={() => handleDownloadInvoicePdf(rec)}
-                        className="p-2 rounded-lg bg-[#1E2839] hover:bg-blue-600 text-slate-200 hover:text-white transition-colors"
-                        title={isInvoice ? 'Download Sales Invoice PDF' : 'Download Quotation PDF'}
-                      >
-                        <Download className="w-4 h-4" />
-                      </button>
+                          {/* Download PDF */}
+                          <button
+                            onClick={() => handleDownloadInvoicePdf(rec)}
+                            className="p-2 rounded-lg bg-[#1E2839] hover:bg-blue-600 text-slate-200 hover:text-white transition-colors"
+                            title={isInvoice ? 'Download Sales Invoice PDF' : 'Download Approved Quotation PDF'}
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <div
+                          className="px-2.5 py-1.5 rounded-lg bg-[#070A12] border border-white/5 text-slate-500 text-[10px] font-mono flex items-center justify-center gap-1 cursor-not-allowed"
+                          title="PDF Preview & Download is strictly locked until Quotation is Approved by Finance"
+                        >
+                          <Lock className="w-3 h-3 text-slate-500" />
+                          <span>PDF Locked (Requires Approval)</span>
+                        </div>
+                      )}
 
                       {currentPermissions.productionCrud && (
                         <button
@@ -1733,23 +1762,36 @@ export default function AdminPortal() {
                               </span>
                             )}
 
-                            {/* Preview PDF */}
-                            <button
-                              onClick={() => handlePreviewInvoicePdf(rec)}
-                              className="p-1.5 rounded bg-[#1E2839] hover:bg-emerald-600 text-slate-200 hover:text-white transition-colors"
-                              title={isInvoice ? 'Preview Sales Invoice PDF' : 'Preview Quotation PDF'}
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                            </button>
+                            {/* If Approved or Sales Invoice: Show Preview & Download */}
+                            {isApproved || isInvoice ? (
+                              <>
+                                {/* Preview PDF */}
+                                <button
+                                  onClick={() => handlePreviewInvoicePdf(rec)}
+                                  className="p-1.5 rounded bg-[#1E2839] hover:bg-emerald-600 text-slate-200 hover:text-white transition-colors"
+                                  title={isInvoice ? 'Preview Sales Invoice PDF' : 'Preview Approved Quotation PDF'}
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
 
-                            {/* Download PDF */}
-                            <button
-                              onClick={() => handleDownloadInvoicePdf(rec)}
-                              className="p-1.5 rounded bg-[#1E2839] hover:bg-blue-600 text-slate-200 hover:text-white transition-colors"
-                              title={isInvoice ? 'Download Sales Invoice PDF' : 'Download Quotation PDF'}
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                            </button>
+                                {/* Download PDF */}
+                                <button
+                                  onClick={() => handleDownloadInvoicePdf(rec)}
+                                  className="p-1.5 rounded bg-[#1E2839] hover:bg-blue-600 text-slate-200 hover:text-white transition-colors"
+                                  title={isInvoice ? 'Download Sales Invoice PDF' : 'Download Approved Quotation PDF'}
+                                >
+                                  <Download className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            ) : (
+                              <span
+                                className="px-2 py-1 rounded bg-[#070A12] border border-white/5 text-slate-500 text-[10px] font-mono flex items-center gap-1 cursor-not-allowed"
+                                title="PDF Preview & Download is strictly locked until Quotation is Approved by Finance"
+                              >
+                                <Lock className="w-3 h-3 text-slate-500" />
+                                <span>PDF Locked</span>
+                              </span>
+                            )}
 
                             {/* Delete Quote (Admin Agent Only) */}
                             {currentPermissions.productionCrud && (

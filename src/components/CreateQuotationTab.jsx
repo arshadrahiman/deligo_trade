@@ -22,6 +22,7 @@ import {
   Check,
   ArrowUpDown,
   SlidersHorizontal,
+  Lock,
 } from 'lucide-react';
 import { useApp, sanitizeInput } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
@@ -314,42 +315,11 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
     }
   };
 
-  // Handle PDF Export
-  const handleDownloadPdf = async () => {
-    if (cartItemsList.length === 0) {
-      setValidationError('Add at least one item before generating PDF.');
-      return;
-    }
-    try {
-      const doc = await generateInvoicePdf({
-        type: 'QUOTATION',
-        documentNumber: cleanQuotationNumber,
-        date: quoteDate,
-        customerName: customerName.trim() || 'Valued Commercial Client',
-        contactNumber: contactNumber.trim() || companySettings.phone,
-        customerDetails: customerDetails.trim() || 'Dubai / UAE',
-        items: cartItemsList.map((it) => {
-          const uPrice = Number(it.unitPrice || it.product.price || 0);
-          const oPrice = Math.max(0, uPrice - 500);
-          return {
-            product: it.product,
-            quantity: it.quantity,
-            unitPrice: uPrice,
-            offerPrice: oPrice,
-            sum: oPrice * it.quantity,
-          };
-        }),
-        additionalCharges: [...additionalCharges],
-        subtotal: quoteNetTaxableSum,
-        vat: quoteTotalVat,
-        grandTotal: quoteGrandTotal,
-        settings: companySettings,
-      });
-      doc.save(`Delitrade_Quotation_QT-${cleanQuotationNumber}.pdf`);
-    } catch (err) {
-      console.error(err);
-      alert('Failed to generate PDF. Please try again.');
-    }
+  // Handle PDF Export (Restricted to Approved Status)
+  const handleDownloadPdf = () => {
+    alert(
+      'Access Policy: Quotations must be submitted and Approved by Finance before downloading or previewing official PDF documents. Once approved, the PDF will be unlocked in the Quotations & Invoices Ledger.'
+    );
   };
 
   return (
@@ -992,11 +962,11 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
                 <button
                   type="button"
                   onClick={handleDownloadPdf}
-                  disabled={cartItemsList.length === 0}
-                  className="py-2 rounded-xl bg-[#070A12] border border-white/10 hover:border-white/20 text-slate-300 font-mono text-xs font-bold flex items-center justify-center gap-1.5 transition-colors disabled:opacity-40"
+                  className="py-2 rounded-xl bg-[#070A12] border border-white/10 text-slate-500 font-mono text-xs font-bold flex items-center justify-center gap-1.5 cursor-not-allowed opacity-70 hover:opacity-100 transition-all"
+                  title="PDF Download is locked until Quotation is submitted and Approved by Finance"
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download PDF</span>
+                  <Lock className="w-3.5 h-3.5 text-slate-500" />
+                  <span>PDF (Approved Only)</span>
                 </button>
                 <button
                   type="button"
