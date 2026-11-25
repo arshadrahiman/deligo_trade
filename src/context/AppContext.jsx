@@ -371,7 +371,15 @@ export const getNextQuotationNumber = (records = []) => {
 export function AppProvider({ children }) {
   // Navigation State
   const [currentPage, setCurrentPage] = useState('products'); // 'products'|'services'|'aboutUs'|'contact'|'support'|'invoiceBill'|'admin'
-  const [isAdminView, setIsAdminView] = useState(false);
+  const [isAdminView, setIsAdminView] = useState(() => {
+    try {
+      const savedRole = localStorage.getItem(STORAGE_KEYS.ADMIN_ROLE);
+      if (savedRole === ROLES.SALES_AGENT) return false;
+      return true;
+    } catch {
+      return true;
+    }
+  });
 
   // Products State (Ensuring purchaseRate is present on every product for Admin Profit calculation)
   const [products, setProducts] = useState(() => {
@@ -503,6 +511,7 @@ export function AppProvider({ children }) {
         role: newRole,
       };
       setCurrentAdminUser(matchedAccount);
+      setIsAdminView(newRole !== ROLES.SALES_AGENT);
       try {
         localStorage.setItem(STORAGE_KEYS.ADMIN_ROLE, newRole);
         localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(matchedAccount));
@@ -536,31 +545,6 @@ export function AppProvider({ children }) {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, isAdminLoggedIn ? 'true' : 'false');
   }, [isAdminLoggedIn]);
-
-  // Handle URL hash / routing (e.g. #admin or /admin)
-  useEffect(() => {
-    const handleRoute = () => {
-      const hash = window.location.hash.toLowerCase();
-      const pathname = window.location.pathname.toLowerCase();
-      if (
-        hash === '#admin' ||
-        hash.startsWith('#admin') ||
-        pathname === '/admin' ||
-        pathname.startsWith('/admin')
-      ) {
-        setIsAdminView(true);
-      } else {
-        setIsAdminView(false);
-      }
-    };
-    handleRoute();
-    window.addEventListener('hashchange', handleRoute);
-    window.addEventListener('popstate', handleRoute);
-    return () => {
-      window.removeEventListener('hashchange', handleRoute);
-      window.removeEventListener('popstate', handleRoute);
-    };
-  }, []);
 
   // Cart operations
   const addToCart = (product) => {
@@ -1009,6 +993,7 @@ export function AppProvider({ children }) {
       setIsAdminLoggedIn(true);
       setCurrentRole(account.role);
       setCurrentAdminUser(account);
+      setIsAdminView(account.role !== ROLES.SALES_AGENT);
       try {
         localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
         localStorage.setItem(STORAGE_KEYS.ADMIN_ROLE, account.role);
@@ -1024,10 +1009,11 @@ export function AppProvider({ children }) {
       (cleanUser === 'admin' || cleanUser === 'delitrade') &&
       (cleanPass === 'admin' || cleanPass === 'delitrade2026' || cleanPass === 'admin123')
     ) {
-      const fallbackAccount = SYSTEM_ACCOUNTS[0];
+      const fallbackAccount = SYSTEM_ACCOUNTS[2] || SYSTEM_ACCOUNTS[0];
       setIsAdminLoggedIn(true);
       setCurrentRole(ROLES.ADMIN_AGENT);
       setCurrentAdminUser(fallbackAccount);
+      setIsAdminView(true);
       try {
         localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
         localStorage.setItem(STORAGE_KEYS.ADMIN_ROLE, ROLES.ADMIN_AGENT);
@@ -1054,17 +1040,10 @@ export function AppProvider({ children }) {
   };
 
   const navigateToAdmin = () => {
-    window.location.hash = '#admin';
     setIsAdminView(true);
   };
 
   const navigateToStorefront = (page = 'products') => {
-    if (window.location.hash) {
-      window.location.hash = '';
-    }
-    if (window.location.pathname.startsWith('/admin')) {
-      window.history.pushState(null, '', '/');
-    }
     setIsAdminView(false);
     setCurrentPage(page);
   };

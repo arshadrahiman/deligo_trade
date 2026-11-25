@@ -1,5 +1,22 @@
 import React, { useState } from 'react';
-import { ShoppingCart, ReceiptText, Menu, X, Activity, Layers, Wrench, Building2, ShieldCheck } from 'lucide-react';
+import {
+  ShoppingCart,
+  ReceiptText,
+  Menu,
+  X,
+  Activity,
+  Layers,
+  Wrench,
+  Building2,
+  ShieldCheck,
+  LogOut,
+  Receipt,
+  LayoutDashboard,
+  Crown,
+  Briefcase,
+  Tag,
+  Sparkles,
+} from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { formatCurrency } from '../utils/numberToWords';
 
@@ -11,9 +28,16 @@ export default function Navbar({ onOpenCart }) {
     netTaxableSum,
     hasGeneratedQuote,
     companySettings,
+    currentRole,
+    currentAdminUser,
+    ROLE_DEFINITIONS,
+    ROLES,
+    adminLogout,
+    navigateToAdmin,
   } = useApp();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const roleConfig = ROLE_DEFINITIONS[currentRole] || ROLE_DEFINITIONS[ROLES.SALES_AGENT];
 
   const navItems = [
     { id: 'products', label: 'MACHINERY TERMINAL', icon: Layers },
@@ -132,6 +156,58 @@ export default function Navbar({ onOpenCart }) {
             </button>
           )}
 
+          {/* Switch to ERP Portal / My Quotes Button */}
+          {currentRole === ROLES.SALES_AGENT ? (
+            <button
+              onClick={navigateToAdmin}
+              className="hidden md:flex items-center gap-1.5 bg-purple-500/15 border border-purple-500/30 text-purple-300 hover:bg-purple-500/25 px-3 py-1.5 sm:py-2 rounded-xl font-bold text-xs font-mono transition-all active:scale-98"
+              title="View Quotes Records & Review Status"
+            >
+              <Receipt className="w-4 h-4 text-purple-400" />
+              <span>My Quotes</span>
+            </button>
+          ) : (
+            <button
+              onClick={navigateToAdmin}
+              className="hidden md:flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 px-3 py-1.5 sm:py-2 rounded-xl font-bold text-xs font-mono transition-all active:scale-98"
+              title="Switch to ERP Portal Workspace"
+            >
+              <LayoutDashboard className="w-4 h-4 text-amber-400" />
+              <span>ERP Portal</span>
+            </button>
+          )}
+
+          {/* Authenticated Agent Badge */}
+          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#0A0D14] border border-white/10 text-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-bold text-white text-[11px] truncate max-w-[120px]">
+              {currentAdminUser?.name || roleConfig.name}
+            </span>
+            <span
+              className={`text-[9.5px] font-mono uppercase px-1.5 py-0.5 rounded font-bold border ${
+                currentRole === ROLES.SUPER_ADMIN
+                  ? 'bg-red-500/20 text-red-300 border-red-500/40'
+                  : currentRole === ROLES.ADMIN_AGENT
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                  : currentRole === ROLES.FINANCE_AGENT
+                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                  : 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+              }`}
+            >
+              {roleConfig.name}
+            </span>
+          </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={adminLogout}
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-400 text-xs font-bold font-mono transition-all active:scale-98"
+            title="Sign Out of Delitrade ERP"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
+
           {/* Mobile Menu Hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -146,6 +222,45 @@ export default function Navbar({ onOpenCart }) {
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#0D121F]/95 backdrop-blur-2xl border-b border-white/[0.08] px-4 pt-3 pb-5 space-y-2 animate-fadeIn">
+          {/* Mobile Agent Info */}
+          <div className="p-3 rounded-xl bg-[#0A0D14] border border-white/10 flex items-center justify-between text-xs mb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <div>
+                <div className="text-white font-bold">{currentAdminUser?.name || roleConfig.name}</div>
+                <div className="text-slate-400 text-[10px]">{roleConfig.name}</div>
+              </div>
+            </div>
+            <button
+              onClick={adminLogout}
+              className="px-2.5 py-1 rounded-lg bg-red-500/20 text-red-400 text-xs font-bold flex items-center gap-1"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
+            </button>
+          </div>
+
+          {/* Mobile ERP Portal / My Quotes Link */}
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              navigateToAdmin();
+            }}
+            className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold font-mono transition-colors flex items-center gap-2.5 bg-amber-500/15 border border-amber-500/30 text-amber-300"
+          >
+            {currentRole === ROLES.SALES_AGENT ? (
+              <>
+                <Receipt className="w-4 h-4 text-purple-400" />
+                <span>VIEW MY QUOTATIONS RECORD</span>
+              </>
+            ) : (
+              <>
+                <LayoutDashboard className="w-4 h-4 text-amber-400" />
+                <span>OPEN ERP PORTAL ({roleConfig.name})</span>
+              </>
+            )}
+          </button>
+
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentPage === item.id;

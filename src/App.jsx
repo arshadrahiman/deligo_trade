@@ -14,9 +14,11 @@ import AboutPage from './components/AboutPage';
 import SupportPage from './components/SupportPage';
 import Footer from './components/Footer';
 import AdminPortal from './components/AdminPortal';
+import LoginPage from './components/LoginPage';
 
 export default function App() {
   const {
+    isAdminLoggedIn,
     currentPage,
     setCurrentPage,
     isAdminView,
@@ -35,6 +37,11 @@ export default function App() {
   // Pagination State
   const [productPage, setProductPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+
+  // If user is not logged in: protect entire webapp with single login page
+  if (!isAdminLoggedIn) {
+    return <LoginPage />;
+  }
 
   // Reset page when category or search changes
   useEffect(() => {
