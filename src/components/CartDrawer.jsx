@@ -220,12 +220,12 @@ export default function CartDrawer({ isOpen, onClose }) {
             <div className="p-4 sm:p-5 border-t border-white/10 bg-[#080B12] space-y-3">
               <div className="space-y-1.5 text-xs font-mono">
                 <div className="flex justify-between text-slate-400">
-                  <span>Net Taxable Sum:</span>
+                  <span>Subtotal:</span>
                   <span className="text-slate-200">AED {formatCurrency(cartItemsSubtotal)}</span>
                 </div>
                 <div className="flex justify-between text-slate-400">
                   <span className="flex items-center gap-1">
-                    <span>UAE FTA VAT (5%):</span>
+                    <span>VAT (5%):</span>
                   </span>
                   <span className="text-emerald-400">AED {formatCurrency(totalVat)}</span>
                 </div>

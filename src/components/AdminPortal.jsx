@@ -1978,7 +1978,7 @@ export default function AdminPortal() {
               {/* Calculated Totals Preview */}
               <div className="p-4 rounded-xl bg-[#0A0D14] border border-white/10 space-y-2 text-xs">
                 <div className="flex justify-between text-slate-300">
-                  <span>Net Taxable Equipment Subtotal:</span>
+                  <span>Subtotal:</span>
                   <span className="font-mono text-white">AED {formatCurrency(previewItemsSum)}</span>
                 </div>
                 {previewChargesSum > 0 && (
@@ -1988,7 +1988,7 @@ export default function AdminPortal() {
                   </div>
                 )}
                 <div className="flex justify-between text-slate-300">
-                  <span>UAE VAT (5%):</span>
+                  <span>VAT (5%):</span>
                   <span className="font-mono text-white">AED {formatCurrency(previewVat)}</span>
                 </div>
                 <div className="flex justify-between text-base font-black text-white pt-2 border-t border-white/10">

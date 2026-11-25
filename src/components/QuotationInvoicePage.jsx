@@ -136,8 +136,8 @@ export default function QuotationInvoicePage() {
             .join('\n')
         : '') +
       `\n---------------------------\n` +
-      `Net Subtotal: AED ${formatCurrency(quoteNetTaxableSum)}\n` +
-      `UAE FTA VAT (5%): AED ${formatCurrency(quoteTotalVat)}\n` +
+      `Subtotal: AED ${formatCurrency(quoteNetTaxableSum)}\n` +
+      `VAT (5%): AED ${formatCurrency(quoteTotalVat)}\n` +
       `*Grand Total: AED ${formatCurrency(quoteGrandTotal)}*\n` +
       `Amount in words: ${numberToWords(quoteGrandTotal)}\n\n` +
       `Trading Facility: ${companySettings.website || 'www.emmafitness.ae'}`;
@@ -452,10 +452,10 @@ export default function QuotationInvoicePage() {
               </tr>
               <tr>
                 <td className="bg-slate-100 p-2 font-bold text-slate-800 border-r border-slate-300">
-                  Tax Status
+                  VAT
                 </td>
                 <td className="p-2 border-r border-slate-300 text-slate-800">
-                  Standard Rated (5% UAE FTA VAT Included)
+                  5% VAT
                 </td>
                 <td className="bg-slate-100 p-2 font-bold text-slate-800 border-r border-slate-300">
                   Payment Terms
@@ -652,7 +652,7 @@ export default function QuotationInvoicePage() {
           <div className="border border-slate-300 text-xs rounded-b-lg overflow-hidden mt-1">
             {/* Sub Total */}
             <div className="flex justify-between items-center px-3 sm:px-4 py-2 border-b border-slate-200 bg-white">
-              <span className="font-semibold text-slate-600">Net Taxable Subtotal (Offer Price)</span>
+              <span className="font-semibold text-slate-600">Subtotal</span>
               <span className="font-mono font-bold text-xs sm:text-sm text-slate-900">
                 AED {formatCurrency(quoteNetTaxableSum)}
               </span>
@@ -660,7 +660,7 @@ export default function QuotationInvoicePage() {
 
             {/* VAT 5% */}
             <div className="flex justify-between items-center px-3 sm:px-4 py-2 border-b border-slate-200 bg-slate-50/70">
-              <span className="font-semibold text-slate-600">UAE FTA VAT (5%)</span>
+              <span className="font-semibold text-slate-600">VAT (5%)</span>
               <span className="font-mono font-bold text-xs sm:text-sm text-emerald-700">
                 AED {formatCurrency(quoteTotalVat)}
               </span>
