@@ -11,7 +11,21 @@ const STORAGE_KEYS = {
   ADMIN_AUTH: 'delitrade_admin_auth_v1',
   ADMIN_ROLE: 'delitrade_admin_role_v1',
   ADMIN_USER: 'delitrade_admin_user_v1',
+  SESSION_TIMESTAMP: 'delitrade_session_ts_v1',
+  FAILED_ATTEMPTS: 'delitrade_auth_failed_v1',
+  LOCKOUT_UNTIL: 'delitrade_auth_lockout_v1',
 };
+
+// Input sanitization to prevent XSS / script injection attacks
+export const sanitizeInput = (val) => {
+  if (typeof val !== 'string') return val;
+  return val
+    .replace(/[<>]/g, '')
+    .replace(/javascript:/gi, '')
+    .trim();
+};
+
+const SESSION_MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 hours maximum session lifetime
 
 // Admin RBAC Roles and Permissions
 export const ROLES = {
@@ -369,18 +383,6 @@ export const getNextQuotationNumber = (records = []) => {
 };
 
 export function AppProvider({ children }) {
-  // Navigation State
-  const [currentPage, setCurrentPage] = useState('products'); // 'products'|'services'|'aboutUs'|'contact'|'support'|'invoiceBill'|'admin'
-  const [isAdminView, setIsAdminView] = useState(() => {
-    try {
-      const savedRole = localStorage.getItem(STORAGE_KEYS.ADMIN_ROLE);
-      if (savedRole === ROLES.SALES_AGENT) return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
-
   // Products State (Ensuring purchaseRate is present on every product for Admin Profit calculation)
   const [products, setProducts] = useState(() => {
     try {
@@ -465,10 +467,29 @@ export function AppProvider({ children }) {
     }
   });
 
-  // Admin Auth & Active RBAC Role State
+  // Admin Auth & Active RBAC Role State (with session expiry & role integrity verification)
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
     try {
-      return localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true';
+      const isAuth = localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true';
+      if (!isAuth) return false;
+
+      // Check session expiry (4 hours maximum lifetime)
+      const sessionTs = parseInt(localStorage.getItem(STORAGE_KEYS.SESSION_TIMESTAMP) || '0', 10);
+      if (!sessionTs || Date.now() - sessionTs > SESSION_MAX_AGE_MS) {
+        localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
+        localStorage.removeItem(STORAGE_KEYS.ADMIN_ROLE);
+        localStorage.removeItem(STORAGE_KEYS.ADMIN_USER);
+        localStorage.removeItem(STORAGE_KEYS.SESSION_TIMESTAMP);
+        return false;
+      }
+
+      // Check role integrity against system roles
+      const savedRole = localStorage.getItem(STORAGE_KEYS.ADMIN_ROLE);
+      if (!savedRole || !ROLE_DEFINITIONS[savedRole]) {
+        return false;
+      }
+
+      return true;
     } catch {
       return false;
     }
@@ -486,40 +507,24 @@ export function AppProvider({ children }) {
   const [currentAdminUser, setCurrentAdminUser] = useState(() => {
     try {
       const savedUser = localStorage.getItem(STORAGE_KEYS.ADMIN_USER);
-      if (savedUser) return JSON.parse(savedUser);
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        const matched = SYSTEM_ACCOUNTS.find((acc) => acc.username === parsed.username);
+        if (matched) return matched;
+      }
       return SYSTEM_ACCOUNTS[0];
     } catch {
       return SYSTEM_ACCOUNTS[0];
     }
   });
 
-  // Current Role Permissions Object
+  // Current Role Permissions Object (Strictly bound to authenticated role)
   const currentPermissions = useMemo(() => {
     return (
       ROLE_DEFINITIONS[currentRole]?.permissions ||
       ROLE_DEFINITIONS[ROLES.ADMIN_AGENT].permissions
     );
   }, [currentRole]);
-
-  // Switch Admin Role (allows switching between Admin Agent, Finance Agent, and Approval Officer)
-  const switchAdminRole = (newRole) => {
-    if (ROLE_DEFINITIONS[newRole]) {
-      setCurrentRole(newRole);
-      const matchedAccount = SYSTEM_ACCOUNTS.find((a) => a.role === newRole) || {
-        username: newRole,
-        name: ROLE_DEFINITIONS[newRole].name,
-        role: newRole,
-      };
-      setCurrentAdminUser(matchedAccount);
-      setIsAdminView(newRole !== ROLES.SALES_AGENT);
-      try {
-        localStorage.setItem(STORAGE_KEYS.ADMIN_ROLE, newRole);
-        localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(matchedAccount));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  };
 
   // Storefront search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -977,56 +982,104 @@ export function AppProvider({ children }) {
     setBankAccounts((prev) => prev.filter((b) => b.id !== id));
   };
 
-  // Admin Auth with Role Based Access Control
-  const adminLogin = (username, password) => {
-    const cleanUser = String(username).trim().toLowerCase();
-    const cleanPass = String(password).trim();
+  // Security: Check if login is currently rate-limited/locked out
+  const checkLockout = () => {
+    try {
+      const lockoutTime = parseInt(localStorage.getItem(STORAGE_KEYS.LOCKOUT_UNTIL) || '0', 10);
+      if (lockoutTime && Date.now() < lockoutTime) {
+        return {
+          isLocked: true,
+          remainingSeconds: Math.ceil((lockoutTime - Date.now()) / 1000),
+        };
+      }
+      return { isLocked: false, remainingSeconds: 0 };
+    } catch {
+      return { isLocked: false, remainingSeconds: 0 };
+    }
+  };
 
-    // Check system accounts
+  const getFailedAttempts = () => {
+    try {
+      return parseInt(localStorage.getItem(STORAGE_KEYS.FAILED_ATTEMPTS) || '0', 10);
+    } catch {
+      return 0;
+    }
+  };
+
+  // Secure Enterprise Authentication with Rate Limiting & Zero Backdoors
+  const adminLogin = (username, password) => {
+    const cleanUser = sanitizeInput(String(username || '')).toLowerCase();
+    const cleanPass = String(password || '').trim();
+
+    // 1. Check rate-limit lockout
+    const lockout = checkLockout();
+    if (lockout.isLocked) {
+      return {
+        success: false,
+        isLocked: true,
+        remainingSeconds: lockout.remainingSeconds,
+        message: `Security Lockout Active: Terminal temporarily disabled. Please retry in ${lockout.remainingSeconds}s.`,
+      };
+    }
+
+    if (!cleanUser || !cleanPass) {
+      return {
+        success: false,
+        message: 'Username and password are required for enterprise authentication.',
+      };
+    }
+
+    // 2. Strict Credential Verification against Authorized System Accounts (Zero Backdoors)
     const account = SYSTEM_ACCOUNTS.find(
-      (acc) =>
-        acc.username.toLowerCase() === cleanUser &&
-        (acc.password === cleanPass || cleanPass === 'delitrade2026' || cleanPass === 'admin123')
+      (acc) => acc.username.toLowerCase() === cleanUser && acc.password === cleanPass
     );
 
     if (account) {
-      setIsAdminLoggedIn(true);
-      setCurrentRole(account.role);
-      setCurrentAdminUser(account);
-      setIsAdminView(account.role !== ROLES.SALES_AGENT);
       try {
+        localStorage.removeItem(STORAGE_KEYS.FAILED_ATTEMPTS);
+        localStorage.removeItem(STORAGE_KEYS.LOCKOUT_UNTIL);
         localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
         localStorage.setItem(STORAGE_KEYS.ADMIN_ROLE, account.role);
         localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(account));
+        localStorage.setItem(STORAGE_KEYS.SESSION_TIMESTAMP, String(Date.now()));
       } catch (e) {
         console.error(e);
       }
+
+      setIsAdminLoggedIn(true);
+      setCurrentRole(account.role);
+      setCurrentAdminUser(account);
       return { success: true, account };
     }
 
-    // Default fallback: admin / delitrade with master password -> admin_agent
-    if (
-      (cleanUser === 'admin' || cleanUser === 'delitrade') &&
-      (cleanPass === 'admin' || cleanPass === 'delitrade2026' || cleanPass === 'admin123')
-    ) {
-      const fallbackAccount = SYSTEM_ACCOUNTS[2] || SYSTEM_ACCOUNTS[0];
-      setIsAdminLoggedIn(true);
-      setCurrentRole(ROLES.ADMIN_AGENT);
-      setCurrentAdminUser(fallbackAccount);
-      setIsAdminView(true);
+    // 3. Track Failed Login Attempts & Activate Rate-Limit Lockout
+    const attempts = getFailedAttempts() + 1;
+    try {
+      localStorage.setItem(STORAGE_KEYS.FAILED_ATTEMPTS, String(attempts));
+    } catch (e) {
+      console.error(e);
+    }
+
+    if (attempts >= 5) {
+      const lockoutUntil = Date.now() + 5 * 60 * 1000; // 5-minute security lockout
       try {
-        localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
-        localStorage.setItem(STORAGE_KEYS.ADMIN_ROLE, ROLES.ADMIN_AGENT);
-        localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(fallbackAccount));
+        localStorage.setItem(STORAGE_KEYS.LOCKOUT_UNTIL, String(lockoutUntil));
       } catch (e) {
         console.error(e);
       }
-      return { success: true, account: fallbackAccount };
+      return {
+        success: false,
+        isLocked: true,
+        remainingSeconds: 300,
+        message: 'Security Alert: 5 consecutive failed login attempts detected. Terminal locked for 300 seconds.',
+      };
     }
 
     return {
       success: false,
-      message: 'Invalid credentials. Select a role shortcut or enter valid role username and password.',
+      isLocked: false,
+      attemptsLeft: 5 - attempts,
+      message: `Authentication failed: Invalid credentials. (${5 - attempts} attempts remaining before temporary lockout)`,
     };
   };
 
@@ -1034,29 +1087,18 @@ export function AppProvider({ children }) {
     setIsAdminLoggedIn(false);
     try {
       localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
+      localStorage.removeItem(STORAGE_KEYS.ADMIN_ROLE);
+      localStorage.removeItem(STORAGE_KEYS.ADMIN_USER);
+      localStorage.removeItem(STORAGE_KEYS.SESSION_TIMESTAMP);
     } catch (e) {
       console.error(e);
     }
   };
 
-  const navigateToAdmin = () => {
-    setIsAdminView(true);
-  };
-
-  const navigateToStorefront = (page = 'products') => {
-    setIsAdminView(false);
-    setCurrentPage(page);
-  };
-
   return (
     <AppContext.Provider
       value={{
-        // Nav & Routing
-        currentPage,
-        setCurrentPage,
-        isAdminView,
-        navigateToAdmin,
-        navigateToStorefront,
+        checkLockout,
 
         // Products
         products,

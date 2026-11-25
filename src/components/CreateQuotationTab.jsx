@@ -21,7 +21,7 @@ import {
   ShieldCheck,
   Check,
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, sanitizeInput } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
 import { generateInvoicePdf } from '../utils/pdfGenerator';
 
@@ -109,27 +109,36 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
   // Handle adding custom charge
   const handleAddCustomCharge = (e) => {
     e.preventDefault();
-    if (!customChargeDesc.trim() || !customChargeAmount || isNaN(customChargeAmount)) {
+    const cleanDesc = sanitizeInput(customChargeDesc);
+    if (!cleanDesc || !customChargeAmount || isNaN(customChargeAmount)) {
       return;
     }
-    addAdditionalCharge(customChargeDesc.trim(), parseFloat(customChargeAmount));
+    addAdditionalCharge(cleanDesc, Math.abs(parseFloat(customChargeAmount)));
     setCustomChargeDesc('');
     setCustomChargeAmount('');
   };
 
   // Quick preset charges
   const handleAddPresetCharge = (desc, amount) => {
-    addAdditionalCharge(desc, amount);
+    addAdditionalCharge(sanitizeInput(desc), Math.abs(parseFloat(amount)));
   };
 
   // Submit Quotation for Review (Story flow step 1)
   const handleSubmitQuotation = () => {
     setValidationError('');
+    const cleanCustomer = sanitizeInput(customerName);
+    const cleanContact = sanitizeInput(contactNumber);
+    const cleanLocation = sanitizeInput(customerDetails);
+
+    setCustomerName(cleanCustomer);
+    setContactNumber(cleanContact);
+    setCustomerDetails(cleanLocation);
+
     if (cartItemsList.length === 0) {
       setValidationError('Please add at least one commercial equipment item to the quotation draft.');
       return;
     }
-    if (!customerName.trim()) {
+    if (!cleanCustomer) {
       setValidationError('Please enter the customer / client name.');
       return;
     }

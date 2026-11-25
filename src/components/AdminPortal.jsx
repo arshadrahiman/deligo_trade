@@ -40,7 +40,7 @@ import {
   Clock,
   Save,
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, sanitizeInput } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
 import { generateInvoicePdf } from '../utils/pdfGenerator';
 import Pagination from './Pagination';
@@ -80,16 +80,13 @@ export const DEFAULT_TERMS_TEMPLATES = [
 export default function AdminPortal() {
   const {
     isAdminLoggedIn,
-    adminLogin,
     adminLogout,
     currentRole,
     currentAdminUser,
     currentPermissions,
-    switchAdminRole,
     ROLES,
     ROLE_DEFINITIONS,
     SYSTEM_ACCOUNTS,
-    navigateToStorefront,
     quotesRecords,
     updateQuoteRecord,
     approveQuoteRecord,
@@ -114,22 +111,6 @@ export default function AdminPortal() {
     if (currentRole === ROLES.FINANCE_AGENT) return 'quotes';
     return 'dashboard';
   });
-
-  const handleSwitchRole = (newRole) => {
-    switchAdminRole(newRole);
-    if (newRole === ROLES.SALES_AGENT) {
-      setActiveTab('create_quote');
-    } else if (newRole === ROLES.FINANCE_AGENT) {
-      setActiveTab('quotes');
-    } else {
-      setActiveTab('dashboard');
-    }
-  };
-
-  // Admin Login Form State
-  const [loginUsername, setLoginUsername] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
 
   // Search in Quotes
   const [quoteSearch, setQuoteSearch] = useState('');
@@ -314,16 +295,6 @@ export default function AdminPortal() {
       ...prev,
       terms: prev.terms.filter((_, i) => i !== index),
     }));
-  };
-
-  // Handle Login
-  const handleLoginSubmit = (e) => {
-    e.preventDefault();
-    setLoginError('');
-    const res = adminLogin(loginUsername.trim(), loginPassword.trim());
-    if (!res.success) {
-      setLoginError(res.message || 'Invalid username or password');
-    }
   };
 
   // -------------------------------------------------------------
@@ -731,72 +702,27 @@ export default function AdminPortal() {
           </div>
         </div>
 
-        {/* Quick Role Switcher & Nav Actions */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          {/* Role Switcher Toolbar */}
-          <div className="flex items-center bg-[#070A12] border border-white/10 rounded-xl p-1 text-[11px] font-mono">
-            <span className="text-slate-500 px-2 py-0.5 uppercase font-bold text-[10px] hidden md:inline">
-              Role:
+        {/* Authenticated Session Badge & Secure Logout */}
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:flex flex-col items-end text-right">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs font-bold text-white">
+                {currentAdminUser?.name || 'Authorized Officer'}
+              </span>
+            </div>
+            <span className="text-[10px] font-mono text-emerald-400/90 mt-0.5">
+              Active Session • {ROLE_DEFINITIONS[currentRole]?.name}
             </span>
-            <button
-              onClick={() => handleSwitchRole(ROLES.SALES_AGENT)}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
-                currentRole === ROLES.SALES_AGENT
-                  ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-sm shadow-purple-500/20'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-              title="Sales Agent: Quotation creation and equipment product listing"
-            >
-              <Tag className="w-3 h-3" />
-              <span>Sales Agent</span>
-            </button>
-
-            <button
-              onClick={() => handleSwitchRole(ROLES.FINANCE_AGENT)}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
-                currentRole === ROLES.FINANCE_AGENT
-                  ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 font-black shadow-sm shadow-cyan-500/20'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-              title="Finance Agent: Quotation review, price modification, approval and sales invoice generation"
-            >
-              <Briefcase className="w-3 h-3" />
-              <span>Finance Agent</span>
-            </button>
-
-            <button
-              onClick={() => handleSwitchRole(ROLES.ADMIN_AGENT)}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
-                currentRole === ROLES.ADMIN_AGENT
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-sm shadow-amber-500/20'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-              title="Admin Agent: Master access (CRUD, unit price & purchase rate modification, quotation modification, approval, dashboard data & graphs)"
-            >
-              <Crown className="w-3 h-3" />
-              <span>Admin Agent</span>
-            </button>
-
-            <button
-              onClick={() => handleSwitchRole(ROLES.SUPER_ADMIN)}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
-                currentRole === ROLES.SUPER_ADMIN
-                  ? 'bg-gradient-to-r from-red-500 via-amber-500 to-yellow-500 text-slate-950 font-black shadow-sm shadow-red-500/20'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-              title="Super Admin Agent: Developer team root access, system controls, and diagnostics"
-            >
-              <Sparkles className="w-3 h-3 text-red-400" />
-              <span>Super Admin [Dev]</span>
-            </button>
           </div>
 
           <button
             onClick={adminLogout}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-500/15 border border-red-500/30 text-xs font-bold text-red-400 hover:bg-red-500/25 transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-500/15 border border-red-500/30 text-xs font-bold font-mono text-red-400 hover:bg-red-500/25 hover:border-red-500/50 transition-all shadow-sm active:scale-95"
+            title="Secure Sign Out from Enterprise Portal"
           >
             <LogOut className="w-4 h-4" />
-            <span>Logout</span>
+            <span>Sign Out</span>
           </button>
         </div>
       </div>
@@ -1161,26 +1087,18 @@ export default function AdminPortal() {
               }
             />
           ) : (
-            <div className="p-3.5 sm:p-4 rounded-xl bg-[#070A12] border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 flex-shrink-0">
-                  <Info className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="font-bold text-white block">
-                    Operational View Active ({ROLE_DEFINITIONS[currentRole]?.name})
-                  </span>
-                  <span className="text-[11px] text-slate-400">
-                    Real-time net profit analytics, acquisition wholesale rates, and financial trend curves are restricted to the Admin Agent role.
-                  </span>
-                </div>
+            <div className="p-3.5 sm:p-4 rounded-xl bg-[#070A12] border border-white/10 flex items-center gap-2.5 text-xs">
+              <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 flex-shrink-0">
+                <Info className="w-4 h-4" />
               </div>
-              <button
-                onClick={() => switchAdminRole(ROLES.ADMIN_AGENT)}
-                className="px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono text-[11px] font-bold hover:bg-amber-500/25 transition-colors whitespace-nowrap"
-              >
-                Switch to Admin Agent
-              </button>
+              <div>
+                <span className="font-bold text-white block">
+                  Operational View Active ({ROLE_DEFINITIONS[currentRole]?.name})
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  Real-time net profit analytics, acquisition wholesale rates, and financial trend curves are restricted to authenticated Admin Agent sessions.
+                </span>
+              </div>
             </div>
           )}
         </div>
@@ -1191,79 +1109,6 @@ export default function AdminPortal() {
       {/* ========================================================= */}
       {activeTab === 'quotes' && (
         <div className="space-y-4">
-          {/* Quotes Quick KPI Summary Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
-            {/* 1. Total Quotations */}
-            <div
-              onClick={() => setQuoteFilter('ALL')}
-              className={`p-3.5 rounded-xl bg-surface border transition-all cursor-pointer ${
-                quoteFilter === 'ALL' ? 'border-white/40 ring-1 ring-white/20' : 'border-white/10 hover:border-white/30'
-              }`}
-            >
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Quotations</span>
-              <span className="text-xl font-mono font-bold text-white">{quotesRecords.length}</span>
-              <span className="text-[10px] text-slate-500 block mt-0.5">All registered proposals</span>
-            </div>
-
-            {/* 2. Pending Review */}
-            <div
-              onClick={() => setQuoteFilter(quoteFilter === 'pending' ? 'ALL' : 'pending')}
-              className={`p-3.5 rounded-xl bg-surface border transition-all cursor-pointer ${
-                quoteFilter === 'pending'
-                  ? 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-500/40'
-                  : 'border-white/10 hover:border-amber-500/40'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase font-bold text-amber-400">Pending Review</span>
-                {pendingQuotes.length > 0 && (
-                  <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    Review
-                  </span>
-                )}
-              </div>
-              <span className="text-xl font-mono font-bold text-amber-300">{pendingQuotes.length}</span>
-              <span className="text-[10px] text-slate-500 block mt-0.5">Awaiting Finance review</span>
-            </div>
-
-            {/* 3. Approved Quotes */}
-            <div
-              onClick={() => setQuoteFilter(quoteFilter === 'approved' ? 'ALL' : 'approved')}
-              className={`p-3.5 rounded-xl bg-surface border transition-all cursor-pointer ${
-                quoteFilter === 'approved'
-                  ? 'border-cyan-500 bg-cyan-500/10 ring-1 ring-cyan-500/40'
-                  : 'border-white/10 hover:border-cyan-500/40'
-              }`}
-            >
-              <span className="text-[10px] uppercase font-bold text-cyan-400 block">Approved Quotes</span>
-              <span className="text-xl font-mono font-bold text-cyan-300">{approvedQuotes.length}</span>
-              <span className="text-[10px] text-slate-500 block mt-0.5">Ready to invoice</span>
-            </div>
-
-            {/* 4. Converted Sales Invoices */}
-            <div
-              onClick={() => setQuoteFilter(quoteFilter === 'sales_invoice' ? 'ALL' : 'sales_invoice')}
-              className={`p-3.5 rounded-xl bg-surface border transition-all cursor-pointer ${
-                quoteFilter === 'sales_invoice'
-                  ? 'border-emerald-500 bg-emerald-500/10 ring-1 ring-emerald-500/40'
-                  : 'border-white/10 hover:border-emerald-500/40'
-              }`}
-            >
-              <span className="text-[10px] uppercase font-bold text-emerald-400 block">Converted Invoices</span>
-              <span className="text-xl font-mono font-bold text-emerald-400">{salesInvoices.length}</span>
-              <span className="text-[10px] text-slate-500 block mt-0.5">Official commercial invoices</span>
-            </div>
-
-            {/* 5. Total Sales Value */}
-            {currentPermissions.dashboardDatas && (
-              <div className="p-3.5 rounded-xl bg-surface border border-white/10 col-span-2 sm:col-span-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Sale Amount</span>
-                <span className="text-xl font-mono font-bold text-emerald-400">AED {formatCurrency(totalSalesAmount)}</span>
-                <span className="text-[10px] text-slate-500 block mt-0.5">Sum of invoices</span>
-              </div>
-            )}
-          </div>
-
           {/* Search & Actions Toolbar */}
           <div className="p-3 rounded-xl bg-surface border border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 text-xs">
             <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
