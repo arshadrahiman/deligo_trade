@@ -39,6 +39,7 @@ import {
   Tag,
   Clock,
   Save,
+  ArrowUpDown,
 } from 'lucide-react';
 import { useApp, sanitizeInput } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
@@ -183,16 +184,17 @@ export default function AdminPortal() {
     return null;
   };
 
-  // Search & Pagination in Products
+  // Search, Sorting & Pagination in Products
   const [prodSearch, setProdSearch] = useState('');
   const [prodCategoryFilter, setProdCategoryFilter] = useState('ALL');
+  const [prodSort, setProdSort] = useState('default');
   const [prodPage, setProdPage] = useState(1);
   const [prodPerPage, setProdPerPage] = useState(10);
 
-  // Reset product page when category or search changes
+  // Reset product page when category, search or sort changes
   useEffect(() => {
     setProdPage(1);
-  }, [prodCategoryFilter, prodSearch]);
+  }, [prodCategoryFilter, prodSearch, prodSort]);
 
   // Modals
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -638,20 +640,68 @@ export default function AdminPortal() {
       : '0.0';
   }, [totalSalesAmount, totalProfitAmount]);
 
-  const filteredProducts = products.filter((p) => {
-    const matchesCategory =
-      prodCategoryFilter === 'ALL' ? true : p.category === prodCategoryFilter;
-    const matchesSearch =
-      prodSearch.trim() === '' ||
-      p.name.toLowerCase().includes(prodSearch.toLowerCase()) ||
-      p.code.toLowerCase().includes(prodSearch.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      let matchesCategory = true;
+      if (prodCategoryFilter !== 'ALL') {
+        const cat = (p.category || '').toLowerCase();
+        const filter = prodCategoryFilter.toLowerCase();
+        if (filter === 'cardio') {
+          matchesCategory = cat.includes('cardio');
+        } else if (filter === 'strength') {
+          matchesCategory = cat.includes('strength') || cat.includes('cable') || cat.includes('plate');
+        } else if (filter === 'plate loaded') {
+          matchesCategory = cat.includes('plate');
+        } else if (filter === 'strength & cables') {
+          matchesCategory = cat.includes('cable') || (cat.includes('strength') && !cat.includes('plate'));
+        } else if (filter === 'free weights' || filter === 'free weights & benches') {
+          matchesCategory = cat.includes('weight') || cat.includes('bench');
+        } else if (filter === 'accessories' || filter === 'core & specialty') {
+          matchesCategory = cat.includes('core') || cat.includes('specialty') || cat.includes('accessor');
+        } else {
+          matchesCategory = p.category === prodCategoryFilter;
+        }
+      }
 
-  const totalProdPages = Math.max(1, Math.ceil(filteredProducts.length / prodPerPage));
+      const q = prodSearch.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.code && p.code.toLowerCase().includes(q)) ||
+        (p.category && p.category.toLowerCase().includes(q)) ||
+        (p.description && p.description.toLowerCase().includes(q)) ||
+        String(p.price || '').includes(q);
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [products, prodCategoryFilter, prodSearch]);
+
+  const sortedAdminProducts = useMemo(() => {
+    const list = [...filteredProducts];
+    switch (prodSort) {
+      case 'price_asc':
+        return list.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+      case 'price_desc':
+        return list.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+      case 'stock_desc':
+        return list.sort((a, b) => Number(b.stockQty || 0) - Number(a.stockQty || 0));
+      case 'stock_asc':
+        return list.sort((a, b) => Number(a.stockQty || 0) - Number(b.stockQty || 0));
+      case 'name_asc':
+        return list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      case 'name_desc':
+        return list.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+      case 'code_asc':
+        return list.sort((a, b) => (a.code || '').localeCompare(b.code || ''));
+      default:
+        return list;
+    }
+  }, [filteredProducts, prodSort]);
+
+  const totalProdPages = Math.max(1, Math.ceil(sortedAdminProducts.length / prodPerPage));
   const validProdPage = Math.min(prodPage, totalProdPages);
   const startProdIndex = (validProdPage - 1) * prodPerPage;
-  const paginatedAdminProducts = filteredProducts.slice(
+  const paginatedAdminProducts = sortedAdminProducts.slice(
     startProdIndex,
     startProdIndex + prodPerPage
   );
@@ -1585,31 +1635,62 @@ export default function AdminPortal() {
       {/* ========================================================= */}
       {activeTab === 'products' && (
         <div className="space-y-4">
-          <div className="p-3.5 sm:p-4 rounded-xl bg-surface border border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 text-xs">
-            <div className="flex items-center gap-2.5 flex-1 w-full sm:w-auto">
-              <Search className="w-4 h-4 text-slate-400 flex-shrink-0 ml-1" />
+          <div className="p-3.5 sm:p-4 rounded-xl bg-surface border border-white/10 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3 text-xs">
+            {/* Search Input with Clear Button */}
+            <div className="relative flex-1 w-full lg:w-auto">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={prodSearch}
                 onChange={(e) => setProdSearch(e.target.value)}
-                placeholder="Search products by model code or equipment name..."
-                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-amber-500/60"
+                placeholder="Search products by model code, name, category, or price..."
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg pl-9 pr-8 py-1.5 text-white focus:outline-none focus:border-amber-500/60"
               />
+              {prodSearch && (
+                <button
+                  onClick={() => setProdSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white font-mono"
+                  title="Clear search"
+                >
+                  ✕
+                </button>
+              )}
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+            {/* Category Filter, Sort & Action Controls */}
+            <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-between lg:justify-start">
+              {/* Category Dropdown */}
               <select
                 value={prodCategoryFilter}
                 onChange={(e) => setProdCategoryFilter(e.target.value)}
-                className="bg-[#070A12] border border-white/10 rounded-lg px-3 py-1.5 text-white flex-1 sm:flex-initial"
+                className="bg-[#070A12] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500/60 flex-1 sm:flex-initial"
               >
-                <option value="ALL">All Categories</option>
+                <option value="ALL">All Categories ({products.length})</option>
+                <option value="Cardio">Cardio</option>
+                <option value="Strength">All Strength (49)</option>
                 <option value="Plate Loaded">Plate Loaded</option>
                 <option value="Strength & Cables">Strength & Cables</option>
-                <option value="Cardio">Cardio</option>
                 <option value="Free Weights & Benches">Free Weights & Benches</option>
-                <option value="Core & Specialty">Core & Specialty</option>
+                <option value="Core & Specialty">Core & Specialty / Accessories</option>
               </select>
+
+              {/* Sort Dropdown */}
+              <div className="flex items-center gap-1 bg-[#070A12] border border-white/10 rounded-lg px-2 py-1 text-xs text-slate-300">
+                <ArrowUpDown className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                <select
+                  value={prodSort}
+                  onChange={(e) => setProdSort(e.target.value)}
+                  className="bg-transparent text-xs text-white focus:outline-none cursor-pointer pr-1"
+                >
+                  <option value="default" className="bg-slate-900 text-white">Default Sort</option>
+                  <option value="price_asc" className="bg-slate-900 text-white">Price: Low to High (AED ↑)</option>
+                  <option value="price_desc" className="bg-slate-900 text-white">Price: High to Low (AED ↓)</option>
+                  <option value="stock_desc" className="bg-slate-900 text-white">Stock: High to Low</option>
+                  <option value="stock_asc" className="bg-slate-900 text-white">Stock: Low to High</option>
+                  <option value="name_asc" className="bg-slate-900 text-white">Name: A → Z</option>
+                  <option value="code_asc" className="bg-slate-900 text-white">Model Code: A → Z</option>
+                </select>
+              </div>
 
               {currentPermissions.productionCrud ? (
                 <button

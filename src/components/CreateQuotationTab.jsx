@@ -20,10 +20,36 @@ import {
   Tag,
   ShieldCheck,
   Check,
+  ArrowUpDown,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useApp, sanitizeInput } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
 import { generateInvoicePdf } from '../utils/pdfGenerator';
+
+// Robust category matching for gym equipment families
+export const matchProductCategory = (pCategory, selectedCategory) => {
+  if (!selectedCategory || selectedCategory === 'ALL') return true;
+  const cat = (pCategory || '').toLowerCase().trim();
+  const sel = selectedCategory.toLowerCase().trim();
+
+  if (sel === 'cardio') {
+    return cat.includes('cardio');
+  }
+  if (sel === 'strength') {
+    return cat.includes('strength') || cat.includes('cable') || cat.includes('plate');
+  }
+  if (sel === 'plate loaded') {
+    return cat.includes('plate');
+  }
+  if (sel === 'free weights' || sel === 'free weights & benches') {
+    return cat.includes('weight') || cat.includes('bench');
+  }
+  if (sel === 'accessories' || sel === 'core & specialty') {
+    return cat.includes('core') || cat.includes('specialty') || cat.includes('accessor');
+  }
+  return cat === sel || cat.includes(sel);
+};
 
 export default function CreateQuotationTab({ onQuotationCreated }) {
   const {
@@ -55,9 +81,12 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
     ROLES,
   } = useApp();
 
-  // Search & Category filter for equipment catalog
+  // Search, Category filter & Sorting for warehouse equipment catalog
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [strengthSubFilter, setStrengthSubFilter] = useState('ALL'); // 'ALL' | 'PLATE' | 'CABLE'
+  const [sortBy, setSortBy] = useState('default'); // 'default' | 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' | 'stock_desc' | 'code_asc'
+
   const [customChargeDesc, setCustomChargeDesc] = useState('');
   const [customChargeAmount, setCustomChargeAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,23 +97,89 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
   const cleanQuotationNumber =
     (quotationNumber || '').replace(/^#?QT-?(2026)?-?/i, '') || '102';
 
-  // Filtered equipment from warehouse stock
+  const categories = ['ALL', 'CARDIO', 'STRENGTH', 'FREE WEIGHTS', 'ACCESSORIES'];
+
+  // Dynamic Category equipment counts
+  const categoryCounts = useMemo(() => {
+    const counts = {
+      ALL: products.length,
+      CARDIO: 0,
+      STRENGTH: 0,
+      'FREE WEIGHTS': 0,
+      ACCESSORIES: 0,
+    };
+    products.forEach((p) => {
+      const cat = (p.category || '').toLowerCase();
+      if (cat.includes('cardio')) {
+        counts.CARDIO++;
+      } else if (cat.includes('strength') || cat.includes('cable') || cat.includes('plate')) {
+        counts.STRENGTH++;
+      } else if (cat.includes('weight') || cat.includes('bench')) {
+        counts['FREE WEIGHTS']++;
+      } else if (cat.includes('core') || cat.includes('specialty') || cat.includes('accessor')) {
+        counts.ACCESSORIES++;
+      }
+    });
+    return counts;
+  }, [products]);
+
+  const strengthSubCounts = useMemo(() => {
+    let plate = 0;
+    let cable = 0;
+    products.forEach((p) => {
+      const cat = (p.category || '').toLowerCase();
+      if (cat.includes('plate')) plate++;
+      else if (cat.includes('cable') || cat.includes('strength')) cable++;
+    });
+    return { plate, cable };
+  }, [products]);
+
+  // Filtered equipment from warehouse stock based on category and search
   const filteredProducts = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
     return products.filter((p) => {
-      const matchesCategory =
-        selectedCategory === 'ALL' || p.category === selectedCategory;
+      let matchesCategory = matchProductCategory(p.category, selectedCategory);
+      if (selectedCategory === 'STRENGTH' && strengthSubFilter !== 'ALL') {
+        const cat = (p.category || '').toLowerCase();
+        if (strengthSubFilter === 'PLATE') {
+          matchesCategory = cat.includes('plate');
+        } else if (strengthSubFilter === 'CABLE') {
+          matchesCategory = cat.includes('cable') || cat.includes('strength');
+        }
+      }
+
       const matchesSearch =
-        searchQuery.trim() === '' ||
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.category && p.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
+        !q ||
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.code && p.code.toLowerCase().includes(q)) ||
+        (p.category && p.category.toLowerCase().includes(q)) ||
+        (p.description && p.description.toLowerCase().includes(q)) ||
+        String(p.price || '').includes(q);
 
       return matchesCategory && matchesSearch;
     });
-  }, [products, selectedCategory, searchQuery]);
+  }, [products, selectedCategory, strengthSubFilter, searchQuery]);
 
-  const categories = ['ALL', 'CARDIO', 'STRENGTH', 'FREE WEIGHTS', 'ACCESSORIES'];
+  // Sorted equipment
+  const sortedProducts = useMemo(() => {
+    const list = [...filteredProducts];
+    switch (sortBy) {
+      case 'price_asc':
+        return list.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+      case 'price_desc':
+        return list.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+      case 'name_asc':
+        return list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      case 'name_desc':
+        return list.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+      case 'stock_desc':
+        return list.sort((a, b) => Number(b.stockQty || 0) - Number(a.stockQty || 0));
+      case 'code_asc':
+        return list.sort((a, b) => (a.code || '').localeCompare(b.code || ''));
+      default:
+        return list;
+    }
+  }, [filteredProducts, sortBy]);
 
   // Financial calculations
   const quoteItemsSubtotal = useMemo(() => {
@@ -310,7 +405,7 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
               <div className="flex items-center gap-2">
                 <Layers className="w-4 h-4 text-amber-400" />
                 <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
-                  Warehouse Stock Catalog ({filteredProducts.length} Equipment Available)
+                  Warehouse Stock Catalog ({sortedProducts.length} Equipment Available)
                 </h3>
               </div>
               <span className="text-[11px] font-mono text-emerald-400">
@@ -318,149 +413,246 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
               </span>
             </div>
 
-            {/* Search Input */}
-            <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search machinery by name, model code, category..."
-                className="w-full bg-[#070A12] border border-white/10 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/60"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white font-mono"
+            {/* Search Input & Sort Controls */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search machinery by name, model code, category, price..."
+                  className="w-full bg-[#070A12] border border-white/10 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/60"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white font-mono"
+                    title="Clear search"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Sort Dropdown */}
+              <div className="flex items-center gap-1.5 bg-[#070A12] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-slate-300">
+                <ArrowUpDown className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                <span className="text-[11px] text-slate-500 font-mono hidden sm:inline">Sort:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-transparent text-xs text-white focus:outline-none cursor-pointer pr-1"
                 >
-                  ✕
-                </button>
-              )}
+                  <option value="default" className="bg-slate-900 text-white">Catalog Default</option>
+                  <option value="price_asc" className="bg-slate-900 text-white">Price: Low to High (AED ↑)</option>
+                  <option value="price_desc" className="bg-slate-900 text-white">Price: High to Low (AED ↓)</option>
+                  <option value="stock_desc" className="bg-slate-900 text-white">Stock: Highest First</option>
+                  <option value="name_asc" className="bg-slate-900 text-white">Name: A → Z</option>
+                  <option value="name_desc" className="bg-slate-900 text-white">Name: Z → A</option>
+                  <option value="code_asc" className="bg-slate-900 text-white">Model Code: A → Z</option>
+                </select>
+              </div>
             </div>
 
             {/* Category Filter Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
               {categories.map((cat) => {
                 const isActive = selectedCategory === cat;
+                const count = categoryCounts[cat] || 0;
                 return (
                   <button
                     key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`px-3 py-1 rounded-lg text-[11px] font-mono font-bold whitespace-nowrap transition-all ${
+                    onClick={() => {
+                      setSelectedCategory(cat);
+                      setStrengthSubFilter('ALL');
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
                       isActive
                         ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-sm'
-                        : 'bg-[#070A12] border border-white/10 text-slate-400 hover:text-white'
+                        : 'bg-[#070A12] border border-white/10 text-slate-400 hover:text-white hover:border-white/20'
                     }`}
                   >
-                    {cat}
+                    <span>{cat}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                        isActive
+                          ? 'bg-black/20 text-slate-950 font-bold'
+                          : 'bg-white/10 text-slate-400'
+                      }`}
+                    >
+                      {count}
+                    </span>
                   </button>
                 );
               })}
             </div>
-          </div>
 
-          {/* Product Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[640px] overflow-y-auto pr-1">
-            {filteredProducts.map((p) => {
-              const inCartQty = cart[p.code]?.quantity || 0;
-              const unitPrice = Number(p.price || 0);
-              const offerPrice = Math.max(0, unitPrice - 500);
-
-              return (
-                <div
-                  key={p.code}
-                  className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
-                    inCartQty > 0
-                      ? 'bg-amber-500/10 border-amber-500/50 shadow-lg shadow-amber-500/5'
-                      : 'bg-surface border-white/10 hover:border-white/20'
+            {/* Strength Sub-Categories */}
+            {selectedCategory === 'STRENGTH' && (
+              <div className="flex items-center gap-1.5 pt-1 text-[11px] font-mono animate-fadeIn">
+                <span className="text-slate-500 text-[10px] uppercase">Strength Type:</span>
+                <button
+                  onClick={() => setStrengthSubFilter('ALL')}
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                    strengthSubFilter === 'ALL'
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                      : 'bg-[#070A12] text-slate-400 border border-white/10 hover:text-white'
                   }`}
                 >
-                  <div>
-                    {/* Header: Code & Category */}
-                    <div className="flex items-center justify-between gap-1 text-[10px] font-mono mb-1.5">
-                      <span className="font-bold text-amber-400 bg-[#070A12] px-2 py-0.5 rounded border border-white/10">
-                        {p.code}
-                      </span>
-                      <span className="text-slate-400 uppercase truncate max-w-[120px]">
-                        {p.category}
-                      </span>
+                  All ({categoryCounts.STRENGTH})
+                </button>
+                <button
+                  onClick={() => setStrengthSubFilter('PLATE')}
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                    strengthSubFilter === 'PLATE'
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                      : 'bg-[#070A12] text-slate-400 border border-white/10 hover:text-white'
+                  }`}
+                >
+                  Plate Loaded ({strengthSubCounts.plate})
+                </button>
+                <button
+                  onClick={() => setStrengthSubFilter('CABLE')}
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                    strengthSubFilter === 'CABLE'
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                      : 'bg-[#070A12] text-slate-400 border border-white/10 hover:text-white'
+                  }`}
+                >
+                  Strength & Cables ({strengthSubCounts.cable})
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Empty State or Product Cards Grid */}
+          {sortedProducts.length === 0 ? (
+            <div className="p-8 rounded-2xl bg-surface border border-white/10 text-center space-y-3">
+              <Layers className="w-10 h-10 text-slate-600 mx-auto" />
+              <p className="text-sm font-bold text-white">No Equipment Found</p>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                No warehouse machinery matches category &quot;{selectedCategory}&quot; {searchQuery ? `with search "${searchQuery}"` : ''}.
+              </p>
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('ALL');
+                  setStrengthSubFilter('ALL');
+                  setSortBy('default');
+                }}
+                className="px-3.5 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider hover:brightness-110"
+              >
+                Reset Filters & View All ({products.length})
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[640px] overflow-y-auto pr-1">
+              {sortedProducts.map((p) => {
+                const inCartQty = cart[p.code]?.quantity || 0;
+                const unitPrice = Number(p.price || 0);
+                const offerPrice = Math.max(0, unitPrice - 500);
+                const imgSrc = p.image || p.imagePath;
+
+                return (
+                  <div
+                    key={p.code}
+                    className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
+                      inCartQty > 0
+                        ? 'bg-amber-500/10 border-amber-500/50 shadow-lg shadow-amber-500/5'
+                        : 'bg-surface border-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    <div>
+                      {/* Header: Code & Category */}
+                      <div className="flex items-center justify-between gap-1 text-[10px] font-mono mb-1.5">
+                        <span className="font-bold text-amber-400 bg-[#070A12] px-2 py-0.5 rounded border border-white/10">
+                          {p.code}
+                        </span>
+                        <span className="text-slate-400 uppercase truncate max-w-[120px]">
+                          {p.category}
+                        </span>
+                      </div>
+
+                      {/* Image & Title */}
+                      <div className="flex gap-2.5 items-start mt-2">
+                        <div className="w-14 h-14 rounded-lg bg-[#070A12] border border-white/10 flex-shrink-0 overflow-hidden flex items-center justify-center p-1">
+                          {imgSrc ? (
+                            <img
+                              src={imgSrc}
+                              alt={p.name}
+                              className="w-full h-full object-contain"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <Layers className="w-6 h-6 text-slate-600" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-xs font-bold text-white line-clamp-2 leading-tight">
+                            {p.name}
+                          </h4>
+                          <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
+                            {p.description || 'Heavy-duty commercial construction'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Stock & Pricing */}
+                      <div className="mt-3 pt-2 border-t border-white/5 flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] text-slate-500 line-through block font-mono">
+                            AED {formatCurrency(unitPrice)}
+                          </span>
+                          <span className="text-xs font-bold text-emerald-400 font-mono">
+                            AED {formatCurrency(offerPrice)}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          {p.stockQty || 5} In Stock
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Image & Title */}
-                    <div className="flex gap-2.5 items-start mt-2">
-                      <div className="w-14 h-14 rounded-lg bg-[#070A12] border border-white/10 flex-shrink-0 overflow-hidden flex items-center justify-center p-1">
-                        {p.image ? (
-                          <img
-                            src={p.image}
-                            alt={p.name}
-                            className="w-full h-full object-contain"
-                          />
-                        ) : (
-                          <Layers className="w-6 h-6 text-slate-600" />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-xs font-bold text-white line-clamp-2 leading-tight">
-                          {p.name}
-                        </h4>
-                        <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
-                          {p.description || 'Heavy-duty commercial construction'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Stock & Pricing */}
-                    <div className="mt-3 pt-2 border-t border-white/5 flex items-center justify-between">
-                      <div>
-                        <span className="text-[10px] text-slate-500 line-through block font-mono">
-                          AED {formatCurrency(unitPrice)}
-                        </span>
-                        <span className="text-xs font-bold text-emerald-400 font-mono">
-                          AED {formatCurrency(offerPrice)}
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        {p.stockQty || 5} In Stock
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Quantity & Add Action */}
-                  <div className="mt-3 pt-2">
-                    {inCartQty > 0 ? (
-                      <div className="flex items-center justify-between bg-[#070A12] border border-amber-500/40 rounded-lg p-1">
-                        <button
-                          onClick={() => removeFromCart(p.code)}
-                          className="w-7 h-7 rounded bg-white/5 hover:bg-white/15 text-slate-300 flex items-center justify-center transition-colors"
-                          title="Decrease quantity"
-                        >
-                          <Minus className="w-3.5 h-3.5" />
-                        </button>
-                        <span className="text-xs font-mono font-bold text-amber-400 px-3">
-                          {inCartQty} in quote
-                        </span>
+                    {/* Quantity & Add Action */}
+                    <div className="mt-3 pt-2">
+                      {inCartQty > 0 ? (
+                        <div className="flex items-center justify-between bg-[#070A12] border border-amber-500/40 rounded-lg p-1">
+                          <button
+                            onClick={() => removeFromCart(p.code)}
+                            className="w-7 h-7 rounded bg-white/5 hover:bg-white/15 text-slate-300 flex items-center justify-center transition-colors"
+                            title="Decrease quantity"
+                          >
+                            <Minus className="w-3.5 h-3.5" />
+                          </button>
+                          <span className="text-xs font-mono font-bold text-amber-400 px-3">
+                            {inCartQty} in quote
+                          </span>
+                          <button
+                            onClick={() => addToCart(p)}
+                            className="w-7 h-7 rounded bg-amber-500 text-slate-950 flex items-center justify-center font-bold hover:brightness-110 transition-colors"
+                            title="Increase quantity"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
                         <button
                           onClick={() => addToCart(p)}
-                          className="w-7 h-7 rounded bg-amber-500 text-slate-950 flex items-center justify-center font-bold hover:brightness-110 transition-colors"
-                          title="Increase quantity"
+                          className="w-full py-2 rounded-lg bg-[#070A12] hover:bg-amber-500 hover:text-slate-950 text-slate-200 border border-white/10 hover:border-amber-500 text-xs font-mono font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all"
                         >
                           <Plus className="w-3.5 h-3.5" />
+                          <span>Add to Quote</span>
                         </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => addToCart(p)}
-                        className="w-full py-2 rounded-lg bg-[#070A12] hover:bg-amber-500 hover:text-slate-950 text-slate-200 border border-white/10 hover:border-amber-500 text-xs font-mono font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>Add to Quote</span>
-                      </button>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* RIGHT COLUMN: Active Quotation Ledger & Client Particulars (5 cols) */}
