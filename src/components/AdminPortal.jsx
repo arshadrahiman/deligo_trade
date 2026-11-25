@@ -571,12 +571,14 @@ export default function AdminPortal() {
             </div>
             <div className="p-4 rounded-xl bg-surface border border-white/10">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">
-                Total Pipeline Value (AED)
+                Total Sale Amount (AED)
               </span>
-              <span className="text-2xl font-mono font-bold text-amber-400">
+              <span className="text-2xl font-mono font-bold text-emerald-400">
                 AED{' '}
                 {formatCurrency(
-                  quotesRecords.reduce((sum, q) => sum + (q.grandTotal || 0), 0)
+                  quotesRecords
+                    .filter((q) => q.type === 'sales_invoice')
+                    .reduce((sum, q) => sum + (Number(q.grandTotal) || 0), 0)
                 )}
               </span>
             </div>
