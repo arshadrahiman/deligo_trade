@@ -50,23 +50,24 @@ export const ROLE_DEFINITIONS = {
   [ROLES.FINANCE_AGENT]: {
     id: ROLES.FINANCE_AGENT,
     name: 'Finance Agent',
-    badge: 'Finance & Accounts',
+    badge: 'Review & Approvals',
     color: 'from-cyan-500 to-blue-600',
     textColor: 'text-cyan-400',
     borderColor: 'border-cyan-500/40',
     bgColor: 'bg-cyan-500/10',
     description:
-      'Finance operations: Quotation creation, quotation approval authority, and product listing catalog view. Sales conversion is reserved for Approval role.',
+      'Finance operations: Quotation review, modification of prices & charges before approval, quotation approval, and product listing catalog. Sales conversion is reserved for Approval role.',
     permissions: {
       quotationCreation: true,
-      quotationApproval: true,
-      quotationModification: false,
-      salesConversion: false, // Sales conversion strictly requires Approval role
-      unitPriceModification: false,
+      productListing: true,
+      quotationReview: true,
+      quotationModification: true, // Can review and modify quotations before approval
+      unitPriceModification: true, // Can adjust unit prices/discounts during review
+      quotationApproval: true,     // Can approve quotations
+      salesConversion: false,      // Sales conversion strictly requires Approval role
       purchaseAmountModification: false,
       productionCrud: false,
-      productListing: true,
-      dashboardDatas: false,
+      dashboardDatas: true,        // Can see quote pipelines & total invoiced amounts
       dashboardGraph: false,
       brandingManagement: false,
       bankManagement: false,
@@ -81,17 +82,18 @@ export const ROLE_DEFINITIONS = {
     borderColor: 'border-emerald-500/40',
     bgColor: 'bg-emerald-500/10',
     description:
-      'Official executive authority: Converts approved quotations into commercial sales invoices and tax invoices, with product listing catalog view.',
+      'Executive authority: Converts approved quotations into commercial sales invoices and tax invoices. Approved quotes cannot be modified.',
     permissions: {
       quotationCreation: false,
-      quotationApproval: true,
-      quotationModification: false,
-      salesConversion: true, // Primary role responsibility
+      productListing: true,
+      quotationReview: true,
+      quotationModification: false, // Once approved, quotation cannot be modified
       unitPriceModification: false,
+      quotationApproval: true,
+      salesConversion: true,        // Primary role responsibility: Generate Invoice
       purchaseAmountModification: false,
       productionCrud: false,
-      productListing: true,
-      dashboardDatas: false,
+      dashboardDatas: true,
       dashboardGraph: false,
       brandingManagement: false,
       bankManagement: false,
@@ -106,14 +108,15 @@ export const ROLE_DEFINITIONS = {
     borderColor: 'border-purple-500/40',
     bgColor: 'bg-purple-500/10',
     description:
-      'Sales Agent operations: Quotation creation and access to equipment product listing catalog. Financial approvals, pricing overrides, and production CRUD are restricted.',
+      'Sales Agent operations: Initial quotation creation and access to equipment product listing catalog. Quotation modifications and approvals are handed to Finance.',
     permissions: {
       quotationCreation: true,
       productListing: true,
-      quotationApproval: false,
+      quotationReview: true,
       quotationModification: false,
-      salesConversion: false,
       unitPriceModification: false,
+      quotationApproval: false,
+      salesConversion: false,
       purchaseAmountModification: false,
       productionCrud: false,
       dashboardDatas: false,
@@ -231,11 +234,56 @@ const INITIAL_DEMO_QUOTES = [
     createdAt: Date.now() - 86400000 * 5,
   },
   {
+    id: 'QT-100',
+    quoteNumber: '100',
+    invoiceNumber: null,
+    type: 'quotation',
+    status: 'Approved',
+    approvedBy: 'Senior Finance Officer',
+    approvedAt: Date.now() - 86400000 * 2,
+    customerName: 'Powerhouse Gym Downtown',
+    contactNumber: '+971 52 443 8899',
+    customerDetails: 'Downtown Boulevard, Dubai, UAE',
+    date: '22-Nov-2026',
+    invoiceDate: null,
+    items: [
+      {
+        product: { ...initialWarehouseStock[0], purchaseRate: 4200 }, // Commercial Treadmill
+        quantity: 2,
+        unitPrice: 6500,
+        offerPrice: 6000,
+        purchaseRate: 4200,
+        originalPrice: 6500,
+        sum: 13000,
+      },
+      {
+        product: { ...initialWarehouseStock[2], purchaseRate: 4800 }, // Dual Cable Cross
+        quantity: 1,
+        unitPrice: 7800,
+        offerPrice: 7300,
+        purchaseRate: 4800,
+        originalPrice: 7800,
+        sum: 7800,
+      },
+    ],
+    additionalCharges: [
+      {
+        id: 'ac-demo-100',
+        description: 'Standard Delivery & Ground Floor Assembly',
+        amount: 600,
+      },
+    ],
+    subtotal: 21400,
+    vat: 1070,
+    grandTotal: 22470,
+    createdAt: Date.now() - 86400000 * 3,
+  },
+  {
     id: 'QT-101',
     quoteNumber: '101',
     invoiceNumber: null,
     type: 'quotation',
-    status: 'Pending Quote',
+    status: 'Pending Review',
     customerName: 'Titan Fitness Club Dubai',
     contactNumber: '+971 50 123 4567',
     customerDetails: 'Al Quoz Industrial Area 3, Dubai, UAE',
@@ -618,12 +666,14 @@ export function AppProvider({ children }) {
       quoteNumber: cleanNum,
       invoiceNumber: null,
       type: 'quotation',
-      status: 'Pending Quote',
+      status: 'Pending Review',
       customerName: customerName.trim() || 'Valued Customer',
       contactNumber: contactNumber.trim() || '+971 56 329 6585',
       customerDetails: customerDetails.trim() || 'Dubai / UAE',
       date: quoteDate,
       invoiceDate: null,
+      createdBy: currentAdminUser?.name || 'Sales Agent',
+      createdByRole: currentRole,
       items: cartItemsList.map((item) => {
         const uPrice = Number(item.unitPrice || item.product.price || 0);
         const oPrice = Math.max(0, uPrice - 500);
@@ -656,6 +706,77 @@ export function AppProvider({ children }) {
     return newRecord;
   };
 
+  // Review & Update Quotation before Approval (Finance Agent, Admin Agent)
+  const updateQuoteRecord = (quoteId, updatedData = {}) => {
+    if (!currentPermissions.quotationModification) {
+      alert('Access Denied: You do not have permission to modify quotations.');
+      return false;
+    }
+
+    let isSuccess = false;
+    setQuotesRecords((prev) =>
+      prev.map((quote) => {
+        if (quote.id !== quoteId) return quote;
+        // Lock check: once approved, it cannot be modified!
+        if (quote.status === 'Approved' || quote.type === 'sales_invoice') {
+          alert('Cannot Modify: This quotation has been Approved and locked. Modifications are disabled.');
+          return quote;
+        }
+
+        const rawItems = updatedData.items || quote.items || [];
+        const items = rawItems.map((it) => {
+          const uPrice = Number(it.unitPrice !== undefined ? it.unitPrice : it.product?.price || 0);
+          const qty = Number(it.quantity || 1);
+          const pRate =
+            it.purchaseRate !== undefined
+              ? Number(it.purchaseRate)
+              : it.product?.purchaseRate !== undefined
+              ? Number(it.product.purchaseRate)
+              : Math.round(uPrice * 0.65);
+
+          return {
+            ...it,
+            product: { ...(it.product || {}), purchaseRate: pRate },
+            unitPrice: uPrice,
+            quantity: qty,
+            purchaseRate: pRate,
+            originalPrice: it.originalPrice || it.product?.price || uPrice,
+            sum: uPrice * qty,
+          };
+        });
+
+        const addCharges = (
+          updatedData.additionalCharges !== undefined
+            ? updatedData.additionalCharges
+            : quote.additionalCharges || []
+        ).map((ch) => ({
+          ...ch,
+          amount: parseFloat(ch.amount) || 0,
+        }));
+
+        const itemsSum = items.reduce((s, it) => s + (it.unitPrice * it.quantity), 0);
+        const chargesSum = addCharges.reduce((s, ch) => s + (Number(ch.amount) || 0), 0);
+        const subtotal = itemsSum + chargesSum;
+        const vat = subtotal * 0.05;
+        const grandTotal = subtotal + vat;
+
+        isSuccess = true;
+        return {
+          ...quote,
+          ...updatedData,
+          items,
+          additionalCharges: addCharges,
+          subtotal,
+          vat,
+          grandTotal,
+          updatedAt: Date.now(),
+          updatedBy: currentAdminUser?.name || currentAdminUser?.username || currentRole,
+        };
+      })
+    );
+    return isSuccess;
+  };
+
   // Quotation Approval Workflow (finance_agent, admin_agent, approval)
   const approveQuoteRecord = (quoteId) => {
     if (!currentPermissions.quotationApproval) {
@@ -680,6 +801,12 @@ export function AppProvider({ children }) {
   const convertQuoteToSalesInvoice = (quoteId, modifiedData = {}) => {
     if (!currentPermissions.salesConversion) {
       alert('Access Denied: Official Sales Conversion is strictly restricted to the Approval Role.');
+      return false;
+    }
+    const target = quotesRecords.find((q) => q.id === quoteId);
+    if (!target) return false;
+    if (target.status !== 'Approved' && target.type !== 'sales_invoice') {
+      alert('Quotation must be Approved by Finance or an authorized officer before generating Sales Invoice.');
       return false;
     }
     setQuotesRecords((prev) =>
@@ -984,6 +1111,7 @@ export function AppProvider({ children }) {
 
         // Quotes records & Approval Workflow
         quotesRecords,
+        updateQuoteRecord,
         approveQuoteRecord,
         convertQuoteToSalesInvoice,
         deleteQuoteRecord,

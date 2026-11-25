@@ -37,6 +37,8 @@ import {
   Info,
   Sparkles,
   Tag,
+  Clock,
+  Save,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
@@ -87,6 +89,7 @@ export default function AdminPortal() {
     SYSTEM_ACCOUNTS,
     navigateToStorefront,
     quotesRecords,
+    updateQuoteRecord,
     approveQuoteRecord,
     convertQuoteToSalesInvoice,
     deleteQuoteRecord,
@@ -206,6 +209,15 @@ export default function AdminPortal() {
   const [overrideCharges, setOverrideCharges] = useState([]);
   const [overrideInvoiceDate, setOverrideInvoiceDate] = useState('');
 
+  // Quotation Review & Modification Workspace State (Finance Agent & Admin Agent)
+  const [reviewingQuote, setReviewingQuote] = useState(null);
+  const [reviewItems, setReviewItems] = useState([]);
+  const [reviewCharges, setReviewCharges] = useState([]);
+  const [reviewCustomerName, setReviewCustomerName] = useState('');
+  const [reviewContactNumber, setReviewContactNumber] = useState('');
+  const [reviewCustomerDetails, setReviewCustomerDetails] = useState('');
+  const [reviewSaveMsg, setReviewSaveMsg] = useState('');
+
   // Terms & Conditions Templates State (2 configurable templates)
   const [termsTemplates, setTermsTemplates] = useState(() => {
     try {
@@ -297,16 +309,132 @@ export default function AdminPortal() {
     }
   };
 
-  // Open Sales Invoice Preview & Price Override
+  // -------------------------------------------------------------
+  // REVIEW & UPDATE WORKSPACE (Before Approval: Finance & Admin)
+  // -------------------------------------------------------------
+  const openReviewModal = (quote) => {
+    setReviewingQuote(quote);
+    setReviewSaveMsg('');
+    setReviewCustomerName(quote.customerName || '');
+    setReviewContactNumber(quote.contactNumber || '');
+    setReviewCustomerDetails(quote.customerDetails || '');
+    setReviewItems(
+      (quote.items || []).map((it) => ({
+        product: { ...it.product },
+        quantity: it.quantity || 1,
+        unitPrice: it.unitPrice !== undefined ? it.unitPrice : it.product?.price || 0,
+        originalPrice: it.originalPrice || it.product?.price || it.unitPrice || 0,
+        purchaseRate:
+          it.purchaseRate !== undefined
+            ? Number(it.purchaseRate)
+            : it.product?.purchaseRate !== undefined
+            ? Number(it.product.purchaseRate)
+            : Math.round(Number(it.unitPrice || it.product?.price || 0) * 0.65),
+      }))
+    );
+    setReviewCharges(
+      quote.additionalCharges ? quote.additionalCharges.map((c) => ({ ...c })) : []
+    );
+  };
+
+  const handleReviewItemPriceChange = (index, newPrice) => {
+    setReviewItems((prev) =>
+      prev.map((it, idx) =>
+        idx === index ? { ...it, unitPrice: parseFloat(newPrice) || 0 } : it
+      )
+    );
+  };
+
+  const handleReviewItemQuantityChange = (index, newQty) => {
+    setReviewItems((prev) =>
+      prev.map((it, idx) =>
+        idx === index ? { ...it, quantity: Math.max(1, parseInt(newQty, 10) || 1) } : it
+      )
+    );
+  };
+
+  const handleAddReviewCharge = () => {
+    const newCharge = {
+      id: 'ch-rev-' + Date.now() + Math.random().toString(36).substr(2, 4),
+      description: 'Logistics, Offloading & Rigging',
+      amount: 500,
+    };
+    setReviewCharges((prev) => [...prev, newCharge]);
+  };
+
+  const handleUpdateReviewCharge = (id, field, val) => {
+    setReviewCharges((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, [field]: val } : c))
+    );
+  };
+
+  const handleRemoveReviewCharge = (id) => {
+    setReviewCharges((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const handleSaveReviewChanges = () => {
+    if (!reviewingQuote) return;
+    const ok = updateQuoteRecord(reviewingQuote.id, {
+      customerName: reviewCustomerName.trim(),
+      contactNumber: reviewContactNumber.trim(),
+      customerDetails: reviewCustomerDetails.trim(),
+      items: reviewItems,
+      additionalCharges: reviewCharges,
+    });
+    if (ok) {
+      setReviewSaveMsg('Quotation pricing, line items, and charges updated successfully.');
+      setTimeout(() => setReviewSaveMsg(''), 4000);
+    }
+  };
+
+  const handleApproveFromReview = () => {
+    if (!reviewingQuote) return;
+    // Auto-save changes first if modified
+    updateQuoteRecord(reviewingQuote.id, {
+      customerName: reviewCustomerName.trim(),
+      contactNumber: reviewContactNumber.trim(),
+      customerDetails: reviewCustomerDetails.trim(),
+      items: reviewItems,
+      additionalCharges: reviewCharges,
+    });
+    const approved = approveQuoteRecord(reviewingQuote.id);
+    if (approved) {
+      alert(`Quotation #${reviewingQuote.id} has been Approved and locked! It is now ready for Invoice Generation.`);
+      setReviewingQuote(null);
+    }
+  };
+
+  const reviewItemsSum = useMemo(() => {
+    return reviewItems.reduce(
+      (sum, it) => sum + (Number(it.unitPrice) || 0) * (Number(it.quantity) || 1),
+      0
+    );
+  }, [reviewItems]);
+
+  const reviewChargesSum = useMemo(() => {
+    return reviewCharges.reduce((sum, ch) => sum + (parseFloat(ch.amount) || 0), 0);
+  }, [reviewCharges]);
+
+  const reviewSubtotal = reviewItemsSum + reviewChargesSum;
+  const reviewVat = reviewSubtotal * 0.05;
+  const reviewGrandTotal = reviewSubtotal + reviewVat;
+
+  // -------------------------------------------------------------
+  // INVOICE GENERATOR (Stage 2: Approved Quotes Only)
+  // -------------------------------------------------------------
   const openInvoicePreview = (quote) => {
+    if (quote.type !== 'sales_invoice' && quote.status !== 'Approved') {
+      alert('Cannot Generate Invoice: Quotation must be Reviewed and Approved by Finance first.');
+      return;
+    }
     setPreviewingQuote(quote);
-    setSelectedTermsTemplateId(quote.selectedTerms?.id || null);
+    setSelectedTermsTemplateId(quote.selectedTerms?.id || 'tmpl-commercial-50-50');
     setTermsValidationError('');
     setEditingTemplateId(null);
     setEditingTemplateForm(null);
-    // clone items with custom unitPrice and preserve purchaseRate
+    // Line items and unit prices are locked to approved quote values ("once approved its cannot modify")
     setOverrideItems(
-      quote.items.map((it) => ({
+      (quote.items || []).map((it) => ({
         product: { ...it.product },
         quantity: it.quantity,
         unitPrice: it.unitPrice || it.product.price,
@@ -664,9 +792,30 @@ export default function AdminPortal() {
     return true;
   });
 
+  // Quotation Workflow Pipeline Segmentation
+  const pendingQuotes = useMemo(() => {
+    return dateFilteredQuotes.filter((q) => q.type !== 'sales_invoice' && q.status !== 'Approved');
+  }, [dateFilteredQuotes]);
+
+  const approvedQuotes = useMemo(() => {
+    return dateFilteredQuotes.filter((q) => q.type !== 'sales_invoice' && q.status === 'Approved');
+  }, [dateFilteredQuotes]);
+
+  const salesInvoices = useMemo(() => {
+    return dateFilteredQuotes.filter((q) => q.type === 'sales_invoice');
+  }, [dateFilteredQuotes]);
+
   const filteredQuotes = dateFilteredQuotes.filter((q) => {
-    const matchesFilter =
-      quoteFilter === 'ALL' ? true : q.type === quoteFilter;
+    let matchesFilter = true;
+    if (quoteFilter === 'pending') {
+      matchesFilter = q.type !== 'sales_invoice' && q.status !== 'Approved';
+    } else if (quoteFilter === 'approved') {
+      matchesFilter = q.type !== 'sales_invoice' && q.status === 'Approved';
+    } else if (quoteFilter === 'sales_invoice') {
+      matchesFilter = q.type === 'sales_invoice';
+    } else if (quoteFilter === 'quotation') {
+      matchesFilter = q.type !== 'sales_invoice';
+    }
     const matchesSearch =
       quoteSearch.trim() === '' ||
       q.customerName.toLowerCase().includes(quoteSearch.toLowerCase()) ||
@@ -675,11 +824,6 @@ export default function AdminPortal() {
       q.contactNumber.includes(quoteSearch);
     return matchesFilter && matchesSearch;
   });
-
-  // Profit & Revenue Calculations for Sales Invoices in Selected Date Range
-  const salesInvoices = useMemo(() => {
-    return dateFilteredQuotes.filter((q) => q.type === 'sales_invoice');
-  }, [dateFilteredQuotes]);
 
   const totalSalesAmount = useMemo(() => {
     return salesInvoices.reduce((sum, q) => sum + (Number(q.grandTotal) || 0), 0);
@@ -1018,17 +1162,26 @@ export default function AdminPortal() {
             </div>
           </div>
 
-          {/* Quotes & Financial KPI Summary (Filtered by Calendar Selection & Protected by Role) */}
+          {/* Quotes & Financial KPI Summary (Filtered by Calendar Selection & Role Access) */}
           <div
             className={`grid gap-2.5 sm:gap-3 ${
-              currentPermissions.dashboardDatas
+              currentRole === ROLES.ADMIN_AGENT
                 ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
-                : 'grid-cols-1 sm:grid-cols-3'
+                : currentPermissions.dashboardDatas
+                ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
+                : 'grid-cols-2 sm:grid-cols-4'
             }`}
           >
-            <div className="p-4 rounded-xl bg-surface border border-white/10">
+            {/* 1. Total Quotations */}
+            <div
+              onClick={() => setQuoteFilter('ALL')}
+              className={`p-4 rounded-xl bg-surface border transition-all cursor-pointer ${
+                quoteFilter === 'ALL' ? 'border-white/40 ring-1 ring-white/20' : 'border-white/10 hover:border-white/30'
+              }`}
+              title="Click to view all quotations and sales orders"
+            >
               <span className="text-[10px] uppercase font-bold text-slate-400 block">
-                Total Quotes Logged
+                Total Quotations
               </span>
               <span className="text-2xl font-mono font-bold text-white">
                 {dateFilteredQuotes.length}
@@ -1038,67 +1191,120 @@ export default function AdminPortal() {
               </span>
             </div>
 
-            <div className="p-4 rounded-xl bg-surface border border-white/10">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">
+            {/* 2. Pending Review (Finance Stage) */}
+            <div
+              onClick={() => setQuoteFilter(quoteFilter === 'pending' ? 'ALL' : 'pending')}
+              className={`p-4 rounded-xl bg-surface border transition-all cursor-pointer ${
+                quoteFilter === 'pending'
+                  ? 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-500/40'
+                  : 'border-white/10 hover:border-amber-500/40'
+              }`}
+              title="Click to filter Pending Review quotations"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-bold text-amber-400">
+                  Pending Review
+                </span>
+                {pendingQuotes.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    Review
+                  </span>
+                )}
+              </div>
+              <span className="text-2xl font-mono font-bold text-amber-300">
+                {pendingQuotes.length}
+              </span>
+              <span className="text-[10px] text-slate-500 block mt-1">
+                Awaiting Finance review
+              </span>
+            </div>
+
+            {/* 3. Approved Quotes (Ready for Invoicing) */}
+            <div
+              onClick={() => setQuoteFilter(quoteFilter === 'approved' ? 'ALL' : 'approved')}
+              className={`p-4 rounded-xl bg-surface border transition-all cursor-pointer ${
+                quoteFilter === 'approved'
+                  ? 'border-cyan-500 bg-cyan-500/10 ring-1 ring-cyan-500/40'
+                  : 'border-white/10 hover:border-cyan-500/40'
+              }`}
+              title="Click to filter Approved quotations ready for invoice generation"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-bold text-cyan-400">
+                  Approved Quotes
+                </span>
+                {approvedQuotes.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                    Ready to Invoice
+                  </span>
+                )}
+              </div>
+              <span className="text-2xl font-mono font-bold text-cyan-300">
+                {approvedQuotes.length}
+              </span>
+              <span className="text-[10px] text-slate-500 block mt-1">
+                Approved & locked
+              </span>
+            </div>
+
+            {/* 4. Converted Sales Invoices */}
+            <div
+              onClick={() => setQuoteFilter(quoteFilter === 'sales_invoice' ? 'ALL' : 'sales_invoice')}
+              className={`p-4 rounded-xl bg-surface border transition-all cursor-pointer ${
+                quoteFilter === 'sales_invoice'
+                  ? 'border-emerald-500 bg-emerald-500/10 ring-1 ring-emerald-500/40'
+                  : 'border-white/10 hover:border-emerald-500/40'
+              }`}
+              title="Click to filter Converted Sales Invoices"
+            >
+              <span className="text-[10px] uppercase font-bold text-emerald-400 block">
                 Converted to Invoices
               </span>
               <span className="text-2xl font-mono font-bold text-emerald-400">
                 {salesInvoices.length}
               </span>
               <span className="text-[10px] text-slate-500 block mt-1">
-                Official sales orders
+                Official commercial invoices
               </span>
             </div>
 
-            <div className="p-4 rounded-xl bg-surface border border-white/10">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">
-                Pending Quotations
-              </span>
-              <span className="text-2xl font-mono font-bold text-amber-400">
-                {dateFilteredQuotes.filter((q) => q.type !== 'sales_invoice').length}
-              </span>
-              <span className="text-[10px] text-slate-500 block mt-1">
-                Open client quotes
-              </span>
-            </div>
-
-            {/* Admin Agent Only: Total Sales and Total Profit KPIs */}
+            {/* 5. Total Sales Value (Authorized Roles: Finance, Approval, Admin) */}
             {currentPermissions.dashboardDatas && (
-              <>
-                <div className="p-4 rounded-xl bg-surface border border-white/10">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">
-                    Total Sale Amount (AED)
-                  </span>
-                  <span className="text-2xl font-mono font-bold text-emerald-400">
-                    AED {formatCurrency(totalSalesAmount)}
-                  </span>
-                  <span className="text-[10px] text-slate-500 block mt-1">
-                    Sum of invoice grand totals
-                  </span>
-                </div>
+              <div className="p-4 rounded-xl bg-surface border border-white/10">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                  Total Sale Amount (AED)
+                </span>
+                <span className="text-2xl font-mono font-bold text-emerald-400">
+                  AED {formatCurrency(totalSalesAmount)}
+                </span>
+                <span className="text-[10px] text-slate-500 block mt-1">
+                  Sum of invoice grand totals
+                </span>
+              </div>
+            )}
 
-                {/* TOTAL PROFIT KPI CARD */}
-                <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/15 via-surface to-cyan-500/10 border border-emerald-500/40 relative overflow-hidden shadow-lg shadow-emerald-500/5 col-span-2 sm:col-span-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-bold text-emerald-400 flex items-center gap-1">
-                      <TrendingUp className="w-3.5 h-3.5" />
-                      Total Profit (AED)
-                    </span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
-                      +{profitMarginPct}%
-                    </span>
-                  </div>
-                  <span className="text-2xl font-mono font-black text-cyan-300 block mt-1">
-                    AED {formatCurrency(totalProfitAmount)}
+            {/* 6. Total Profit (Super Admin Only) */}
+            {currentRole === ROLES.ADMIN_AGENT && (
+              <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/15 via-surface to-cyan-500/10 border border-emerald-500/40 relative overflow-hidden shadow-lg shadow-emerald-500/5 col-span-2 sm:col-span-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold text-emerald-400 flex items-center gap-1">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    Total Profit (AED)
                   </span>
-                  <span
-                    className="text-[10px] text-emerald-400/80 font-mono block mt-1 truncate"
-                    title="Sales Invoices - Item Purchase Costs"
-                  >
-                    Sales − Purchase Cost (COGS)
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                    +{profitMarginPct}%
                   </span>
                 </div>
-              </>
+                <span className="text-2xl font-mono font-black text-cyan-300 block mt-1">
+                  AED {formatCurrency(totalProfitAmount)}
+                </span>
+                <span
+                  className="text-[10px] text-emerald-400/80 font-mono block mt-1 truncate"
+                  title="Sales Invoices - Item Purchase Costs"
+                >
+                  Sales − Purchase Cost (COGS)
+                </span>
+              </div>
             )}
           </div>
 
@@ -1164,36 +1370,46 @@ export default function AdminPortal() {
             )}
 
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-slate-400 font-bold">Type:</span>
+              <span className="text-slate-400 font-bold">Filter:</span>
               <button
                 onClick={() => setQuoteFilter('ALL')}
-                className={`px-2.5 py-1 rounded text-xs font-bold ${
+                className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
                   quoteFilter === 'ALL'
-                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold'
-                    : 'bg-[#070A12] text-slate-300'
+                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-sm'
+                    : 'bg-[#070A12] text-slate-300 hover:text-white'
                 }`}
               >
-                All
+                All ({dateFilteredQuotes.length})
               </button>
               <button
-                onClick={() => setQuoteFilter('quotation')}
-                className={`px-2.5 py-1 rounded text-xs font-bold ${
-                  quoteFilter === 'quotation'
-                    ? 'bg-amber-400 text-black'
-                    : 'bg-[#070A12] text-slate-300'
+                onClick={() => setQuoteFilter('pending')}
+                className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                  quoteFilter === 'pending'
+                    ? 'bg-amber-400 text-black shadow-sm font-bold'
+                    : 'bg-[#070A12] text-amber-300/80 hover:text-amber-300'
                 }`}
               >
-                Quotations Only
+                Pending Review ({pendingQuotes.length})
+              </button>
+              <button
+                onClick={() => setQuoteFilter('approved')}
+                className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                  quoteFilter === 'approved'
+                    ? 'bg-cyan-400 text-black shadow-sm font-bold'
+                    : 'bg-[#070A12] text-cyan-300/80 hover:text-cyan-300'
+                }`}
+              >
+                Approved ({approvedQuotes.length})
               </button>
               <button
                 onClick={() => setQuoteFilter('sales_invoice')}
-                className={`px-2.5 py-1 rounded text-xs font-bold ${
+                className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
                   quoteFilter === 'sales_invoice'
-                    ? 'bg-emerald-500 text-black'
-                    : 'bg-[#070A12] text-slate-300'
+                    ? 'bg-emerald-500 text-black shadow-sm font-bold'
+                    : 'bg-[#070A12] text-emerald-300/80 hover:text-emerald-300'
                 }`}
               >
-                Sales Invoices
+                Sales Invoices ({salesInvoices.length})
               </button>
             </div>
           </div>
@@ -1207,6 +1423,8 @@ export default function AdminPortal() {
             ) : (
               filteredQuotes.map((rec) => {
                 const isInvoice = rec.type === 'sales_invoice';
+                const isApproved = !isInvoice && rec.status === 'Approved';
+                const isPending = !isInvoice && rec.status !== 'Approved';
                 return (
                   <div
                     key={rec.id}
@@ -1222,16 +1440,16 @@ export default function AdminPortal() {
                             className={`inline-block px-2 py-0.5 rounded text-[9.5px] font-bold uppercase ${
                               isInvoice
                                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                                : rec.status === 'Approved'
+                                : isApproved
                                 ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                                 : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
                             }`}
                           >
                             {isInvoice
                               ? 'SALES INVOICE'
-                              : rec.status === 'Approved'
+                              : isApproved
                               ? 'APPROVED'
-                              : 'PENDING QUOTE'}
+                              : 'PENDING REVIEW'}
                           </span>
                         </div>
                       </div>
@@ -1261,12 +1479,24 @@ export default function AdminPortal() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 pt-1">
-                      {/* Quotation Approval button */}
-                      {!isInvoice && rec.status !== 'Approved' && currentPermissions.quotationApproval && (
+                      {/* If Pending: Review & Update button */}
+                      {isPending && (
+                        <button
+                          onClick={() => openReviewModal(rec)}
+                          className="py-1.5 px-2.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-bold text-xs uppercase tracking-wider flex items-center gap-1"
+                          title="Review & Update Quotation"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Review & Update</span>
+                        </button>
+                      )}
+
+                      {/* If Pending & quotationApproval: Quick Approve */}
+                      {isPending && currentPermissions.quotationApproval && (
                         <button
                           onClick={() => {
                             approveQuoteRecord(rec.id);
-                            alert(`Quotation #${rec.id} has been Approved.`);
+                            alert(`Quotation #${rec.id} has been Approved and locked! It is now ready for Invoice Generation.`);
                           }}
                           className="py-1.5 px-2.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 font-bold text-xs uppercase tracking-wider flex items-center gap-1"
                           title="Approve Quotation"
@@ -1276,23 +1506,47 @@ export default function AdminPortal() {
                         </button>
                       )}
 
-                      {/* Convert to Sales Invoice button (Approval role & Admin) */}
-                      {!isInvoice ? (
+                      {/* If Pending: Needs Approval indicator */}
+                      {isPending && (
+                        <span className="flex-1 py-1.5 px-2.5 rounded-lg bg-[#070A12] border border-white/10 text-slate-500 text-[10px] font-mono flex items-center justify-center gap-1 cursor-not-allowed" title="Quotation must be Approved by Finance before generating Invoice">
+                          <Clock className="w-3 h-3 text-amber-400/70" />
+                          <span>Needs Approval</span>
+                        </span>
+                      )}
+
+                      {/* If Approved: View Quote (read-only) */}
+                      {isApproved && (
+                        <button
+                          onClick={() => openReviewModal(rec)}
+                          className="py-1.5 px-2.5 rounded-lg bg-surface hover:bg-[#1E2839] border border-white/10 text-slate-300 hover:text-white font-bold text-xs flex items-center gap-1"
+                          title="View Approved Quotation (Locked)"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>View Quote</span>
+                        </button>
+                      )}
+
+                      {/* If Approved: Button changes to Generate Invoice! */}
+                      {isApproved && (
                         currentPermissions.salesConversion ? (
                           <button
                             onClick={() => openInvoicePreview(rec)}
                             className="flex-1 py-1.5 px-2.5 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 hover:brightness-110 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-95"
+                            title="Generate Official Sales Invoice"
                           >
                             <Percent className="w-3.5 h-3.5" />
-                            <span>Convert to Invoice</span>
+                            <span>Generate Invoice</span>
                           </button>
                         ) : (
-                          <span className="flex-1 py-1.5 px-2.5 rounded-lg bg-[#070A12] border border-white/10 text-slate-500 text-[10px] font-mono flex items-center justify-center gap-1 cursor-not-allowed">
+                          <span className="flex-1 py-1.5 px-2.5 rounded-lg bg-[#070A12] border border-white/10 text-slate-500 text-[10px] font-mono flex items-center justify-center gap-1 cursor-not-allowed" title="Generating Sales Invoice requires Approval Role">
                             <Lock className="w-3 h-3 text-slate-500" />
-                            <span>Conversion (Approval Required)</span>
+                            <span>Generate Invoice (Approval Required)</span>
                           </span>
                         )
-                      ) : (
+                      )}
+
+                      {/* If Invoice: Invoice Active */}
+                      {isInvoice && (
                         <div className="flex-1 py-1.5 px-2.5 rounded-lg bg-emerald-900/30 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center justify-center gap-1.5">
                           <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
                           <span>Invoice Active</span>
@@ -1350,6 +1604,8 @@ export default function AdminPortal() {
                 ) : (
                   filteredQuotes.map((rec) => {
                     const isInvoice = rec.type === 'sales_invoice';
+                    const isApproved = !isInvoice && rec.status === 'Approved';
+                    const isPending = !isInvoice && rec.status !== 'Approved';
                     return (
                       <tr key={rec.id} className="hover:bg-[#070A12] transition-colors">
                         {/* Doc ID & Type */}
@@ -1361,16 +1617,16 @@ export default function AdminPortal() {
                             className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1 ${
                               isInvoice
                                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                                : rec.status === 'Approved'
+                                : isApproved
                                 ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                                 : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
                             }`}
                           >
                             {isInvoice
                               ? 'SALES INVOICE'
-                              : rec.status === 'Approved'
+                              : isApproved
                               ? 'APPROVED'
-                              : 'PENDING QUOTE'}
+                              : 'PENDING REVIEW'}
                           </span>
                           {isInvoice && rec.selectedTerms && (
                             <div className="mt-1 flex items-center gap-1 max-w-[190px]" title={rec.selectedTerms.name}>
@@ -1431,14 +1687,26 @@ export default function AdminPortal() {
                         {/* Actions */}
                         <td className="p-3 text-center">
                           <div className="flex items-center justify-center gap-1.5">
-                            {/* Quotation Approval button */}
-                            {!isInvoice && rec.status !== 'Approved' && currentPermissions.quotationApproval && (
+                            {/* If Pending: Review & Update button */}
+                            {isPending && (
+                              <button
+                                onClick={() => openReviewModal(rec)}
+                                className="px-2.5 py-1 rounded bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 font-bold text-[11px] flex items-center gap-1 shadow-sm transition-all"
+                                title="Review and update quotation details and prices before approval"
+                              >
+                                <FileText className="w-3.5 h-3.5 text-amber-400" />
+                                <span>Review & Update</span>
+                              </button>
+                            )}
+
+                            {/* If Pending: Quick Approve button */}
+                            {isPending && currentPermissions.quotationApproval && (
                               <button
                                 onClick={() => {
                                   approveQuoteRecord(rec.id);
-                                  alert(`Quotation #${rec.id} has been Approved.`);
+                                  alert(`Quotation #${rec.id} has been Approved and locked! It is now ready for Invoice Generation.`);
                                 }}
-                                className="px-2 py-1 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-bold text-[11px] flex items-center gap-1 shadow-sm"
+                                className="px-2 py-1 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-bold text-[11px] flex items-center gap-1 shadow-sm transition-all"
                                 title="Approve Quotation"
                               >
                                 <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
@@ -1446,27 +1714,53 @@ export default function AdminPortal() {
                               </button>
                             )}
 
-                            {/* Convert to Sales Invoice button */}
-                            {!isInvoice ? (
+                            {/* If Pending: Disabled Invoice indicator */}
+                            {isPending && (
+                              <span
+                                className="px-2 py-1 rounded bg-[#070A12] border border-white/10 text-slate-500 font-semibold text-[10px] flex items-center gap-1 cursor-not-allowed"
+                                title="Quotation must be Approved by Finance before generating Sales Invoice"
+                              >
+                                <Clock className="w-3 h-3 text-amber-400/60" />
+                                <span>Needs Approval</span>
+                              </span>
+                            )}
+
+                            {/* If Approved: View Quote (read-only) */}
+                            {isApproved && (
+                              <button
+                                onClick={() => openReviewModal(rec)}
+                                className="px-2 py-1 rounded bg-[#070A12] hover:bg-[#1E2839] text-slate-300 hover:text-white border border-white/10 font-bold text-[11px] flex items-center gap-1 shadow-sm transition-all"
+                                title="View Approved Quotation (Locked)"
+                              >
+                                <FileText className="w-3.5 h-3.5 text-cyan-400" />
+                                <span>View Quote</span>
+                              </button>
+                            )}
+
+                            {/* If Approved: Button changes to Generate Invoice! */}
+                            {isApproved && (
                               currentPermissions.salesConversion ? (
                                 <button
                                   onClick={() => openInvoicePreview(rec)}
-                                  className="px-2.5 py-1 rounded bg-gradient-to-r from-emerald-500 to-emerald-600 hover:brightness-110 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1 shadow-sm"
-                                  title="Review bill and convert to Sales Invoice"
+                                  className="px-2.5 py-1 rounded bg-gradient-to-r from-emerald-500 to-emerald-600 hover:brightness-110 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1 shadow-sm transition-all active:scale-95"
+                                  title="Approved: Click to select terms and generate Sales Invoice"
                                 >
                                   <Percent className="w-3.5 h-3.5" />
-                                  <span>Convert to Invoice</span>
+                                  <span>Generate Invoice</span>
                                 </button>
                               ) : (
                                 <span
                                   className="px-2 py-1 rounded bg-[#070A12] border border-white/10 text-slate-500 font-semibold text-[10px] flex items-center gap-1 cursor-not-allowed"
-                                  title="Converting to Sales Invoice requires Approval Officer role"
+                                  title="Generating Sales Invoice requires Approval Officer role"
                                 >
                                   <Lock className="w-3 h-3 text-slate-500" />
                                   <span>Approval Required</span>
                                 </span>
                               )
-                            ) : (
+                            )}
+
+                            {/* If Sales Invoice: Invoice Active */}
+                            {isInvoice && (
                               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-900/40 text-emerald-300 flex items-center gap-1">
                                 <CheckCircle className="w-3 h-3 text-emerald-400" />
                                 <span>Invoice Active</span>
@@ -1476,7 +1770,7 @@ export default function AdminPortal() {
                             {/* Download PDF */}
                             <button
                               onClick={() => handleDownloadInvoicePdf(rec)}
-                              className="p-1.5 rounded bg-[#1E2839] hover:bg-blue-600 text-slate-200 hover:text-white"
+                              className="p-1.5 rounded bg-[#1E2839] hover:bg-blue-600 text-slate-200 hover:text-white transition-colors"
                               title="Download PDF"
                             >
                               <Download className="w-3.5 h-3.5" />
@@ -1490,7 +1784,7 @@ export default function AdminPortal() {
                                     deleteQuoteRecord(rec.id);
                                   }
                                 }}
-                                className="p-1.5 rounded bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
+                                className="p-1.5 rounded bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white transition-colors"
                                 title="Delete Record (Admin Agent Only)"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -2139,33 +2433,546 @@ export default function AdminPortal() {
       )}
 
       {/* ========================================================= */}
-      {/* MODAL: SALES INVOICE PREVIEW & PRICE OVERRIDE             */}
-      {/* (Requirement: before creating sales invoice need to       */}
-      {/* preview the bill and manually admins only able to modify  */}
-      {/* the price, plus add additional charge button)            */}
+      {/* MODAL: QUOTATION REVIEW & UPDATE (Finance & Admin)        */}
+      {/* Story flow stage 2: Finance review, modify prices, and    */}
+      {/* approve. Once approved, locked against further changes.   */}
+      {/* ========================================================= */}
+      {reviewingQuote && (() => {
+        const isApproved = reviewingQuote.status === 'Approved' || reviewingQuote.type === 'sales_invoice';
+        const isPending = !isApproved;
+        const canModify = isPending && currentPermissions.quotationModification;
+        const canApprove = isPending && currentPermissions.quotationApproval;
+
+        return (
+          <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm p-2 sm:p-6 flex items-center justify-center">
+            <div
+              className={`w-full max-w-5xl bg-surface border-2 ${
+                isApproved ? 'border-cyan-500/40' : 'border-amber-500/40'
+              } rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[96vh] sm:max-h-[92vh]`}
+            >
+              {/* Modal Header */}
+              <div className="p-4 sm:p-5 bg-[#0A0D14] border-b border-white/10 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className={`p-2 rounded-lg font-bold font-black ${
+                      isApproved
+                        ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950'
+                        : 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950'
+                    }`}
+                  >
+                    {isApproved ? <ShieldCheck className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <h3 className="font-oswald text-lg sm:text-xl font-black text-white tracking-wide uppercase">
+                      {isApproved
+                        ? `QUOTATION #${reviewingQuote.id} (APPROVED & LOCKED)`
+                        : `FINANCE REVIEW & QUOTATION UPDATE: #${reviewingQuote.id}`}
+                    </h3>
+                    <p className="text-slate-400 text-xs">
+                      {isApproved
+                        ? 'This quotation is officially approved. Equipment prices, quantities, and additional charges are locked.'
+                        : 'Review line items, adjust unit prices and quantities, add logistics charges, and grant official approval.'}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setReviewingQuote(null)}
+                  className="text-slate-400 hover:text-white p-1 text-sm font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Status Banner */}
+              <div className="px-5 pt-4">
+                {isApproved ? (
+                  <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                      <span className="text-cyan-300 font-semibold">
+                        Quotation is Approved & Locked: Unit prices and line items are locked per governance policy. It is now ready for Invoice Generation.
+                      </span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 uppercase whitespace-nowrap">
+                      APPROVED
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                      <span className="text-amber-300 font-semibold">
+                        Stage 2 Review: Finance Agents and Administrators can modify line item unit prices, quantities, client details, and additional charges below prior to granting approval.
+                      </span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-amber-500/20 text-amber-200 border border-amber-500/40 uppercase whitespace-nowrap">
+                      PENDING REVIEW
+                    </span>
+                  </div>
+                )}
+
+                {reviewSaveMsg && (
+                  <div className="mt-2.5 p-2.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                    <span>{reviewSaveMsg}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Body */}
+              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+                {/* Customer Details */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-[#070A12] border border-white/10 text-xs">
+                  <div>
+                    <label className="text-slate-400 block font-bold mb-1">Client / Gym Name</label>
+                    {canModify ? (
+                      <input
+                        type="text"
+                        value={reviewCustomerName}
+                        onChange={(e) => setReviewCustomerName(e.target.value)}
+                        className="w-full bg-surface border border-white/10 rounded px-2.5 py-1 text-white font-semibold focus:outline-none focus:border-amber-500/60"
+                      />
+                    ) : (
+                      <div className="text-white font-bold text-sm">{reviewCustomerName}</div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-slate-400 block font-bold mb-1">Contact Number</label>
+                    {canModify ? (
+                      <input
+                        type="text"
+                        value={reviewContactNumber}
+                        onChange={(e) => setReviewContactNumber(e.target.value)}
+                        className="w-full bg-surface border border-white/10 rounded px-2.5 py-1 text-white font-semibold focus:outline-none focus:border-amber-500/60"
+                      />
+                    ) : (
+                      <div className="text-slate-300 font-medium">{reviewContactNumber}</div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-slate-400 block font-bold mb-1">Delivery / Warehouse Address</label>
+                    {canModify ? (
+                      <input
+                        type="text"
+                        value={reviewCustomerDetails}
+                        onChange={(e) => setReviewCustomerDetails(e.target.value)}
+                        className="w-full bg-surface border border-white/10 rounded px-2.5 py-1 text-white font-semibold focus:outline-none focus:border-amber-500/60"
+                      />
+                    ) : (
+                      <div className="text-slate-300 font-medium">{reviewCustomerDetails}</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Line Items Table */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-oswald text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                      <Package className="w-4 h-4 text-amber-400" />
+                      <span>
+                        EQUIPMENT LINE ITEMS {isApproved ? '(LOCKED)' : '(FINANCE PRICING & QUANTITY CONTROL)'}
+                      </span>
+                    </h4>
+                    <span className="text-[11px] text-amber-400 font-semibold">
+                      {isApproved
+                        ? 'Confirmed quotation line items (Locked)'
+                        : canModify
+                        ? '* Adjust unit prices & quantities below; totals recalculate automatically'
+                        : 'Quotation line items'}
+                    </span>
+                  </div>
+
+                  {/* Mobile Item Cards for Review (sm:hidden) */}
+                  <div className="sm:hidden space-y-3">
+                    {reviewItems.map((item, idx) => {
+                      const original = Number(item.originalPrice || item.product?.price || 0);
+                      const current = Number(item.unitPrice);
+                      const isModified = current !== original;
+
+                      return (
+                        <div
+                          key={idx}
+                          className="p-3.5 rounded-xl bg-[#0A0D14] border border-white/10 space-y-2.5"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <span className="font-mono font-bold text-xs text-amber-400">
+                                #{idx + 1} • {item.product?.code || `ITEM-${idx + 1}`}
+                              </span>
+                              <h5 className="font-bold text-white text-xs mt-0.5 leading-snug truncate">
+                                {item.product?.name || 'Equipment Station'}
+                              </h5>
+                              <span className="text-[10px] text-slate-400 block mt-0.5">
+                                {item.product?.category}
+                              </span>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              <span className="text-[10px] text-slate-400 block">Catalog</span>
+                              <span className="text-xs font-mono text-slate-400">
+                                AED {formatCurrency(original)}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
+                            <div>
+                              <label className="text-[10px] font-bold text-amber-400 uppercase block mb-1">
+                                Unit Price (AED)
+                              </label>
+                              {canModify && currentPermissions.unitPriceModification ? (
+                                <div className="flex items-center gap-1 bg-[#070A12] border border-amber-500/40 rounded-lg px-2 py-1.5">
+                                  <span className="text-[10px] text-amber-400 font-bold">AED</span>
+                                  <input
+                                    type="number"
+                                    value={item.unitPrice}
+                                    onChange={(e) => handleReviewItemPriceChange(idx, e.target.value)}
+                                    className="w-full text-right bg-transparent text-white font-mono font-bold text-xs focus:outline-none"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 bg-[#070A12] border border-white/10 rounded-lg px-2 py-1.5">
+                                  <span className="text-[10px] text-slate-400">AED</span>
+                                  <span className="w-full text-right text-white font-mono font-bold text-xs">
+                                    {formatCurrency(item.unitPrice)}
+                                  </span>
+                                </div>
+                              )}
+                              {isModified && (
+                                <span className="block text-[9.5px] text-amber-400 font-bold mt-0.5">
+                                  {current < original
+                                    ? `-${Math.round(((original - current) / original) * 100)}% Discount`
+                                    : `+${Math.round(((current - original) / original) * 100)}% Override`}
+                                </span>
+                              )}
+                            </div>
+
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-300 uppercase block mb-1">
+                                Quantity
+                              </label>
+                              {canModify ? (
+                                <input
+                                  type="number"
+                                  min={1}
+                                  value={item.quantity}
+                                  onChange={(e) => handleReviewItemQuantityChange(idx, e.target.value)}
+                                  className="w-full bg-[#070A12] border border-white/10 rounded-lg py-1.5 px-2 text-center text-white font-bold text-xs focus:outline-none focus:border-amber-500/60"
+                                />
+                              ) : (
+                                <div className="w-full bg-[#070A12] border border-white/10 rounded-lg py-1.5 px-2 text-center text-white font-bold text-xs font-mono">
+                                  {item.quantity}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center pt-2 border-t border-white/10 text-xs">
+                            <span className="text-slate-400 text-[11px]">Line Total:</span>
+                            <span className="font-mono font-black text-white text-sm">
+                              AED {formatCurrency(item.unitPrice * item.quantity)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Desktop Table for Review Items */}
+                  <div className="hidden sm:block overflow-x-auto rounded-xl border border-white/10 bg-[#0A0D14]">
+                    <table className="w-full text-xs text-left min-w-[580px]">
+                      <thead>
+                        <tr className="bg-[#070A12] text-slate-400 font-bold border-b border-white/10 text-[11px]">
+                          <th className="p-3">#</th>
+                          <th className="p-3">Equipment Product</th>
+                          <th className="p-3 text-right">Catalog Price</th>
+                          <th className="p-3 text-right text-amber-400">
+                            {canModify && currentPermissions.unitPriceModification
+                              ? 'Unit Price (AED) *'
+                              : 'Unit Price (AED)'}
+                          </th>
+                          <th className="p-3 text-center">Qty</th>
+                          <th className="p-3 text-right">Line Total (AED)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#1E2839]">
+                        {reviewItems.map((item, idx) => {
+                          const original = Number(item.originalPrice || item.product?.price || 0);
+                          const current = Number(item.unitPrice);
+                          const isModified = current !== original;
+
+                          return (
+                            <tr key={idx} className="hover:bg-[#070A12]/50">
+                              <td className="p-3 font-bold text-slate-400">{idx + 1}</td>
+                              <td className="p-3">
+                                <div className="font-bold text-white text-xs">
+                                  {item.product?.name || 'Equipment'}
+                                </div>
+                                <span className="font-mono text-[10px] text-slate-400">
+                                  #{item.product?.code} • {item.product?.category}
+                                </span>
+                              </td>
+                              <td className="p-3 text-right font-mono text-slate-400">
+                                AED {formatCurrency(original)}
+                              </td>
+                              <td className="p-3 text-right">
+                                {canModify && currentPermissions.unitPriceModification ? (
+                                  <>
+                                    <div className="inline-flex items-center gap-1 bg-surface border border-amber-500/40 rounded-lg px-2 py-1">
+                                      <span className="text-[10px] text-amber-400 font-bold">AED</span>
+                                      <input
+                                        type="number"
+                                        value={item.unitPrice}
+                                        onChange={(e) => handleReviewItemPriceChange(idx, e.target.value)}
+                                        className="w-24 text-right bg-transparent text-white font-mono font-bold text-xs focus:outline-none"
+                                      />
+                                    </div>
+                                    {isModified && (
+                                      <span className="block text-[10px] text-amber-400 font-bold mt-0.5">
+                                        {current < original
+                                          ? `-${Math.round(((original - current) / original) * 100)}% Discount`
+                                          : `+${Math.round(((current - original) / original) * 100)}% Override`}
+                                      </span>
+                                    )}
+                                  </>
+                                ) : (
+                                  <span className="font-mono font-bold text-white text-xs">
+                                    AED {formatCurrency(item.unitPrice)}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-3 text-center">
+                                {canModify ? (
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    value={item.quantity}
+                                    onChange={(e) => handleReviewItemQuantityChange(idx, e.target.value)}
+                                    className="w-14 text-center bg-surface border border-white/10 rounded py-1 text-white font-bold"
+                                  />
+                                ) : (
+                                  <span className="font-mono font-bold text-white text-xs">
+                                    {item.quantity}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-3 text-right font-mono font-bold text-white">
+                                AED {formatCurrency(item.unitPrice * item.quantity)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Additional Charges Section */}
+                <div className="space-y-3 p-4 rounded-xl bg-[#070A12] border border-white/10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-oswald text-xs font-bold text-white uppercase tracking-wider">
+                        ADDITIONAL CHARGES (LOGISTICS, ASSEMBLY, RIGGING)
+                      </h4>
+                      <p className="text-[11px] text-slate-400">
+                        {canModify
+                          ? 'Add or adjust custom logistics, assembly, rubber flooring, or rigging surcharges.'
+                          : 'Confirmed additional charges attached to this quotation.'}
+                      </p>
+                    </div>
+
+                    {canModify && (
+                      <button
+                        type="button"
+                        onClick={handleAddReviewCharge}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black text-xs uppercase hover:brightness-110"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>+ Add Charge</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {reviewCharges.length === 0 ? (
+                    <p className="text-xs text-slate-500 italic">
+                      {canModify
+                        ? 'No additional charges added. Click "+ Add Charge" to attach delivery or installation fees.'
+                        : 'No additional charges attached to this quotation.'}
+                    </p>
+                  ) : (
+                    <div className="space-y-2 pt-1">
+                      {reviewCharges.map((ch) => (
+                        <div
+                          key={ch.id}
+                          className="flex items-center gap-2 bg-surface p-2 rounded-lg border border-white/10"
+                        >
+                          {canModify ? (
+                            <>
+                              <input
+                                type="text"
+                                value={ch.description}
+                                onChange={(e) =>
+                                  handleUpdateReviewCharge(ch.id, 'description', e.target.value)
+                                }
+                                placeholder="Charge Description (e.g. Delivery & Rigging across Dubai)"
+                                className="flex-1 bg-[#070A12] border border-white/10 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60"
+                              />
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs font-bold text-amber-400">AED</span>
+                                <input
+                                  type="number"
+                                  value={ch.amount}
+                                  onChange={(e) =>
+                                    handleUpdateReviewCharge(ch.id, 'amount', e.target.value)
+                                  }
+                                  placeholder="500"
+                                  className="w-24 bg-[#070A12] border border-white/10 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveReviewCharge(ch.id)}
+                                className="p-1.5 text-slate-400 hover:text-red-400"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          ) : (
+                            <div className="flex-1 flex items-center justify-between text-xs px-2 py-1">
+                              <span className="text-slate-200">{ch.description}</span>
+                              <span className="font-mono font-bold text-amber-400">
+                                AED {formatCurrency(ch.amount)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Calculated Totals */}
+                <div className="p-4 rounded-xl bg-[#0A0D14] border border-white/10 space-y-2 text-xs">
+                  <div className="flex justify-between text-slate-300">
+                    <span>Equipment Subtotal:</span>
+                    <span className="font-mono text-white">AED {formatCurrency(reviewItemsSum)}</span>
+                  </div>
+                  {reviewChargesSum > 0 && (
+                    <div className="flex justify-between text-amber-400">
+                      <span>Additional Charges Total:</span>
+                      <span className="font-mono">AED {formatCurrency(reviewChargesSum)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-slate-300">
+                    <span>VAT (5%):</span>
+                    <span className="font-mono text-white">AED {formatCurrency(reviewVat)}</span>
+                  </div>
+                  <div className="flex justify-between text-base font-black text-white pt-2 border-t border-white/10">
+                    <span className="font-oswald tracking-wide">CONFIRMED QUOTATION GRAND TOTAL (AED):</span>
+                    <span className="text-amber-400 font-mono text-lg">
+                      AED {formatCurrency(reviewGrandTotal)}
+                    </span>
+                  </div>
+                  <div className="text-[11px] font-serif italic text-slate-400 pt-1">
+                    Amount in Words: {numberToWords(reviewGrandTotal)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer Actions */}
+              <div className="p-3 sm:p-5 bg-[#0A0D14] border-t border-white/10 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setReviewingQuote(null)}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-[#070A12] border border-white/10 text-xs font-bold text-slate-300 hover:text-white text-center"
+                >
+                  Close
+                </button>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Save changes button (before approval) */}
+                  {canModify && (
+                    <button
+                      type="button"
+                      onClick={handleSaveReviewChanges}
+                      className="px-4 py-2.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 active:scale-95"
+                    >
+                      <Save className="w-4 h-4 text-amber-400" />
+                      <span>Save Changes</span>
+                    </button>
+                  )}
+
+                  {/* Approve Quotation button (before approval) */}
+                  {canApprove && (
+                    <button
+                      type="button"
+                      onClick={handleApproveFromReview}
+                      className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-cyan-600 hover:brightness-110 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-cyan-500/20 active:scale-95"
+                      title="Approve and Lock Quotation"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Approve Quotation</span>
+                    </button>
+                  )}
+
+                  {/* Proceed to invoice generation (if already approved) */}
+                  {isApproved && (
+                    currentPermissions.salesConversion ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const q = reviewingQuote;
+                          setReviewingQuote(null);
+                          openInvoicePreview(q);
+                        }}
+                        className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 hover:brightness-110 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-95"
+                      >
+                        <Percent className="w-4 h-4" />
+                        <span>Proceed to Generate Invoice →</span>
+                      </button>
+                    ) : (
+                      <div className="px-4 py-2.5 rounded-lg bg-[#070A12] border border-white/10 text-slate-400 text-xs font-semibold flex items-center gap-1.5">
+                        <Lock className="w-4 h-4 text-slate-500" />
+                        <span>Ready for Invoice Generation (Approval Role)</span>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ========================================================= */}
+      {/* MODAL: OFFICIAL SALES INVOICE GENERATOR                   */}
+      {/* (Stage 3: Approved quotations converted to official sales  */}
+      {/* invoices. Pricing is locked as confirmed in Stage 2)      */}
       {/* ========================================================= */}
       {previewingQuote && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm p-2 sm:p-6 flex items-center justify-center">
-          <div className="w-full max-w-5xl bg-surface border-2 border-amber-500/40 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[96vh] sm:max-h-[92vh]">
+          <div className="w-full max-w-5xl bg-surface border-2 border-emerald-500/40 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[96vh] sm:max-h-[92vh]">
             {/* Modal Header */}
             <div className="p-4 sm:p-5 bg-[#0A0D14] border-b border-white/10 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 font-bold font-black">
                   <Percent className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="font-oswald text-lg sm:text-xl font-black text-white tracking-wide uppercase">
-                    SALES INVOICE PREVIEW & ADMIN PRICE OVERRIDE
+                    OFFICIAL SALES INVOICE GENERATOR
                   </h3>
                   <p className="text-slate-400 text-xs">
-                    Converting #{previewingQuote.id} to Sales Invoice • Only Administrators can manually modify unit prices & add custom charges.
+                    Converting Approved Quotation #{previewingQuote.id} to Sales Invoice • Pricing and items are confirmed & locked.
                   </p>
                 </div>
               </div>
 
               <button
                 onClick={() => setPreviewingQuote(null)}
-                className="text-slate-400 hover:text-white p-1"
+                className="text-slate-400 hover:text-white p-1 text-sm font-bold"
               >
                 ✕
               </button>
@@ -2173,6 +2980,14 @@ export default function AdminPortal() {
 
             {/* Modal Scrollable Body */}
             <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+              {/* Status Banner */}
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2 text-xs">
+                <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <span className="text-emerald-300 font-semibold">
+                  Approved Quotation Locked: Equipment unit prices, quantities, and additional charges were finalized during Finance Approval. Please choose the mandatory Terms & Conditions template and verify the sales invoice date.
+                </span>
+              </div>
+
               {/* Customer & Invoice Metadata */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-[#070A12] border border-white/10 text-xs">
                 <div>
@@ -2203,21 +3018,19 @@ export default function AdminPortal() {
                 </div>
               </div>
 
-              {/* Line Items Table with Admin Editable Price */}
+              {/* Line Items Table with Confirmed Approved Price */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="font-oswald text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-amber-400" />
-                    <span>EQUIPMENT LINE ITEMS (ADMIN PRICING CONTROL)</span>
+                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    <span>EQUIPMENT LINE ITEMS (APPROVED & LOCKED)</span>
                   </h4>
-                  <span className="text-[11px] text-amber-400 font-semibold">
-                    {currentPermissions.unitPriceModification
-                      ? '* Edit unit prices directly to give negotiated or custom package rates'
-                      : 'Review confirmed quotation line items and pricing for commercial invoice generation'}
+                  <span className="text-[11px] text-emerald-400 font-semibold">
+                    * Confirmed quotation line items and approved unit prices
                   </span>
                 </div>
 
-                {/* Mobile Item Cards for Price Overrides (sm:hidden) */}
+                {/* Mobile Item Cards (sm:hidden) */}
                 <div className="sm:hidden space-y-3">
                   {overrideItems.map((item, idx) => {
                     const original = Number(item.originalPrice || item.product.price);
@@ -2243,41 +3056,29 @@ export default function AdminPortal() {
                           </div>
                           <div className="text-right flex-shrink-0">
                             <span className="text-[10px] text-slate-400 block">Catalog</span>
-                            <span className="text-xs font-mono text-slate-400 line-through">
+                            <span className="text-xs font-mono text-slate-400">
                               AED {formatCurrency(original)}
                             </span>
                           </div>
                         </div>
 
-                        {/* Price Override Input & Qty on Mobile */}
+                        {/* Confirmed Price & Qty on Mobile */}
                         <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
                           <div>
                             <label className="text-[10px] font-bold text-amber-400 uppercase block mb-1">
-                              Unit Price (AED) {currentPermissions.unitPriceModification ? '*' : ''}
+                              Approved Unit Price
                             </label>
-                            {currentPermissions.unitPriceModification ? (
-                              <div className="flex items-center gap-1 bg-[#070A12] border border-amber-500/40 rounded-lg px-2 py-1.5">
-                                <span className="text-[10px] text-amber-400 font-bold">AED</span>
-                                <input
-                                  type="number"
-                                  value={item.unitPrice}
-                                  onChange={(e) => handleItemPriceChange(idx, e.target.value)}
-                                  className="w-full text-right bg-transparent text-white font-mono font-bold text-xs focus:outline-none"
-                                />
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-1 bg-[#070A12] border border-white/10 rounded-lg px-2 py-1.5">
-                                <span className="text-[10px] text-slate-400">AED</span>
-                                <span className="w-full text-right text-white font-mono font-bold text-xs">
-                                  {formatCurrency(item.unitPrice)}
-                                </span>
-                              </div>
-                            )}
+                            <div className="flex items-center gap-1 bg-[#070A12] border border-white/10 rounded-lg px-2 py-1.5">
+                              <span className="text-[10px] text-slate-400">AED</span>
+                              <span className="w-full text-right text-white font-mono font-bold text-xs">
+                                {formatCurrency(item.unitPrice)}
+                              </span>
+                            </div>
                             {isModified && (
                               <span className="block text-[9.5px] text-amber-400 font-bold mt-0.5">
                                 {current < original
                                   ? `-${Math.round(((original - current) / original) * 100)}% Discount`
-                                  : `+${Math.round(((current - original) / original) * 100)}% Override`}
+                                  : `+${Math.round(((current - original) / original) * 100)}% Adjusted`}
                               </span>
                             )}
                           </div>
@@ -2286,19 +3087,9 @@ export default function AdminPortal() {
                             <label className="text-[10px] font-bold text-slate-300 uppercase block mb-1">
                               Quantity
                             </label>
-                            {currentPermissions.quotationModification ? (
-                              <input
-                                type="number"
-                                min={1}
-                                value={item.quantity}
-                                onChange={(e) => handleItemQuantityChange(idx, e.target.value)}
-                                className="w-full bg-[#070A12] border border-white/10 rounded-lg py-1.5 px-2 text-center text-white font-bold text-xs focus:outline-none focus:border-amber-500/60"
-                              />
-                            ) : (
-                              <div className="w-full bg-[#070A12] border border-white/10 rounded-lg py-1.5 px-2 text-center text-white font-bold text-xs font-mono">
-                                {item.quantity}
-                              </div>
-                            )}
+                            <div className="w-full bg-[#070A12] border border-white/10 rounded-lg py-1.5 px-2 text-center text-white font-bold text-xs font-mono">
+                              {item.quantity}
+                            </div>
                           </div>
                         </div>
 
@@ -2322,7 +3113,7 @@ export default function AdminPortal() {
                         <th className="p-3">Product Station</th>
                         <th className="p-3 text-right">Catalog Price</th>
                         <th className="p-3 text-right text-amber-400">
-                          {currentPermissions.unitPriceModification ? 'Admin Unit Price (AED) *' : 'Confirmed Unit Price (AED)'}
+                          Approved Unit Price (AED)
                         </th>
                         <th className="p-3 text-center">Qty</th>
                         <th className="p-3 text-right">Line Total (AED)</th>
@@ -2345,49 +3136,25 @@ export default function AdminPortal() {
                                 #{item.product.code} • {item.product.category}
                               </span>
                             </td>
-                            <td className="p-3 text-right font-mono text-slate-400 line-through">
+                            <td className="p-3 text-right font-mono text-slate-400">
                               AED {formatCurrency(original)}
                             </td>
                             <td className="p-3 text-right">
-                              {currentPermissions.unitPriceModification ? (
-                                <>
-                                  <div className="inline-flex items-center gap-1 bg-surface border border-amber-500/40 rounded-lg px-2 py-1">
-                                    <span className="text-[10px] text-amber-400 font-bold">AED</span>
-                                    <input
-                                      type="number"
-                                      value={item.unitPrice}
-                                      onChange={(e) => handleItemPriceChange(idx, e.target.value)}
-                                      className="w-24 text-right bg-transparent text-white font-mono font-bold text-xs focus:outline-none"
-                                    />
-                                  </div>
-                                  {isModified && (
-                                    <span className="block text-[10px] text-amber-400 font-bold mt-0.5">
-                                      {current < original
-                                        ? `-${Math.round(((original - current) / original) * 100)}% Discount`
-                                        : `+${Math.round(((current - original) / original) * 100)}% Override`}
-                                    </span>
-                                  )}
-                                </>
-                              ) : (
-                                <span className="font-mono font-bold text-white text-xs">
-                                  AED {formatCurrency(item.unitPrice)}
+                              <span className="font-mono font-bold text-white text-xs">
+                                AED {formatCurrency(item.unitPrice)}
+                              </span>
+                              {isModified && (
+                                <span className="block text-[10px] text-amber-400 font-bold mt-0.5">
+                                  {current < original
+                                    ? `-${Math.round(((original - current) / original) * 100)}% Discount`
+                                    : `+${Math.round(((current - original) / original) * 100)}% Adjusted`}
                                 </span>
                               )}
                             </td>
                             <td className="p-3 text-center">
-                              {currentPermissions.quotationModification ? (
-                                <input
-                                  type="number"
-                                  min={1}
-                                  value={item.quantity}
-                                  onChange={(e) => handleItemQuantityChange(idx, e.target.value)}
-                                  className="w-14 text-center bg-surface border border-white/10 rounded py-1 text-white font-bold"
-                                />
-                              ) : (
-                                <span className="font-mono font-bold text-white text-xs">
-                                  {item.quantity}
-                                </span>
-                              )}
+                              <span className="font-mono font-bold text-white text-xs">
+                                {item.quantity}
+                              </span>
                             </td>
                             <td className="p-3 text-right font-mono font-bold text-white">
                               AED {formatCurrency(item.unitPrice * item.quantity)}
@@ -2402,78 +3169,30 @@ export default function AdminPortal() {
 
               {/* Additional Charges Section */}
               <div className="space-y-3 p-4 rounded-xl bg-[#070A12] border border-white/10">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-oswald text-xs font-bold text-white uppercase tracking-wider">
-                      ADDITIONAL CHARGES (LOGISTICS, ASSEMBLY, FLOORING)
-                    </h4>
-                    <p className="text-[11px] text-slate-400">
-                      Add any custom freight, assembly, rubber flooring, or testing surcharge.
-                    </p>
-                  </div>
-
-                  {currentPermissions.quotationModification && (
-                    <button
-                      type="button"
-                      onClick={handleAddPreviewCharge}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black text-xs uppercase hover:brightness-110"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>+ Add Additional Charge</span>
-                    </button>
-                  )}
+                <div>
+                  <h4 className="font-oswald text-xs font-bold text-white uppercase tracking-wider">
+                    CONFIRMED ADDITIONAL CHARGES (LOGISTICS, ASSEMBLY, RIGGING)
+                  </h4>
+                  <p className="text-[11px] text-slate-400">
+                    Additional charges finalized on approved quotation.
+                  </p>
                 </div>
 
                 {overrideCharges.length === 0 ? (
                   <p className="text-xs text-slate-500 italic">
-                    {currentPermissions.quotationModification
-                      ? 'No additional charges added. Click "+ Add Additional Charge" above to add delivery or service fees.'
-                      : 'No additional charges attached to this quotation.'}
+                    No additional charges attached to this quotation.
                   </p>
                 ) : (
                   <div className="space-y-2 pt-1">
                     {overrideCharges.map((ch) => (
                       <div
                         key={ch.id}
-                        className="flex items-center gap-2 bg-surface p-2 rounded-lg border border-white/10"
+                        className="flex items-center justify-between bg-surface p-2.5 rounded-lg border border-white/10 text-xs"
                       >
-                        {currentPermissions.quotationModification ? (
-                          <>
-                            <input
-                              type="text"
-                              value={ch.description}
-                              onChange={(e) =>
-                                handleUpdatePreviewCharge(ch.id, 'description', e.target.value)
-                              }
-                              placeholder="Charge Description (e.g. Delivery & Rigging across Dubai)"
-                              className="flex-1 bg-[#070A12] border border-white/10 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60"
-                            />
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs font-bold text-amber-400">AED</span>
-                              <input
-                                type="number"
-                                value={ch.amount}
-                                onChange={(e) =>
-                                  handleUpdatePreviewCharge(ch.id, 'amount', e.target.value)
-                                }
-                                placeholder="500"
-                                className="w-24 bg-[#070A12] border border-white/10 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60"
-                              />
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleRemovePreviewCharge(ch.id)}
-                              className="p-1.5 text-slate-400 hover:text-red-400"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </>
-                        ) : (
-                          <div className="flex-1 flex items-center justify-between text-xs px-2 py-1">
-                            <span className="text-slate-200">{ch.description}</span>
-                            <span className="font-mono font-bold text-amber-400">AED {formatCurrency(ch.amount)}</span>
-                          </div>
-                        )}
+                        <span className="text-slate-200">{ch.description}</span>
+                        <span className="font-mono font-bold text-amber-400">
+                          AED {formatCurrency(ch.amount)}
+                        </span>
                       </div>
                     ))}
                   </div>
