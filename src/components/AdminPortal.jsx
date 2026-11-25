@@ -42,6 +42,8 @@ import {
   ArrowUpDown,
   Sliders,
   Users,
+  ExternalLink,
+  X,
 } from 'lucide-react';
 import { useApp, sanitizeInput } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
@@ -236,6 +238,9 @@ export default function AdminPortal() {
 
   const [isAddBankOpen, setIsAddBankOpen] = useState(false);
   const [editingBank, setEditingBank] = useState(null);
+
+  // Live PDF Document Preview Modal State
+  const [pdfPreviewModal, setPdfPreviewModal] = useState(null);
 
   // Sales Invoice Preview & Price Override Modal State
   const [previewingQuote, setPreviewingQuote] = useState(null);
@@ -598,6 +603,60 @@ export default function AdminPortal() {
     });
     doc.save(`Delitrade_${isInvoice ? 'Sales_Invoice' : 'Quotation'}_${quoteOrInvoice.id}.pdf`);
   };
+
+  // Preview PDF in Live Modal
+  const handlePreviewInvoicePdf = async (quoteOrInvoice) => {
+    try {
+      const isInvoice = quoteOrInvoice.type === 'sales_invoice';
+      const doc = await generateInvoicePdf({
+        type: isInvoice ? 'SALES INVOICE' : 'QUOTATION',
+        documentNumber:
+          quoteOrInvoice.invoiceNumber || quoteOrInvoice.quoteNumber || quoteOrInvoice.id,
+        date: quoteOrInvoice.invoiceDate || quoteOrInvoice.date,
+        customerName: quoteOrInvoice.customerName,
+        contactNumber: quoteOrInvoice.contactNumber,
+        customerDetails: quoteOrInvoice.customerDetails,
+        items: quoteOrInvoice.items,
+        additionalCharges: quoteOrInvoice.additionalCharges || [],
+        subtotal: quoteOrInvoice.subtotal,
+        vat: quoteOrInvoice.vat,
+        grandTotal: quoteOrInvoice.grandTotal,
+        companySettings,
+        bankAccounts,
+        terms: quoteOrInvoice.selectedTerms?.terms || quoteOrInvoice.terms || null,
+      });
+      const blob = doc.output('blob');
+      const blobUrl = URL.createObjectURL(blob);
+      setPdfPreviewModal({
+        title: isInvoice
+          ? `Sales Invoice #${quoteOrInvoice.invoiceNumber || quoteOrInvoice.id}`
+          : `Quotation #${quoteOrInvoice.id}`,
+        url: blobUrl,
+        record: quoteOrInvoice,
+        isInvoice,
+      });
+    } catch (err) {
+      console.error('Error generating PDF preview:', err);
+      alert('Failed to generate document preview. Please try again.');
+    }
+  };
+
+  const handleClosePdfPreview = () => {
+    if (pdfPreviewModal?.url) {
+      URL.revokeObjectURL(pdfPreviewModal.url);
+    }
+    setPdfPreviewModal(null);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && pdfPreviewModal) {
+        handleClosePdfPreview();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pdfPreviewModal]);
 
   // -------------------------------------------------------------
   // If NOT Logged In: Render Unified Single Login Page
@@ -1450,10 +1509,20 @@ export default function AdminPortal() {
                         </div>
                       )}
 
+                      {/* Preview PDF */}
+                      <button
+                        onClick={() => handlePreviewInvoicePdf(rec)}
+                        className="p-2 rounded-lg bg-[#1E2839] hover:bg-emerald-600 text-slate-200 hover:text-white transition-colors"
+                        title={isInvoice ? 'Preview Sales Invoice PDF' : 'Preview Quotation PDF'}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+
+                      {/* Download PDF */}
                       <button
                         onClick={() => handleDownloadInvoicePdf(rec)}
-                        className="p-2 rounded-lg bg-[#1E2839] hover:bg-blue-600 text-slate-200 hover:text-white"
-                        title="Download PDF"
+                        className="p-2 rounded-lg bg-[#1E2839] hover:bg-blue-600 text-slate-200 hover:text-white transition-colors"
+                        title={isInvoice ? 'Download Sales Invoice PDF' : 'Download Quotation PDF'}
                       >
                         <Download className="w-4 h-4" />
                       </button>
@@ -1664,11 +1733,20 @@ export default function AdminPortal() {
                               </span>
                             )}
 
+                            {/* Preview PDF */}
+                            <button
+                              onClick={() => handlePreviewInvoicePdf(rec)}
+                              className="p-1.5 rounded bg-[#1E2839] hover:bg-emerald-600 text-slate-200 hover:text-white transition-colors"
+                              title={isInvoice ? 'Preview Sales Invoice PDF' : 'Preview Quotation PDF'}
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+
                             {/* Download PDF */}
                             <button
                               onClick={() => handleDownloadInvoicePdf(rec)}
                               className="p-1.5 rounded bg-[#1E2839] hover:bg-blue-600 text-slate-200 hover:text-white transition-colors"
-                              title="Download PDF"
+                              title={isInvoice ? 'Download Sales Invoice PDF' : 'Download Quotation PDF'}
                             >
                               <Download className="w-3.5 h-3.5" />
                             </button>
@@ -3444,6 +3522,89 @@ export default function AdminPortal() {
                   <span>Sales Conversion Restricted (Approval Role Required)</span>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: LIVE PDF DOCUMENT PREVIEW                          */}
+      {/* ========================================================= */}
+      {pdfPreviewModal && (
+        <div className="fixed inset-0 z-50 overflow-hidden bg-black/85 backdrop-blur-md p-2 sm:p-5 flex items-center justify-center">
+          <div className="w-full max-w-5xl h-[94vh] bg-surface border-2 border-emerald-500/40 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="p-3.5 sm:p-4 bg-[#0A0D14] border-b border-white/10 flex items-center justify-between gap-3 flex-shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div
+                  className={`p-2 rounded-lg flex-shrink-0 ${
+                    pdfPreviewModal.isInvoice
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                  }`}
+                >
+                  <Eye className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-[10px] font-mono uppercase font-black px-2 py-0.5 rounded-full ${
+                        pdfPreviewModal.isInvoice
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                      }`}
+                    >
+                      {pdfPreviewModal.isInvoice ? 'Official Sales Invoice' : 'Commercial Quotation'}
+                    </span>
+                    <span className="font-mono text-xs text-slate-400 hidden sm:inline truncate">
+                      {pdfPreviewModal.record.customerName}
+                    </span>
+                  </div>
+                  <h3 className="font-mono text-sm sm:text-base font-bold text-white tracking-wide truncate">
+                    {pdfPreviewModal.title}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Action Buttons in Header */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <a
+                  href={pdfPreviewModal.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1.5 rounded-lg bg-[#1E2839] hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors"
+                  title="Open in new window / full tab"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">New Tab</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => handleDownloadInvoicePdf(pdfPreviewModal.record)}
+                  className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-mono font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                  title="Download PDF"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Download</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClosePdfPreview}
+                  className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                  title="Close preview"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body: PDF iframe viewer */}
+            <div className="flex-1 bg-slate-950 relative w-full h-full min-h-0">
+              <iframe
+                src={pdfPreviewModal.url}
+                className="w-full h-full border-0 bg-white"
+                title={pdfPreviewModal.title}
+              />
             </div>
           </div>
         </div>
