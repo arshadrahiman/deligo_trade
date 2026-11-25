@@ -264,6 +264,10 @@ const INITIAL_DEMO_QUOTES = [
     customerDetails: 'Jumeirah 1, Dubai, UAE',
     date: getDemoDate(5),
     invoiceDate: getDemoDate(5),
+    createdBy: 'Arshad Rahiman',
+    createdByRole: 'sales_agent',
+    approvedBy: 'Senior Finance Officer',
+    approvedByRole: 'finance_agent',
     items: [
       {
         product: { ...initialWarehouseStock[1], purchaseRate: 3600 },
@@ -303,7 +307,10 @@ const INITIAL_DEMO_QUOTES = [
     type: 'quotation',
     status: 'Approved',
     approvedBy: 'Senior Finance Officer',
+    approvedByRole: 'finance_agent',
     approvedAt: nowTs - 86400000 * 2,
+    createdBy: 'Tariq Mansoor',
+    createdByRole: 'sales_agent',
     customerName: 'Powerhouse Gym Downtown',
     contactNumber: '+971 52 443 8899',
     customerDetails: 'Downtown Boulevard, Dubai, UAE',
@@ -347,6 +354,10 @@ const INITIAL_DEMO_QUOTES = [
     invoiceNumber: null,
     type: 'quotation',
     status: 'Pending Review',
+    createdBy: 'Zayd Al-Maktoum',
+    createdByRole: 'sales_agent',
+    approvedBy: null,
+    approvedByRole: null,
     customerName: 'Titan Fitness Club Dubai',
     contactNumber: '+971 50 123 4567',
     customerDetails: 'Al Quoz Industrial Area 3, Dubai, UAE',
@@ -815,8 +826,11 @@ export function AppProvider({ children }) {
       customerDetails: customerDetails.trim() || 'Dubai / UAE',
       date: quoteDate,
       invoiceDate: null,
-      createdBy: currentAdminUser?.name || 'Sales Agent',
-      createdByRole: currentRole,
+      createdBy: currentAdminUser?.name || currentAdminUser?.username || 'Sales Agent',
+      createdByRole: currentRole || 'sales_agent',
+      approvedBy: null,
+      approvedByRole: null,
+      approvedAt: null,
       items: cartItemsList.map((item) => {
         const uPrice = Number(item.unitPrice || item.product.price || 0);
         const oPrice = Math.max(0, uPrice - 500);
@@ -939,7 +953,8 @@ export function AppProvider({ children }) {
           ...quote,
           status: 'Approved',
           approvedAt: Date.now(),
-          approvedBy: currentAdminUser?.name || currentAdminUser?.username || currentRole,
+          approvedBy: currentAdminUser?.name || currentAdminUser?.username || 'Finance Officer',
+          approvedByRole: currentRole || 'finance_agent',
         };
       })
     );
@@ -1009,6 +1024,8 @@ export function AppProvider({ children }) {
           status: 'Converted to Invoice',
           invoiceNumber: newInvoiceNum,
           invoiceDate: modifiedData.invoiceDate || invoiceDate,
+          approvedBy: quote.approvedBy || currentAdminUser?.name || 'Finance Officer',
+          approvedByRole: quote.approvedByRole || currentRole || 'finance_agent',
           subtotal,
           vat,
           grandTotal,
