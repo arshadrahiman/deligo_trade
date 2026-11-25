@@ -1163,7 +1163,6 @@ export function AppProvider({ children }) {
         currentRole,
         currentAdminUser,
         currentPermissions,
-        switchAdminRole,
         adminLogin,
         adminLogout,
         ROLES,
