@@ -40,6 +40,8 @@ import {
   Clock,
   Save,
   ArrowUpDown,
+  Sliders,
+  Users,
 } from 'lucide-react';
 import { useApp, sanitizeInput } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
@@ -48,6 +50,7 @@ import Pagination from './Pagination';
 import FinancialDashboardGraph from './FinancialDashboardGraph';
 import LoginPage from './LoginPage';
 import CreateQuotationTab from './CreateQuotationTab';
+import SystemConfigTab from './SystemConfigTab';
 
 export const DEFAULT_TERMS_TEMPLATES = [
   {
@@ -158,8 +161,16 @@ export default function AdminPortal() {
     setDateRangePreset('CUSTOM');
     if (field === 'start') {
       setStartDate(value);
+      // Auto-adjust reverse date range so start <= end
+      if (value && endDate && value > endDate) {
+        setEndDate(value);
+      }
     } else {
       setEndDate(value);
+      // Auto-adjust reverse date range so start <= end
+      if (value && startDate && value < startDate) {
+        setStartDate(value);
+      }
     }
   };
 
@@ -169,9 +180,32 @@ export default function AdminPortal() {
     setEndDate('');
   };
 
+  // Auto-normalized date range (safeguards against reverse date selection)
+  const effectiveDateRange = useMemo(() => {
+    if (!startDate && !endDate) {
+      return { effectiveStart: null, effectiveEnd: null, effectiveStartStr: '', effectiveEndStr: '', isReversed: false };
+    }
+    let s = startDate;
+    let e = endDate;
+    let isReversed = false;
+    if (s && e && s > e) {
+      isReversed = true;
+      [s, e] = [e, s];
+    }
+    return {
+      effectiveStart: s ? new Date(s + 'T00:00:00') : null,
+      effectiveEnd: e ? new Date(e + 'T23:59:59.999') : null,
+      effectiveStartStr: s,
+      effectiveEndStr: e,
+      isReversed,
+    };
+  }, [startDate, endDate]);
+
   const parseRecordDate = (record) => {
+    if (!record) return null;
     if (record.createdAt && typeof record.createdAt === 'number') {
-      return new Date(record.createdAt);
+      const d = new Date(record.createdAt);
+      if (!isNaN(d.getTime())) return d;
     }
     const dateStr = record.invoiceDate || record.date;
     if (dateStr) {
@@ -559,21 +593,25 @@ export default function AdminPortal() {
   // -------------------------------------------------------------
   // Filtered Data (Calendar Date Range + Search + Type)
   // -------------------------------------------------------------
-  const dateFilteredQuotes = quotesRecords.filter((record) => {
-    if (!startDate && !endDate) return true;
-    const recDate = parseRecordDate(record);
-    if (!recDate) return true;
+  const dateFilteredQuotes = useMemo(() => {
+    const { effectiveStart, effectiveEnd } = effectiveDateRange;
+    return quotesRecords
+      .filter((record) => {
+        if (!effectiveStart && !effectiveEnd) return true;
+        const recDate = parseRecordDate(record);
+        if (!recDate) return true;
 
-    if (startDate) {
-      const start = new Date(startDate + 'T00:00:00');
-      if (recDate < start) return false;
-    }
-    if (endDate) {
-      const end = new Date(endDate + 'T23:59:59.999');
-      if (recDate > end) return false;
-    }
-    return true;
-  });
+        if (effectiveStart && recDate < effectiveStart) return false;
+        if (effectiveEnd && recDate > effectiveEnd) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        // Chronological order: newest transactions on top
+        const timeA = a.createdAt || (parseRecordDate(a)?.getTime() || 0);
+        const timeB = b.createdAt || (parseRecordDate(b)?.getTime() || 0);
+        return timeB - timeA;
+      });
+  }, [quotesRecords, effectiveDateRange]);
 
   // Quotation Workflow Pipeline Segmentation
   const pendingQuotes = useMemo(() => {
@@ -879,6 +917,21 @@ export default function AdminPortal() {
             <span>Bank Details ({bankAccounts.length})</span>
           </button>
         )}
+
+        {/* Tab 7: System & Access Config (Super Admin Only) */}
+        {currentRole === ROLES.SUPER_ADMIN && (
+          <button
+            onClick={() => setActiveTab('system_config')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+              activeTab === 'system_config'
+                ? 'bg-gradient-to-r from-red-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-red-500/20'
+                : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
+            }`}
+          >
+            <Sliders className="w-4 h-4 text-amber-400" />
+            <span>Access & System Config</span>
+          </button>
+        )}
       </div>
 
       {/* ========================================================= */}
@@ -972,8 +1025,15 @@ export default function AdminPortal() {
               {/* Status Indicator */}
               <div className="text-[11px] font-mono text-slate-400 flex items-center gap-2">
                 {startDate || endDate ? (
-                  <span className="text-amber-400 font-medium">
-                    Range Filter Active: {startDate || 'Start'} → {endDate || 'End'} ({dateFilteredQuotes.length} records in range)
+                  <span className="text-amber-400 font-medium flex items-center gap-1.5 flex-wrap">
+                    <span>
+                      Range Filter Active: {effectiveDateRange.effectiveStartStr || 'Start'} → {effectiveDateRange.effectiveEndStr || 'End'} ({dateFilteredQuotes.length} records in range)
+                    </span>
+                    {effectiveDateRange.isReversed && (
+                      <span className="text-cyan-400 text-[10px] bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/30">
+                        (Auto-Normalized Range)
+                      </span>
+                    )}
                   </span>
                 ) : (
                   <span className="text-slate-500">
@@ -2289,6 +2349,13 @@ export default function AdminPortal() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TAB 7: SYSTEM & ACCESS CONFIG (Super Admin Only)          */}
+      {/* ========================================================= */}
+      {activeTab === 'system_config' && currentRole === ROLES.SUPER_ADMIN && (
+        <SystemConfigTab />
       )}
 
       {/* ========================================================= */}

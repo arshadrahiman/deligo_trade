@@ -14,6 +14,9 @@ const STORAGE_KEYS = {
   SESSION_TIMESTAMP: 'delitrade_session_ts_v1',
   FAILED_ATTEMPTS: 'delitrade_auth_failed_v1',
   LOCKOUT_UNTIL: 'delitrade_auth_lockout_v1',
+  SYSTEM_ACCOUNTS: 'delitrade_accounts_v2',
+  ROLE_PERMISSIONS: 'delitrade_role_perms_v2',
+  SYSTEM_CONFIG: 'delitrade_sys_config_v2',
 };
 
 // Input sanitization to prevent XSS / script injection attacks
@@ -35,7 +38,7 @@ export const ROLES = {
   SUPER_ADMIN: 'super_admin',
 };
 
-export const ROLE_DEFINITIONS = {
+export const DEFAULT_ROLE_DEFINITIONS = {
   [ROLES.SALES_AGENT]: {
     id: ROLES.SALES_AGENT,
     name: 'Sales Agent',
@@ -52,15 +55,15 @@ export const ROLE_DEFINITIONS = {
       quotationReview: true, // Can review quotes in read-only mode
       quotationModification: false,
       unitPriceModification: false,
-      quotationApproval: false,
-      salesConversion: false,
       purchaseAmountModification: false,
       productionCrud: false,
+      quotationApproval: false,
+      salesConversion: false,
       dashboardDatas: false,
       dashboardGraph: false,
       brandingManagement: false,
       bankManagement: false,
-      developerTools: false,
+      systemConfig: false,
     },
   },
   [ROLES.FINANCE_AGENT]: {
@@ -79,15 +82,15 @@ export const ROLE_DEFINITIONS = {
       quotationReview: true,
       quotationModification: true, // Can review and modify quotations before approval
       unitPriceModification: true, // Can adjust unit prices/discounts during review
-      quotationApproval: true,     // Can approve quotations
-      salesConversion: true,       // Once approved, button changes to generate invoice
       purchaseAmountModification: false,
       productionCrud: false,
+      quotationApproval: true,     // Can approve quotations
+      salesConversion: true,       // Once approved, button changes to generate invoice
       dashboardDatas: true,        // Can see quote pipelines & total invoiced sales amount
       dashboardGraph: false,
       brandingManagement: false,
       bankManagement: true,
-      developerTools: false,
+      systemConfig: false,
     },
   },
   [ROLES.ADMIN_AGENT]: {
@@ -114,7 +117,7 @@ export const ROLE_DEFINITIONS = {
       dashboardGraph: true,             // Financial performance & profit graphs
       brandingManagement: true,
       bankManagement: true,
-      developerTools: false,
+      systemConfig: false,
     },
   },
   [ROLES.SUPER_ADMIN]: {
@@ -141,43 +144,72 @@ export const ROLE_DEFINITIONS = {
       dashboardGraph: true,
       brandingManagement: true,
       bankManagement: true,
-      developerTools: true,
+      systemConfig: true,
     },
   },
 };
 
-export const SYSTEM_ACCOUNTS = [
+export const ROLE_DEFINITIONS = DEFAULT_ROLE_DEFINITIONS;
+
+export const DEFAULT_SYSTEM_ACCOUNTS = [
   {
+    id: 'acc-sales',
     username: 'sales',
     password: 'sales',
     name: 'Commercial Equipment Sales Agent',
     role: ROLES.SALES_AGENT,
+    status: 'active',
+    createdAt: '2026-01-01',
   },
   {
+    id: 'acc-finance',
     username: 'finance',
     password: 'finance',
     name: 'Finance & Invoicing Officer',
     role: ROLES.FINANCE_AGENT,
+    status: 'active',
+    createdAt: '2026-01-01',
   },
   {
+    id: 'acc-admin',
     username: 'admin',
     password: 'admin',
     name: 'Equipment Inventory & Operations Admin',
     role: ROLES.ADMIN_AGENT,
+    status: 'active',
+    createdAt: '2026-01-01',
   },
   {
+    id: 'acc-superadmin',
     username: 'superadmin',
     password: 'superadmin',
     name: 'Enterprise Machinery Systems Admin',
     role: ROLES.SUPER_ADMIN,
+    status: 'active',
+    createdAt: '2026-01-01',
   },
   {
+    id: 'acc-dev',
     username: 'dev',
     password: 'dev',
     name: 'Enterprise Machinery Systems Admin',
     role: ROLES.SUPER_ADMIN,
+    status: 'active',
+    createdAt: '2026-01-01',
   },
 ];
+
+export const SYSTEM_ACCOUNTS = DEFAULT_SYSTEM_ACCOUNTS;
+
+export const DEFAULT_SYSTEM_CONFIG = {
+  sessionTimeoutHours: 4,
+  maxFailedAttempts: 5,
+  lockoutDurationSeconds: 300,
+  quotationPrefix: 'QT-2026-',
+  invoicePrefix: 'INV-2026-',
+  vatRatePercentage: 5,
+  currencySymbol: 'AED',
+};
 
 const DEFAULT_COMPANY_SETTINGS = {
   companyName: 'DELITRADE',
@@ -214,6 +246,12 @@ const DEFAULT_BANK_ACCOUNTS = [
   },
 ];
 
+const nowTs = Date.now();
+const getDemoDate = (daysAgo) => {
+  const d = new Date(nowTs - daysAgo * 86400000);
+  return `${d.getDate()}-${d.toLocaleString('en-US', { month: 'short' })}-${d.getFullYear()}`;
+};
+
 const INITIAL_DEMO_QUOTES = [
   {
     id: 'INV-2026-098',
@@ -224,8 +262,8 @@ const INITIAL_DEMO_QUOTES = [
     customerName: 'Gold’s Gym Elite Jumeirah',
     contactNumber: '+971 55 987 6543',
     customerDetails: 'Jumeirah 1, Dubai, UAE',
-    date: '20-Nov-2026',
-    invoiceDate: '20-Nov-2026',
+    date: getDemoDate(5),
+    invoiceDate: getDemoDate(5),
     items: [
       {
         product: { ...initialWarehouseStock[1], purchaseRate: 3600 },
@@ -256,7 +294,7 @@ const INITIAL_DEMO_QUOTES = [
     subtotal: 27200,
     vat: 1360,
     grandTotal: 28560,
-    createdAt: Date.now() - 86400000 * 5,
+    createdAt: nowTs - 86400000 * 5,
   },
   {
     id: 'QT-100',
@@ -265,11 +303,11 @@ const INITIAL_DEMO_QUOTES = [
     type: 'quotation',
     status: 'Approved',
     approvedBy: 'Senior Finance Officer',
-    approvedAt: Date.now() - 86400000 * 2,
+    approvedAt: nowTs - 86400000 * 2,
     customerName: 'Powerhouse Gym Downtown',
     contactNumber: '+971 52 443 8899',
     customerDetails: 'Downtown Boulevard, Dubai, UAE',
-    date: '22-Nov-2026',
+    date: getDemoDate(2),
     invoiceDate: null,
     items: [
       {
@@ -301,7 +339,7 @@ const INITIAL_DEMO_QUOTES = [
     subtotal: 21400,
     vat: 1070,
     grandTotal: 22470,
-    createdAt: Date.now() - 86400000 * 3,
+    createdAt: nowTs - 86400000 * 2,
   },
   {
     id: 'QT-101',
@@ -312,7 +350,7 @@ const INITIAL_DEMO_QUOTES = [
     customerName: 'Titan Fitness Club Dubai',
     contactNumber: '+971 50 123 4567',
     customerDetails: 'Al Quoz Industrial Area 3, Dubai, UAE',
-    date: '24-Nov-2026',
+    date: getDemoDate(0),
     invoiceDate: null,
     items: [
       {
@@ -344,7 +382,7 @@ const INITIAL_DEMO_QUOTES = [
     subtotal: 22850,
     vat: 1142.5,
     grandTotal: 23992.5,
-    createdAt: Date.now() - 86400000 * 1,
+    createdAt: nowTs,
   },
 ];
 
@@ -467,15 +505,46 @@ export function AppProvider({ children }) {
     }
   });
 
+  // Super Admin Configurable Roles & Permissions State
+  const [roleDefinitions, setRoleDefinitions] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.ROLE_PERMISSIONS);
+      return saved ? JSON.parse(saved) : DEFAULT_ROLE_DEFINITIONS;
+    } catch {
+      return DEFAULT_ROLE_DEFINITIONS;
+    }
+  });
+
+  // Super Admin Configurable System Accounts State
+  const [accounts, setAccounts] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.SYSTEM_ACCOUNTS);
+      return saved ? JSON.parse(saved) : DEFAULT_SYSTEM_ACCOUNTS;
+    } catch {
+      return DEFAULT_SYSTEM_ACCOUNTS;
+    }
+  });
+
+  // Super Admin Configurable Operational & Security Parameters State
+  const [systemConfig, setSystemConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.SYSTEM_CONFIG);
+      return saved ? JSON.parse(saved) : DEFAULT_SYSTEM_CONFIG;
+    } catch {
+      return DEFAULT_SYSTEM_CONFIG;
+    }
+  });
+
   // Admin Auth & Active RBAC Role State (with session expiry & role integrity verification)
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
     try {
       const isAuth = localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true';
       if (!isAuth) return false;
 
-      // Check session expiry (4 hours maximum lifetime)
+      // Check session expiry against configured session hours
       const sessionTs = parseInt(localStorage.getItem(STORAGE_KEYS.SESSION_TIMESTAMP) || '0', 10);
-      if (!sessionTs || Date.now() - sessionTs > SESSION_MAX_AGE_MS) {
+      const maxAgeMs = (systemConfig?.sessionTimeoutHours || 4) * 60 * 60 * 1000;
+      if (!sessionTs || Date.now() - sessionTs > maxAgeMs) {
         localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
         localStorage.removeItem(STORAGE_KEYS.ADMIN_ROLE);
         localStorage.removeItem(STORAGE_KEYS.ADMIN_USER);
@@ -485,7 +554,7 @@ export function AppProvider({ children }) {
 
       // Check role integrity against system roles
       const savedRole = localStorage.getItem(STORAGE_KEYS.ADMIN_ROLE);
-      if (!savedRole || !ROLE_DEFINITIONS[savedRole]) {
+      if (!savedRole || !roleDefinitions[savedRole]) {
         return false;
       }
 
@@ -498,7 +567,7 @@ export function AppProvider({ children }) {
   const [currentRole, setCurrentRole] = useState(() => {
     try {
       const savedRole = localStorage.getItem(STORAGE_KEYS.ADMIN_ROLE);
-      return savedRole && ROLE_DEFINITIONS[savedRole] ? savedRole : ROLES.ADMIN_AGENT;
+      return savedRole && roleDefinitions[savedRole] ? savedRole : ROLES.ADMIN_AGENT;
     } catch {
       return ROLES.ADMIN_AGENT;
     }
@@ -509,22 +578,23 @@ export function AppProvider({ children }) {
       const savedUser = localStorage.getItem(STORAGE_KEYS.ADMIN_USER);
       if (savedUser) {
         const parsed = JSON.parse(savedUser);
-        const matched = SYSTEM_ACCOUNTS.find((acc) => acc.username === parsed.username);
+        const matched = accounts.find((acc) => acc.username === parsed.username);
         if (matched) return matched;
       }
-      return SYSTEM_ACCOUNTS[0];
+      return accounts[0] || DEFAULT_SYSTEM_ACCOUNTS[0];
     } catch {
-      return SYSTEM_ACCOUNTS[0];
+      return DEFAULT_SYSTEM_ACCOUNTS[0];
     }
   });
 
   // Current Role Permissions Object (Strictly bound to authenticated role)
   const currentPermissions = useMemo(() => {
     return (
-      ROLE_DEFINITIONS[currentRole]?.permissions ||
-      ROLE_DEFINITIONS[ROLES.ADMIN_AGENT].permissions
+      roleDefinitions[currentRole]?.permissions ||
+      DEFAULT_ROLE_DEFINITIONS[currentRole]?.permissions ||
+      DEFAULT_ROLE_DEFINITIONS[ROLES.ADMIN_AGENT].permissions
     );
-  }, [currentRole]);
+  }, [roleDefinitions, currentRole]);
 
   // Storefront search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -550,6 +620,18 @@ export function AppProvider({ children }) {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, isAdminLoggedIn ? 'true' : 'false');
   }, [isAdminLoggedIn]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.SYSTEM_ACCOUNTS, JSON.stringify(accounts));
+  }, [accounts]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.ROLE_PERMISSIONS, JSON.stringify(roleDefinitions));
+  }, [roleDefinitions]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.SYSTEM_CONFIG, JSON.stringify(systemConfig));
+  }, [systemConfig]);
 
   // Cart operations
   const addToCart = (product) => {
@@ -1030,11 +1112,18 @@ export function AppProvider({ children }) {
     }
 
     // 2. Strict Credential Verification against Authorized System Accounts (Zero Backdoors)
-    const account = SYSTEM_ACCOUNTS.find(
+    const account = accounts.find(
       (acc) => acc.username.toLowerCase() === cleanUser && acc.password === cleanPass
     );
 
     if (account) {
+      if (account.status === 'suspended' || account.status === 'inactive') {
+        return {
+          success: false,
+          message: 'Account Suspended: This agent account has been disabled by the Super Admin.',
+        };
+      }
+
       try {
         localStorage.removeItem(STORAGE_KEYS.FAILED_ATTEMPTS);
         localStorage.removeItem(STORAGE_KEYS.LOCKOUT_UNTIL);
@@ -1054,14 +1143,17 @@ export function AppProvider({ children }) {
 
     // 3. Track Failed Login Attempts & Activate Rate-Limit Lockout
     const attempts = getFailedAttempts() + 1;
+    const maxAttempts = systemConfig?.maxFailedAttempts || 5;
+    const lockoutSecs = systemConfig?.lockoutDurationSeconds || 300;
+
     try {
       localStorage.setItem(STORAGE_KEYS.FAILED_ATTEMPTS, String(attempts));
     } catch (e) {
       console.error(e);
     }
 
-    if (attempts >= 5) {
-      const lockoutUntil = Date.now() + 5 * 60 * 1000; // 5-minute security lockout
+    if (attempts >= maxAttempts) {
+      const lockoutUntil = Date.now() + lockoutSecs * 1000;
       try {
         localStorage.setItem(STORAGE_KEYS.LOCKOUT_UNTIL, String(lockoutUntil));
       } catch (e) {
@@ -1070,16 +1162,16 @@ export function AppProvider({ children }) {
       return {
         success: false,
         isLocked: true,
-        remainingSeconds: 300,
-        message: 'Security Alert: 5 consecutive failed login attempts detected. Terminal locked for 300 seconds.',
+        remainingSeconds: lockoutSecs,
+        message: `Security Alert: ${maxAttempts} consecutive failed login attempts detected. Terminal locked for ${lockoutSecs} seconds.`,
       };
     }
 
     return {
       success: false,
       isLocked: false,
-      attemptsLeft: 5 - attempts,
-      message: `Authentication failed: Invalid credentials. (${5 - attempts} attempts remaining before temporary lockout)`,
+      attemptsLeft: maxAttempts - attempts,
+      message: `Authentication failed: Invalid credentials. (${maxAttempts - attempts} attempts remaining before temporary lockout)`,
     };
   };
 
@@ -1093,6 +1185,155 @@ export function AppProvider({ children }) {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  // Super Admin: Account Creation & Management CRUD
+  const createAccount = (newAccData) => {
+    if (currentRole !== ROLES.SUPER_ADMIN) {
+      alert('Access Denied: Only Super Admin Agent can create accounts.');
+      return { success: false, message: 'Unauthorized' };
+    }
+    const cleanUsername = sanitizeInput(String(newAccData.username || '')).toLowerCase().trim();
+    const cleanName = sanitizeInput(String(newAccData.name || '')).trim();
+    const cleanPassword = String(newAccData.password || '').trim();
+    const assignedRole = newAccData.role || ROLES.SALES_AGENT;
+
+    if (!cleanUsername || cleanUsername.length < 3) {
+      return { success: false, message: 'Username must be at least 3 characters.' };
+    }
+    if (accounts.some((a) => a.username.toLowerCase() === cleanUsername)) {
+      return { success: false, message: `Username "${cleanUsername}" is already in use.` };
+    }
+    if (!cleanPassword || cleanPassword.length < 3) {
+      return { success: false, message: 'Password must be at least 3 characters.' };
+    }
+    if (!roleDefinitions[assignedRole]) {
+      return { success: false, message: 'Invalid agent role selected.' };
+    }
+
+    const newAccount = {
+      id: 'acc-' + Date.now(),
+      username: cleanUsername,
+      password: cleanPassword,
+      name: cleanName || cleanUsername,
+      role: assignedRole,
+      status: newAccData.status || 'active',
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+
+    setAccounts((prev) => [...prev, newAccount]);
+    return { success: true, account: newAccount };
+  };
+
+  const updateAccount = (accountId, updatedData) => {
+    if (currentRole !== ROLES.SUPER_ADMIN) {
+      alert('Access Denied: Only Super Admin Agent can modify accounts.');
+      return { success: false, message: 'Unauthorized' };
+    }
+    setAccounts((prev) =>
+      prev.map((acc) => {
+        if (acc.id === accountId || acc.username === accountId) {
+          const updated = {
+            ...acc,
+            ...(updatedData.name ? { name: sanitizeInput(updatedData.name) } : {}),
+            ...(updatedData.password ? { password: String(updatedData.password).trim() } : {}),
+            ...(updatedData.role ? { role: updatedData.role } : {}),
+            ...(updatedData.status ? { status: updatedData.status } : {}),
+          };
+          if (currentAdminUser?.username === acc.username) {
+            setCurrentAdminUser(updated);
+            localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(updated));
+          }
+          return updated;
+        }
+        return acc;
+      })
+    );
+    return { success: true };
+  };
+
+  const deleteAccount = (accountId) => {
+    if (currentRole !== ROLES.SUPER_ADMIN) {
+      alert('Access Denied: Only Super Admin Agent can delete accounts.');
+      return { success: false, message: 'Unauthorized' };
+    }
+    const target = accounts.find((a) => a.id === accountId || a.username === accountId);
+    if (!target) return { success: false, message: 'Account not found.' };
+
+    if (target.username.toLowerCase() === currentAdminUser?.username?.toLowerCase()) {
+      return { success: false, message: 'Security Policy: You cannot delete your currently active Super Admin account.' };
+    }
+    const superAdminCount = accounts.filter((a) => a.role === ROLES.SUPER_ADMIN).length;
+    if (target.role === ROLES.SUPER_ADMIN && superAdminCount <= 1) {
+      return { success: false, message: 'Security Policy: System requires at least one Super Admin account.' };
+    }
+
+    setAccounts((prev) => prev.filter((a) => a.id !== accountId && a.username !== accountId));
+    return { success: true };
+  };
+
+  // Super Admin: Role & Permissions Configuration
+  const updateRolePermission = (roleId, permissionKey, isEnabled) => {
+    if (currentRole !== ROLES.SUPER_ADMIN) {
+      alert('Access Denied: Only Super Admin Agent can configure role permissions.');
+      return false;
+    }
+    setRoleDefinitions((prev) => ({
+      ...prev,
+      [roleId]: {
+        ...prev[roleId],
+        permissions: {
+          ...prev[roleId].permissions,
+          [permissionKey]: Boolean(isEnabled),
+        },
+      },
+    }));
+    return true;
+  };
+
+  const updateRoleInfo = (roleId, info) => {
+    if (currentRole !== ROLES.SUPER_ADMIN) {
+      alert('Access Denied: Only Super Admin Agent can configure role metadata.');
+      return false;
+    }
+    setRoleDefinitions((prev) => ({
+      ...prev,
+      [roleId]: {
+        ...prev[roleId],
+        ...(info.name ? { name: sanitizeInput(info.name) } : {}),
+        ...(info.badge ? { badge: sanitizeInput(info.badge) } : {}),
+        ...(info.description ? { description: sanitizeInput(info.description) } : {}),
+      },
+    }));
+    return true;
+  };
+
+  const resetRolesToDefault = () => {
+    if (currentRole !== ROLES.SUPER_ADMIN) {
+      alert('Access Denied: Only Super Admin Agent can reset role permissions.');
+      return false;
+    }
+    setRoleDefinitions(DEFAULT_ROLE_DEFINITIONS);
+    return true;
+  };
+
+  // Super Admin: System Configuration Management
+  const updateSystemConfig = (newCfg) => {
+    if (currentRole !== ROLES.SUPER_ADMIN) {
+      alert('Access Denied: Only Super Admin Agent can modify system parameters.');
+      return false;
+    }
+    setSystemConfig((prev) => ({
+      ...prev,
+      ...newCfg,
+    }));
+    return true;
+  };
+
+  const resetSystemConfig = () => {
+    if (currentRole !== ROLES.SUPER_ADMIN) return false;
+    setSystemConfig(DEFAULT_SYSTEM_CONFIG);
+    return true;
   };
 
   return (
@@ -1158,7 +1399,7 @@ export function AppProvider({ children }) {
         updateBankAccount,
         removeBankAccount,
 
-        // Admin Auth & RBAC Roles
+        // Admin Auth & RBAC Roles & System Accounts
         isAdminLoggedIn,
         currentRole,
         currentAdminUser,
@@ -1166,8 +1407,19 @@ export function AppProvider({ children }) {
         adminLogin,
         adminLogout,
         ROLES,
-        ROLE_DEFINITIONS,
-        SYSTEM_ACCOUNTS,
+        ROLE_DEFINITIONS: roleDefinitions,
+        roleDefinitions,
+        accounts,
+        SYSTEM_ACCOUNTS: accounts,
+        createAccount,
+        updateAccount,
+        deleteAccount,
+        updateRolePermission,
+        updateRoleInfo,
+        resetRolesToDefault,
+        systemConfig,
+        updateSystemConfig,
+        resetSystemConfig,
 
         // Search & Filters
         searchQuery,
