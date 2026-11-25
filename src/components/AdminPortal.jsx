@@ -952,11 +952,7 @@ export default function AdminPortal() {
           }`}
         >
           <Receipt className="w-4 h-4" />
-          <span>
-            {currentRole === ROLES.SALES_AGENT
-              ? `My Quotations (${quotesRecords.length})`
-              : `Quotes & Invoices (${quotesRecords.length})`}
-          </span>
+          <span>Quotes & Invoices ({quotesRecords.length})</span>
         </button>
 
         {/* Tab 4: Products & Stock */}
@@ -1498,14 +1494,6 @@ export default function AdminPortal() {
                         </button>
                       )}
 
-                      {/* If Pending: Needs Approval indicator */}
-                      {isPending && (
-                        <span className="flex-1 py-1.5 px-2.5 rounded-lg bg-[#070A12] border border-white/10 text-slate-500 text-[10px] font-mono flex items-center justify-center gap-1 cursor-not-allowed" title="Quotation must be Approved by Finance before generating Invoice">
-                          <Clock className="w-3 h-3 text-amber-400/70" />
-                          <span>Needs Approval</span>
-                        </span>
-                      )}
-
                       {/* If Approved: View Quote (read-only) */}
                       {isApproved && (
                         <button
@@ -1528,14 +1516,6 @@ export default function AdminPortal() {
                           <Percent className="w-3.5 h-3.5" />
                           <span>Generate Invoice</span>
                         </button>
-                      )}
-
-                      {/* If Invoice: Invoice Active */}
-                      {isInvoice && (
-                        <div className="flex-1 py-1.5 px-2.5 rounded-lg bg-emerald-900/30 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center justify-center gap-1.5">
-                          <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>Invoice Active</span>
-                        </div>
                       )}
 
                       {/* Once generated invoice, then only show Preview & Download */}
@@ -1586,7 +1566,8 @@ export default function AdminPortal() {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-[#0A0D14] text-slate-400 font-bold uppercase border-b border-white/10 text-[11px]">
-                  <th className="p-3">Doc ID / Status</th>
+                  <th className="p-3">Doc ID</th>
+                  <th className="p-3">Status</th>
                   <th className="p-3">Customer & Contact</th>
                   <th className="p-3">Generated & Approved By</th>
                   <th className="p-3">Date</th>
@@ -1598,7 +1579,7 @@ export default function AdminPortal() {
               <tbody className="divide-y divide-[#1E2839]">
                 {filteredQuotes.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-slate-400">
+                    <td colSpan={8} className="p-8 text-center text-slate-400">
                       No quotation or sales invoice records found matching your criteria.
                     </td>
                   </tr>
@@ -1609,13 +1590,25 @@ export default function AdminPortal() {
                     const isPending = !isInvoice && rec.status !== 'Approved';
                     return (
                       <tr key={rec.id} className="hover:bg-[#070A12] transition-colors">
-                        {/* Doc ID & Type */}
+                        {/* Doc ID */}
                         <td className="p-3">
                           <div className="font-mono font-bold text-white text-xs">
                             {isInvoice ? rec.invoiceNumber || rec.id : rec.id}
                           </div>
+                          {isInvoice && rec.selectedTerms && (
+                            <div className="mt-1 flex items-center gap-1 max-w-[190px]" title={rec.selectedTerms.name}>
+                              <FileText className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                              <span className="text-[10px] text-amber-300 font-semibold truncate">
+                                {rec.selectedTerms.name}
+                              </span>
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Status (Shows Status Only) */}
+                        <td className="p-3">
                           <span
-                            className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1 ${
+                            className={`inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
                               isInvoice
                                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                                 : isApproved
@@ -1629,14 +1622,6 @@ export default function AdminPortal() {
                               ? 'APPROVED'
                               : 'PENDING REVIEW'}
                           </span>
-                          {isInvoice && rec.selectedTerms && (
-                            <div className="mt-1 flex items-center gap-1 max-w-[190px]" title={rec.selectedTerms.name}>
-                              <FileText className="w-3 h-3 text-amber-400 flex-shrink-0" />
-                              <span className="text-[10px] text-amber-300 font-semibold truncate">
-                                {rec.selectedTerms.name}
-                              </span>
-                            </div>
-                          )}
                         </td>
 
                         {/* Customer */}
@@ -1768,17 +1753,6 @@ export default function AdminPortal() {
                               </button>
                             )}
 
-                            {/* If Pending: Disabled Invoice indicator */}
-                            {isPending && (
-                              <span
-                                className="px-2 py-1 rounded bg-[#070A12] border border-white/10 text-slate-500 font-semibold text-[10px] flex items-center gap-1 cursor-not-allowed"
-                                title="Quotation must be Approved by Finance before generating Sales Invoice"
-                              >
-                                <Clock className="w-3 h-3 text-amber-400/60" />
-                                <span>Needs Approval</span>
-                              </span>
-                            )}
-
                             {/* If Approved: View Quote (read-only) */}
                             {isApproved && (
                               <button
@@ -1801,14 +1775,6 @@ export default function AdminPortal() {
                                 <Percent className="w-3.5 h-3.5" />
                                 <span>Generate Invoice</span>
                               </button>
-                            )}
-
-                            {/* If Sales Invoice: Invoice Active */}
-                            {isInvoice && (
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-900/40 text-emerald-300 flex items-center gap-1">
-                                <CheckCircle className="w-3 h-3 text-emerald-400" />
-                                <span>Invoice Active</span>
-                              </span>
                             )}
 
                             {/* Once generated invoice, then only show Preview & Download */}
@@ -2568,13 +2534,11 @@ export default function AdminPortal() {
                   <div>
                     <h3 className="font-oswald text-lg sm:text-xl font-black text-white tracking-wide uppercase">
                       {isApproved
-                        ? `QUOTATION #${reviewingQuote.id} (APPROVED & LOCKED)`
-                        : `FINANCE REVIEW & QUOTATION UPDATE: #${reviewingQuote.id}`}
+                        ? `QUOTATION #${reviewingQuote.id}`
+                        : `QUOTATION REVIEW: #${reviewingQuote.id}`}
                     </h3>
                     <p className="text-slate-400 text-xs">
-                      {isApproved
-                        ? 'This quotation is officially approved. Equipment prices, quantities, and additional charges are locked.'
-                        : 'Review line items, adjust unit prices and quantities, add logistics charges, and grant official approval.'}
+                      Status: {isApproved ? 'Approved' : 'Pending Review'}
                     </p>
                   </div>
                 </div>
@@ -2587,33 +2551,39 @@ export default function AdminPortal() {
                 </button>
               </div>
 
-              {/* Status Banner */}
+              {/* Status Banner (Status Only) */}
               <div className="px-5 pt-4">
-                {isApproved ? (
-                  <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-between gap-3 text-xs">
-                    <div className="flex items-center gap-2">
+                <div
+                  className={`p-3 rounded-xl border flex items-center justify-between gap-3 text-xs ${
+                    isApproved
+                      ? 'bg-cyan-500/10 border-cyan-500/30'
+                      : 'bg-amber-500/10 border-amber-500/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {isApproved ? (
                       <ShieldCheck className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-                      <span className="text-cyan-300 font-semibold">
-                        Quotation is Approved & Locked: Unit prices and line items are locked per governance policy. It is now ready for Invoice Generation.
-                      </span>
-                    </div>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 uppercase whitespace-nowrap">
-                      APPROVED
-                    </span>
-                  </div>
-                ) : (
-                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-xs">
-                    <div className="flex items-center gap-2">
+                    ) : (
                       <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                      <span className="text-amber-300 font-semibold">
-                        Stage 2 Review: Finance Agents and Administrators can modify line item unit prices, quantities, client details, and additional charges below prior to granting approval.
-                      </span>
-                    </div>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-amber-500/20 text-amber-200 border border-amber-500/40 uppercase whitespace-nowrap">
-                      PENDING REVIEW
+                    )}
+                    <span
+                      className={`font-bold tracking-wide uppercase ${
+                        isApproved ? 'text-cyan-300' : 'text-amber-300'
+                      }`}
+                    >
+                      Status: {isApproved ? 'Approved' : 'Pending Review'}
                     </span>
                   </div>
-                )}
+                  <span
+                    className={`px-2.5 py-0.5 rounded text-[10px] font-bold font-mono uppercase whitespace-nowrap ${
+                      isApproved
+                        ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40'
+                        : 'bg-amber-500/20 text-amber-200 border border-amber-500/40'
+                    }`}
+                  >
+                    {isApproved ? 'APPROVED' : 'PENDING REVIEW'}
+                  </span>
+                </div>
 
                 {reviewSaveMsg && (
                   <div className="mt-2.5 p-2.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">

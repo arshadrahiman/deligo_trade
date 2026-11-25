@@ -291,7 +291,7 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
       const savedCode = recorded.id || `QT-${cleanQuotationNumber}`;
       setSuccessBanner({
         quoteId: savedCode,
-        message: `Quotation ${savedCode} has been successfully created and submitted with status "Pending Review". Awaiting Finance review.`,
+        message: `Quotation ${savedCode} has been successfully created with status "Pending Review".`,
       });
 
       // Clear draft form
