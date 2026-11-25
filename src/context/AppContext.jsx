@@ -15,36 +15,38 @@ const STORAGE_KEYS = {
 
 // Admin RBAC Roles and Permissions
 export const ROLES = {
-  ADMIN_AGENT: 'admin_agent',
-  FINANCE_AGENT: 'finance_agent',
-  APPROVAL: 'approval',
   SALES_AGENT: 'sales_agent',
+  FINANCE_AGENT: 'finance_agent',
+  ADMIN_AGENT: 'admin_agent',
+  SUPER_ADMIN: 'super_admin',
 };
 
 export const ROLE_DEFINITIONS = {
-  [ROLES.ADMIN_AGENT]: {
-    id: ROLES.ADMIN_AGENT,
-    name: 'Admin Agent',
-    badge: 'Master ERP Controller',
-    color: 'from-amber-500 to-amber-600',
-    textColor: 'text-amber-400',
-    borderColor: 'border-amber-500/40',
-    bgColor: 'bg-amber-500/10',
+  [ROLES.SALES_AGENT]: {
+    id: ROLES.SALES_AGENT,
+    name: 'Sales Agent',
+    badge: 'Quotes & Catalog',
+    color: 'from-purple-500 to-indigo-600',
+    textColor: 'text-purple-400',
+    borderColor: 'border-purple-500/40',
+    bgColor: 'bg-purple-500/10',
     description:
-      'Full administrative access: Quotation modification, unit price & purchase rate modification, production CRUD, quotation approval, product listing, financial dashboard metrics, and graph analytics.',
+      'Sales Agent operations: Initial quotation creation and access to equipment product listing catalog. Quotation modifications, pricing overrides, and approvals are handed to Finance.',
     permissions: {
       quotationCreation: true,
-      quotationApproval: true,
-      quotationModification: true,
-      salesConversion: true,
-      unitPriceModification: true,
-      purchaseAmountModification: true,
-      productionCrud: true,
       productListing: true,
-      dashboardDatas: true,
-      dashboardGraph: true,
-      brandingManagement: true,
-      bankManagement: true,
+      quotationReview: true, // Can review quotes in read-only mode
+      quotationModification: false,
+      unitPriceModification: false,
+      quotationApproval: false,
+      salesConversion: false,
+      purchaseAmountModification: false,
+      productionCrud: false,
+      dashboardDatas: false,
+      dashboardGraph: false,
+      brandingManagement: false,
+      bankManagement: false,
+      developerTools: false,
     },
   },
   [ROLES.FINANCE_AGENT]: {
@@ -56,7 +58,7 @@ export const ROLE_DEFINITIONS = {
     borderColor: 'border-cyan-500/40',
     bgColor: 'bg-cyan-500/10',
     description:
-      'Finance operations: Quotation review, modification of prices & charges before approval, quotation approval, and product listing catalog. Sales conversion is reserved for Approval role.',
+      'Finance operations: Quotation creation, quotation review & modification before approval, unit price adjustments, quotation approval, and generating sales invoice.',
     permissions: {
       quotationCreation: true,
       productListing: true,
@@ -64,75 +66,78 @@ export const ROLE_DEFINITIONS = {
       quotationModification: true, // Can review and modify quotations before approval
       unitPriceModification: true, // Can adjust unit prices/discounts during review
       quotationApproval: true,     // Can approve quotations
-      salesConversion: false,      // Sales conversion strictly requires Approval role
+      salesConversion: true,       // Once approved, button changes to generate invoice
       purchaseAmountModification: false,
       productionCrud: false,
-      dashboardDatas: true,        // Can see quote pipelines & total invoiced amounts
+      dashboardDatas: true,        // Can see quote pipelines & total invoiced sales amount
       dashboardGraph: false,
       brandingManagement: false,
-      bankManagement: false,
+      bankManagement: true,
+      developerTools: false,
     },
   },
-  [ROLES.APPROVAL]: {
-    id: ROLES.APPROVAL,
-    name: 'Approval Officer',
-    badge: 'Sales Conversion',
-    color: 'from-emerald-500 to-emerald-600',
-    textColor: 'text-emerald-400',
-    borderColor: 'border-emerald-500/40',
-    bgColor: 'bg-emerald-500/10',
+  [ROLES.ADMIN_AGENT]: {
+    id: ROLES.ADMIN_AGENT,
+    name: 'Admin Agent',
+    badge: 'Management & Pricing',
+    color: 'from-amber-500 to-amber-600',
+    textColor: 'text-amber-400',
+    borderColor: 'border-amber-500/40',
+    bgColor: 'bg-amber-500/10',
     description:
-      'Executive authority: Converts approved quotations into commercial sales invoices and tax invoices. Approved quotes cannot be modified.',
-    permissions: {
-      quotationCreation: false,
-      productListing: true,
-      quotationReview: true,
-      quotationModification: false, // Once approved, quotation cannot be modified
-      unitPriceModification: false,
-      quotationApproval: true,
-      salesConversion: true,        // Primary role responsibility: Generate Invoice
-      purchaseAmountModification: false,
-      productionCrud: false,
-      dashboardDatas: true,
-      dashboardGraph: false,
-      brandingManagement: false,
-      bankManagement: false,
-    },
-  },
-  [ROLES.SALES_AGENT]: {
-    id: ROLES.SALES_AGENT,
-    name: 'Sales Agent',
-    badge: 'Quotes & Product Listing',
-    color: 'from-purple-500 to-indigo-600',
-    textColor: 'text-purple-400',
-    borderColor: 'border-purple-500/40',
-    bgColor: 'bg-purple-500/10',
-    description:
-      'Sales Agent operations: Initial quotation creation and access to equipment product listing catalog. Quotation modifications and approvals are handed to Finance.',
+      'Administrative authority: Quotation modification, unit price & purchase rate modification, production CRUD, quotation approval, sales conversion, full dashboard metrics (Total Sales, Total Profit), and interactive performance graphs.',
     permissions: {
       quotationCreation: true,
       productListing: true,
       quotationReview: true,
-      quotationModification: false,
-      unitPriceModification: false,
-      quotationApproval: false,
-      salesConversion: false,
-      purchaseAmountModification: false,
-      productionCrud: false,
-      dashboardDatas: false,
-      dashboardGraph: false,
-      brandingManagement: false,
-      bankManagement: false,
+      quotationModification: true,
+      unitPriceModification: true,
+      purchaseAmountModification: true, // Modify unit prices & purchase wholesale costs
+      productionCrud: true,             // Production CRUD operations (add/edit/delete products)
+      quotationApproval: true,
+      salesConversion: true,
+      dashboardDatas: true,             // Total Sale amount, profit, pipelines
+      dashboardGraph: true,             // Financial performance & profit graphs
+      brandingManagement: true,
+      bankManagement: true,
+      developerTools: false,
+    },
+  },
+  [ROLES.SUPER_ADMIN]: {
+    id: ROLES.SUPER_ADMIN,
+    name: 'Super Admin Agent',
+    badge: 'Developer Team',
+    color: 'from-red-500 via-amber-500 to-yellow-500',
+    textColor: 'text-red-400',
+    borderColor: 'border-red-500/40',
+    bgColor: 'bg-red-500/10',
+    description:
+      'Developer team root control: Full unrestricted access across all ERP business logic, developer overrides, wholesale acquisition cost management, system reset, and diagnostics.',
+    permissions: {
+      quotationCreation: true,
+      productListing: true,
+      quotationReview: true,
+      quotationModification: true,
+      unitPriceModification: true,
+      purchaseAmountModification: true,
+      productionCrud: true,
+      quotationApproval: true,
+      salesConversion: true,
+      dashboardDatas: true,
+      dashboardGraph: true,
+      brandingManagement: true,
+      bankManagement: true,
+      developerTools: true,
     },
   },
 };
 
 export const SYSTEM_ACCOUNTS = [
   {
-    username: 'admin',
-    password: 'admin',
-    name: 'Chief Admin Agent',
-    role: ROLES.ADMIN_AGENT,
+    username: 'sales',
+    password: 'sales',
+    name: 'Sales Representative',
+    role: ROLES.SALES_AGENT,
   },
   {
     username: 'finance',
@@ -141,16 +146,22 @@ export const SYSTEM_ACCOUNTS = [
     role: ROLES.FINANCE_AGENT,
   },
   {
-    username: 'approval',
-    password: 'approval',
-    name: 'Commercial Approval Director',
-    role: ROLES.APPROVAL,
+    username: 'admin',
+    password: 'admin',
+    name: 'Chief Admin Agent',
+    role: ROLES.ADMIN_AGENT,
   },
   {
-    username: 'sales',
-    password: 'sales',
-    name: 'Field Sales Representative',
-    role: ROLES.SALES_AGENT,
+    username: 'superadmin',
+    password: 'superadmin',
+    name: 'Developer Team Super Admin',
+    role: ROLES.SUPER_ADMIN,
+  },
+  {
+    username: 'dev',
+    password: 'dev',
+    name: 'Developer Team Super Admin',
+    role: ROLES.SUPER_ADMIN,
   },
 ];
 

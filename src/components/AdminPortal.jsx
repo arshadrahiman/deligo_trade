@@ -592,97 +592,7 @@ export default function AdminPortal() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              {/* 1. Admin Agent */}
-              <button
-                type="button"
-                onClick={() => {
-                  setLoginUsername('admin');
-                  setLoginPassword('admin');
-                  setLoginError('');
-                }}
-                className={`p-2.5 rounded-xl border text-left transition-all flex items-start gap-2.5 ${
-                  loginUsername === 'admin'
-                    ? 'bg-amber-500/10 border-amber-500/50 shadow-md shadow-amber-500/10 ring-1 ring-amber-500/40'
-                    : 'bg-surface/50 border-white/10 hover:border-amber-500/30 hover:bg-surface'
-                }`}
-              >
-                <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Crown className="w-4 h-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-white text-xs">Admin Agent</span>
-                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
-                      Master ERP
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
-                    Quotation modification, unit price & purchase rate modification, production CRUD, approvals, dashboard & graphs.
-                  </p>
-                </div>
-              </button>
-
-              {/* 2. Finance Agent */}
-              <button
-                type="button"
-                onClick={() => {
-                  setLoginUsername('finance');
-                  setLoginPassword('finance');
-                  setLoginError('');
-                }}
-                className={`p-2.5 rounded-xl border text-left transition-all flex items-start gap-2.5 ${
-                  loginUsername === 'finance'
-                    ? 'bg-cyan-500/10 border-cyan-500/50 shadow-md shadow-cyan-500/10 ring-1 ring-cyan-500/40'
-                    : 'bg-surface/50 border-white/10 hover:border-cyan-500/30 hover:bg-surface'
-                }`}
-              >
-                <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Briefcase className="w-4 h-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-white text-xs">Finance Agent</span>
-                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">
-                      Quotes & Approvals
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
-                    Quotation creation & quotation approval authority.
-                  </p>
-                </div>
-              </button>
-
-              {/* 3. Approval Role */}
-              <button
-                type="button"
-                onClick={() => {
-                  setLoginUsername('approval');
-                  setLoginPassword('approval');
-                  setLoginError('');
-                }}
-                className={`p-2.5 rounded-xl border text-left transition-all flex items-start gap-2.5 ${
-                  loginUsername === 'approval'
-                    ? 'bg-emerald-500/10 border-emerald-500/50 shadow-md shadow-emerald-500/10 ring-1 ring-emerald-500/40'
-                    : 'bg-surface/50 border-white/10 hover:border-emerald-500/30 hover:bg-surface'
-                }`}
-              >
-                <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-white text-xs">Approval Officer</span>
-                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
-                      Sales Conversion
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
-                    Authorized executive: Official sales conversion of quotations to commercial invoices.
-                  </p>
-                </div>
-              </button>
-
-              {/* 4. Sales Agent */}
+              {/* 1. Sales Agent */}
               <button
                 type="button"
                 onClick={() => {
@@ -711,6 +621,96 @@ export default function AdminPortal() {
                   </p>
                 </div>
               </button>
+
+              {/* 2. Finance Agent */}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginUsername('finance');
+                  setLoginPassword('finance');
+                  setLoginError('');
+                }}
+                className={`p-2.5 rounded-xl border text-left transition-all flex items-start gap-2.5 ${
+                  loginUsername === 'finance'
+                    ? 'bg-cyan-500/10 border-cyan-500/50 shadow-md shadow-cyan-500/10 ring-1 ring-cyan-500/40'
+                    : 'bg-surface/50 border-white/10 hover:border-cyan-500/30 hover:bg-surface'
+                }`}
+              >
+                <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white text-xs">Finance Agent</span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">
+                      Review & Approve
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
+                    Review, modify prices, approve quotes & generate sales invoices.
+                  </p>
+                </div>
+              </button>
+
+              {/* 3. Admin Agent */}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginUsername('admin');
+                  setLoginPassword('admin');
+                  setLoginError('');
+                }}
+                className={`p-2.5 rounded-xl border text-left transition-all flex items-start gap-2.5 ${
+                  loginUsername === 'admin'
+                    ? 'bg-amber-500/10 border-amber-500/50 shadow-md shadow-amber-500/10 ring-1 ring-amber-500/40'
+                    : 'bg-surface/50 border-white/10 hover:border-amber-500/30 hover:bg-surface'
+                }`}
+              >
+                <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Crown className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white text-xs">Admin Agent</span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                      Operations Admin
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
+                    Quote modification, unit & purchase rates, production CRUD, dashboard & graph.
+                  </p>
+                </div>
+              </button>
+
+              {/* 4. Super Admin Agent (Developer Team) */}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginUsername('superadmin');
+                  setLoginPassword('superadmin');
+                  setLoginError('');
+                }}
+                className={`p-2.5 rounded-xl border text-left transition-all flex items-start gap-2.5 ${
+                  loginUsername === 'superadmin' || loginUsername === 'dev'
+                    ? 'bg-red-500/10 border-red-500/50 shadow-md shadow-red-500/10 ring-1 ring-red-500/40'
+                    : 'bg-surface/50 border-white/10 hover:border-red-500/30 hover:bg-surface'
+                }`}
+              >
+                <div className="w-7 h-7 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white text-xs">Super Admin Agent</span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-red-500/20 text-red-300 font-bold border border-red-500/30">
+                      Developer Team
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
+                    Developer team root governance, developer tools, database controls.
+                  </p>
+                </div>
+              </button>
             </div>
           </div>
 
@@ -731,7 +731,7 @@ export default function AdminPortal() {
                 required
                 value={loginUsername}
                 onChange={(e) => setLoginUsername(e.target.value)}
-                placeholder="admin / finance / approval / sales"
+                placeholder="sales / finance / admin / superadmin"
                 className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-500/60 text-sm font-mono"
               />
             </div>
@@ -882,18 +882,18 @@ export default function AdminPortal() {
         <div className="flex items-center gap-3">
           <div
             className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold shadow-md border ${
-              currentRole === ROLES.ADMIN_AGENT
+              currentRole === ROLES.SUPER_ADMIN
+                ? 'bg-gradient-to-br from-red-500/20 to-amber-600/10 border-red-500/40 text-red-400 shadow-red-500/20'
+                : currentRole === ROLES.ADMIN_AGENT
                 ? 'bg-gradient-to-br from-amber-500/20 to-amber-600/10 border-amber-500/40 text-amber-400 shadow-amber-500/20'
                 : currentRole === ROLES.FINANCE_AGENT
                 ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 border-cyan-500/40 text-cyan-400 shadow-cyan-500/20'
-                : currentRole === ROLES.APPROVAL
-                ? 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border-emerald-500/40 text-emerald-400 shadow-emerald-500/20'
                 : 'bg-gradient-to-br from-purple-500/20 to-indigo-600/10 border-purple-500/40 text-purple-400 shadow-purple-500/20'
             }`}
           >
+            {currentRole === ROLES.SUPER_ADMIN && <Sparkles className="w-5 h-5 text-red-400" />}
             {currentRole === ROLES.ADMIN_AGENT && <Crown className="w-5 h-5" />}
             {currentRole === ROLES.FINANCE_AGENT && <Briefcase className="w-5 h-5" />}
-            {currentRole === ROLES.APPROVAL && <ShieldCheck className="w-5 h-5" />}
             {currentRole === ROLES.SALES_AGENT && <Tag className="w-5 h-5" />}
           </div>
           <div>
@@ -903,12 +903,12 @@ export default function AdminPortal() {
               </h1>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${
-                  currentRole === ROLES.ADMIN_AGENT
+                  currentRole === ROLES.SUPER_ADMIN
+                    ? 'bg-red-500/15 text-red-400 border-red-500/30'
+                    : currentRole === ROLES.ADMIN_AGENT
                     ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
                     : currentRole === ROLES.FINANCE_AGENT
                     ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
-                    : currentRole === ROLES.APPROVAL
-                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                     : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
                 }`}
               >
@@ -929,6 +929,32 @@ export default function AdminPortal() {
               Role:
             </span>
             <button
+              onClick={() => switchAdminRole(ROLES.SALES_AGENT)}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+                currentRole === ROLES.SALES_AGENT
+                  ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-sm shadow-purple-500/20'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              title="Sales Agent: Quotation creation and equipment product listing"
+            >
+              <Tag className="w-3 h-3" />
+              <span>Sales Agent</span>
+            </button>
+
+            <button
+              onClick={() => switchAdminRole(ROLES.FINANCE_AGENT)}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+                currentRole === ROLES.FINANCE_AGENT
+                  ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 font-black shadow-sm shadow-cyan-500/20'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              title="Finance Agent: Quotation review, price modification, approval and sales invoice generation"
+            >
+              <Briefcase className="w-3 h-3" />
+              <span>Finance Agent</span>
+            </button>
+
+            <button
               onClick={() => switchAdminRole(ROLES.ADMIN_AGENT)}
               className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
                 currentRole === ROLES.ADMIN_AGENT
@@ -942,42 +968,16 @@ export default function AdminPortal() {
             </button>
 
             <button
-              onClick={() => switchAdminRole(ROLES.FINANCE_AGENT)}
+              onClick={() => switchAdminRole(ROLES.SUPER_ADMIN)}
               className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
-                currentRole === ROLES.FINANCE_AGENT
-                  ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 font-black shadow-sm shadow-cyan-500/20'
+                currentRole === ROLES.SUPER_ADMIN
+                  ? 'bg-gradient-to-r from-red-500 via-amber-500 to-yellow-500 text-slate-950 font-black shadow-sm shadow-red-500/20'
                   : 'text-slate-400 hover:text-white'
               }`}
-              title="Finance Agent: Quotation creation and quotation approval"
+              title="Super Admin Agent: Developer team root access, system controls, and diagnostics"
             >
-              <Briefcase className="w-3 h-3" />
-              <span>Finance Agent</span>
-            </button>
-
-            <button
-              onClick={() => switchAdminRole(ROLES.APPROVAL)}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
-                currentRole === ROLES.APPROVAL
-                  ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 font-black shadow-sm shadow-emerald-500/20'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-              title="Approval Role: Authorized executive for sales conversion"
-            >
-              <ShieldCheck className="w-3 h-3" />
-              <span>Approval</span>
-            </button>
-
-            <button
-              onClick={() => switchAdminRole(ROLES.SALES_AGENT)}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
-                currentRole === ROLES.SALES_AGENT
-                  ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-sm shadow-purple-500/20'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-              title="Sales Agent: Quotation creation and equipment product listing"
-            >
-              <Tag className="w-3 h-3" />
-              <span>Sales Agent</span>
+              <Sparkles className="w-3 h-3 text-red-400" />
+              <span>Super Admin [Dev]</span>
             </button>
           </div>
 
@@ -1165,7 +1165,7 @@ export default function AdminPortal() {
           {/* Quotes & Financial KPI Summary (Filtered by Calendar Selection & Role Access) */}
           <div
             className={`grid gap-2.5 sm:gap-3 ${
-              currentRole === ROLES.ADMIN_AGENT
+              currentRole === ROLES.ADMIN_AGENT || currentRole === ROLES.SUPER_ADMIN
                 ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
                 : currentPermissions.dashboardDatas
                 ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
@@ -1283,8 +1283,8 @@ export default function AdminPortal() {
               </div>
             )}
 
-            {/* 6. Total Profit (Super Admin Only) */}
-            {currentRole === ROLES.ADMIN_AGENT && (
+            {/* 6. Total Profit (Super Admin & Admin Agent Only) */}
+            {(currentRole === ROLES.ADMIN_AGENT || currentRole === ROLES.SUPER_ADMIN) && (
               <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/15 via-surface to-cyan-500/10 border border-emerald-500/40 relative overflow-hidden shadow-lg shadow-emerald-500/5 col-span-2 sm:col-span-1">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] uppercase font-bold text-emerald-400 flex items-center gap-1">
@@ -1561,7 +1561,7 @@ export default function AdminPortal() {
                         <Download className="w-4 h-4" />
                       </button>
 
-                      {currentRole === ROLES.ADMIN_AGENT && (
+                      {currentPermissions.productionCrud && (
                         <button
                           onClick={() => {
                             if (confirm(`Delete record ${rec.id}?`)) {
@@ -1569,7 +1569,7 @@ export default function AdminPortal() {
                             }
                           }}
                           className="p-2 rounded-lg bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
-                          title="Delete Record (Admin Agent)"
+                          title="Delete Record (Admin / Dev Team)"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
