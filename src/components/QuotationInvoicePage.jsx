@@ -51,6 +51,22 @@ export default function QuotationInvoicePage() {
 
   const [isExporting, setIsExporting] = useState(false);
 
+  // Calculate quote totals based on offer price (unit price - 500)
+  const quoteItemsSubtotal = cartItemsList.reduce((sum, item) => {
+    const unitPrice = Number(item.unitPrice || item.product?.price || 0);
+    const offerPrice = Math.max(0, unitPrice - 500);
+    return sum + offerPrice * item.quantity;
+  }, 0);
+
+  const quoteAdditionalTotal = additionalCharges.reduce(
+    (sum, c) => sum + (parseFloat(c.amount) || 0),
+    0
+  );
+
+  const quoteNetTaxableSum = quoteItemsSubtotal + quoteAdditionalTotal;
+  const quoteTotalVat = quoteNetTaxableSum * 0.05;
+  const quoteGrandTotal = quoteNetTaxableSum + quoteTotalVat;
+
   // Automatically record this quote into quotesRecords when viewed
   useEffect(() => {
     if (cartItemsList.length > 0) {
@@ -72,15 +88,20 @@ export default function QuotationInvoicePage() {
         customerName: customerName.trim() || 'Valued Commercial Client',
         contactNumber: contactNumber.trim() || companySettings.phone,
         customerDetails: customerDetails.trim() || 'Dubai / UAE',
-        items: cartItemsList.map((it) => ({
-          product: it.product,
-          quantity: it.quantity,
-          unitPrice: it.product.price,
-        })),
+        items: cartItemsList.map((it) => {
+          const uPrice = Number(it.unitPrice || it.product.price || 0);
+          const oPrice = Math.max(0, uPrice - 500);
+          return {
+            product: it.product,
+            quantity: it.quantity,
+            unitPrice: uPrice,
+            offerPrice: oPrice,
+          };
+        }),
         additionalCharges,
-        subtotal: netTaxableSum,
-        vat: totalVat,
-        grandTotal,
+        subtotal: quoteNetTaxableSum,
+        vat: quoteTotalVat,
+        grandTotal: quoteGrandTotal,
         companySettings,
         bankAccounts,
       });
@@ -102,22 +123,23 @@ export default function QuotationInvoicePage() {
       `Date: ${quoteDate}\n` +
       `---------------------------\n` +
       cartItemsList
-        .map(
-          (it, i) =>
-            `${i + 1}. ${it.product.name} (${it.product.code}) x${it.quantity} = AED ${formatCurrency(it.product.price * it.quantity)}`
-        )
+        .map((it, i) => {
+          const uPrice = Number(it.unitPrice || it.product?.price || 0);
+          const oPrice = Math.max(0, uPrice - 500);
+          return `${i + 1}. ${it.product.name} (${it.product.code})\n   Unit Price: AED ${formatCurrency(uPrice)} | *Offer Price: AED ${formatCurrency(oPrice)}* x${it.quantity} = AED ${formatCurrency(oPrice * it.quantity)}`;
+        })
         .join('\n') +
       (additionalCharges.length > 0
-        ? `\nAdditional Services / Charges:\n` +
+        ? `\n\nAdditional Services / Charges:\n` +
           additionalCharges
             .map((c) => `- ${c.description}: AED ${formatCurrency(c.amount)}`)
             .join('\n')
         : '') +
       `\n---------------------------\n` +
-      `Net Subtotal: AED ${formatCurrency(netTaxableSum)}\n` +
-      `UAE FTA VAT (5%): AED ${formatCurrency(totalVat)}\n` +
-      `*Grand Total: AED ${formatCurrency(grandTotal)}*\n` +
-      `Amount in words: ${numberToWords(grandTotal)}\n\n` +
+      `Net Subtotal: AED ${formatCurrency(quoteNetTaxableSum)}\n` +
+      `UAE FTA VAT (5%): AED ${formatCurrency(quoteTotalVat)}\n` +
+      `*Grand Total: AED ${formatCurrency(quoteGrandTotal)}*\n` +
+      `Amount in words: ${numberToWords(quoteGrandTotal)}\n\n` +
       `Trading Facility: ${companySettings.website || 'www.emmafitness.ae'}`;
 
     const phone = (companySettings.phone || '971563296585').replace(/[^0-9]/g, '');
@@ -480,48 +502,58 @@ export default function QuotationInvoicePage() {
                 <th className="border border-slate-300 p-2 text-center w-10">#</th>
                 <th className="border border-slate-300 p-2 text-left">EQUIPMENT MODEL & SPECIFICATION</th>
                 <th className="border border-slate-300 p-2 text-center w-16">IMAGE</th>
-                <th className="border border-slate-300 p-2 text-right w-24">UNIT (AED)</th>
+                <th className="border border-slate-300 p-2 text-right w-24">UNIT PRICE (AED)</th>
+                <th className="border border-slate-300 p-2 text-right w-24 text-amber-400">OFFER PRICE (AED)</th>
                 <th className="border border-slate-300 p-2 text-center w-12">QTY</th>
                 <th className="border border-slate-300 p-2 text-right w-28">LINE TOTAL (AED)</th>
               </tr>
             </thead>
             <tbody>
-              {cartItemsList.map((item, idx) => (
-                <tr key={item.product.code} className="border-b border-slate-200">
-                  <td className="border border-slate-300 p-2 text-center font-mono font-bold text-slate-600">
-                    {idx + 1}
-                  </td>
-                  <td className="border border-slate-300 p-2">
-                    <div className="font-bold text-slate-900 text-xs">
-                      {item.product.name}
-                    </div>
-                    <div className="text-[10px] font-mono text-slate-500 mt-0.5">
-                      CODE: {item.product.code} • DIVISION: {item.product.category}
-                    </div>
-                  </td>
-                  <td className="border border-slate-300 p-1 text-center">
-                    <div className="w-12 h-12 mx-auto border border-slate-200 rounded p-0.5 flex items-center justify-center bg-white shadow-xs">
-                      <img
-                        src={item.product.imagePath}
-                        alt={item.product.name}
-                        className="max-h-full max-w-full object-contain"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                    </div>
-                  </td>
-                  <td className="border border-slate-300 p-2 text-right font-mono text-slate-800">
-                    {formatCurrency(item.product.price)}
-                  </td>
-                  <td className="border border-slate-300 p-2 text-center font-mono font-bold text-slate-900">
-                    {item.quantity}
-                  </td>
-                  <td className="border border-slate-300 p-2 text-right font-mono font-bold text-slate-950">
-                    {formatCurrency(item.product.price * item.quantity)}
-                  </td>
-                </tr>
-              ))}
+              {cartItemsList.map((item, idx) => {
+                const unitPrice = Number(item.unitPrice || item.product.price || 0);
+                const offerPrice = Math.max(0, unitPrice - 500);
+                const lineTotal = offerPrice * item.quantity;
+
+                return (
+                  <tr key={item.product.code} className="border-b border-slate-200">
+                    <td className="border border-slate-300 p-2 text-center font-mono font-bold text-slate-600">
+                      {idx + 1}
+                    </td>
+                    <td className="border border-slate-300 p-2">
+                      <div className="font-bold text-slate-900 text-xs">
+                        {item.product.name}
+                      </div>
+                      <div className="text-[10px] font-mono text-slate-500 mt-0.5">
+                        CODE: {item.product.code} • DIVISION: {item.product.category}
+                      </div>
+                    </td>
+                    <td className="border border-slate-300 p-1 text-center">
+                      <div className="w-12 h-12 mx-auto border border-slate-200 rounded p-0.5 flex items-center justify-center bg-white shadow-xs">
+                        <img
+                          src={item.product.imagePath}
+                          alt={item.product.name}
+                          className="max-h-full max-w-full object-contain"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    </td>
+                    <td className="border border-slate-300 p-2 text-right font-mono text-slate-500 line-through">
+                      {formatCurrency(unitPrice)}
+                    </td>
+                    <td className="border border-slate-300 p-2 text-right font-mono font-bold text-slate-950 bg-amber-50/60">
+                      {formatCurrency(offerPrice)}
+                    </td>
+                    <td className="border border-slate-300 p-2 text-center font-mono font-bold text-slate-900">
+                      {item.quantity}
+                    </td>
+                    <td className="border border-slate-300 p-2 text-right font-mono font-bold text-slate-950">
+                      {formatCurrency(lineTotal)}
+                    </td>
+                  </tr>
+                );
+              })}
 
               {/* Additional Charges as Line Items */}
               {additionalCharges.map((ch, idx) => (
@@ -536,6 +568,9 @@ export default function QuotationInvoicePage() {
                     {ch.description || 'Turnkey Delivery & Assembly'}
                   </td>
                   <td className="border border-slate-300 p-2 text-right font-mono text-slate-800">
+                    {formatCurrency(ch.amount)}
+                  </td>
+                  <td className="border border-slate-300 p-2 text-right font-mono font-bold text-slate-950 bg-amber-50/60">
                     {formatCurrency(ch.amount)}
                   </td>
                   <td className="border border-slate-300 p-2 text-center font-mono font-bold text-slate-900">1</td>
@@ -553,33 +588,49 @@ export default function QuotationInvoicePage() {
               <span>Equipment Units ({cartItemsList.length})</span>
               <span>Line Total</span>
             </div>
-            {cartItemsList.map((item, idx) => (
-              <div key={item.product.code} className="p-3 bg-white space-y-2">
-                <div className="flex items-start gap-2.5">
-                  <span className="font-mono font-bold text-xs text-slate-400 mt-0.5">#{idx + 1}</span>
-                  <div className="w-12 h-12 bg-white rounded border border-slate-200 p-0.5 flex-shrink-0 flex items-center justify-center">
-                    <img
-                      src={item.product.imagePath}
-                      alt={item.product.name}
-                      className="max-h-full max-w-full object-contain"
-                      onError={(e) => { e.target.style.display = 'none'; }}
-                    />
+            {cartItemsList.map((item, idx) => {
+              const unitPrice = Number(item.unitPrice || item.product.price || 0);
+              const offerPrice = Math.max(0, unitPrice - 500);
+              const lineTotal = offerPrice * item.quantity;
+
+              return (
+                <div key={item.product.code} className="p-3 bg-white space-y-2">
+                  <div className="flex items-start gap-2.5">
+                    <span className="font-mono font-bold text-xs text-slate-400 mt-0.5">#{idx + 1}</span>
+                    <div className="w-12 h-12 bg-white rounded border border-slate-200 p-0.5 flex-shrink-0 flex items-center justify-center">
+                      <img
+                        src={item.product.imagePath}
+                        alt={item.product.name}
+                        className="max-h-full max-w-full object-contain"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-slate-900 text-xs leading-snug">{item.product.name}</h4>
+                      <span className="font-mono text-[10px] text-slate-500 block">CODE: {item.product.code} • {item.product.category}</span>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-slate-900 text-xs leading-snug">{item.product.name}</h4>
-                    <span className="font-mono text-[10px] text-slate-500 block">CODE: {item.product.code} • {item.product.category}</span>
+                  <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded border border-slate-100 font-mono">
+                    <div>
+                      <span className="text-[10px] text-slate-500 block uppercase">Unit Price</span>
+                      <span className="text-slate-500 line-through">AED {formatCurrency(unitPrice)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-amber-700 block uppercase font-bold">Offer Price</span>
+                      <span className="text-slate-950 font-bold">AED {formatCurrency(offerPrice)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-500 block uppercase">Quantity</span>
+                      <span className="text-slate-900 font-bold">{item.quantity}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-500 block uppercase">Line Total</span>
+                      <span className="text-amber-600 font-black">AED {formatCurrency(lineTotal)}</span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex justify-between items-center text-xs bg-slate-50 p-2 rounded border border-slate-100">
-                  <span className="text-slate-600 font-mono text-[11px]">
-                    Qty: <strong className="text-slate-900 font-bold">{item.quantity}</strong> × AED {formatCurrency(item.product.price)}
-                  </span>
-                  <span className="font-mono font-bold text-slate-950 text-xs">
-                    AED {formatCurrency(item.product.price * item.quantity)}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
 
             {/* Additional Charges on Mobile */}
             {additionalCharges.map((ch, idx) => (
@@ -601,9 +652,9 @@ export default function QuotationInvoicePage() {
           <div className="border border-slate-300 text-xs rounded-b-lg overflow-hidden mt-1">
             {/* Sub Total */}
             <div className="flex justify-between items-center px-3 sm:px-4 py-2 border-b border-slate-200 bg-white">
-              <span className="font-semibold text-slate-600">Net Taxable Subtotal</span>
+              <span className="font-semibold text-slate-600">Net Taxable Subtotal (Offer Price)</span>
               <span className="font-mono font-bold text-xs sm:text-sm text-slate-900">
-                AED {formatCurrency(netTaxableSum)}
+                AED {formatCurrency(quoteNetTaxableSum)}
               </span>
             </div>
 
@@ -611,7 +662,7 @@ export default function QuotationInvoicePage() {
             <div className="flex justify-between items-center px-3 sm:px-4 py-2 border-b border-slate-200 bg-slate-50/70">
               <span className="font-semibold text-slate-600">UAE FTA VAT (5%)</span>
               <span className="font-mono font-bold text-xs sm:text-sm text-emerald-700">
-                AED {formatCurrency(totalVat)}
+                AED {formatCurrency(quoteTotalVat)}
               </span>
             </div>
 
@@ -619,7 +670,7 @@ export default function QuotationInvoicePage() {
             <div className="px-3 sm:px-4 py-2 border-b border-slate-200 bg-slate-50 text-[10.5px] sm:text-[11px] font-mono text-slate-700">
               AMOUNT IN WORDS:{' '}
               <strong className="font-sans text-slate-950 font-bold block sm:inline mt-0.5 sm:mt-0">
-                {numberToWords(grandTotal)}
+                {numberToWords(quoteGrandTotal)}
               </strong>
             </div>
 
@@ -629,7 +680,7 @@ export default function QuotationInvoicePage() {
                 Grand Total (AED)
               </span>
               <span className="font-mono font-black text-sm sm:text-base text-amber-400">
-                AED {formatCurrency(grandTotal)}
+                AED {formatCurrency(quoteGrandTotal)}
               </span>
             </div>
           </div>

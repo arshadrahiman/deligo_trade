@@ -127,12 +127,14 @@ export async function generateInvoicePdf({
   // 5. Products Line Items Table
   const tableData = items.map((item, index) => {
     const qty = item.quantity || 1;
-    const price = Number(item.unitPrice || item.product?.price || 0);
-    const lineTotal = price * qty;
+    const unitPrice = Number(item.unitPrice || item.originalPrice || item.product?.price || 0);
+    const offerPrice = Number(item.offerPrice || item.unitPrice || item.product?.price || 0);
+    const lineTotal = offerPrice * qty;
     return [
       index + 1,
       `${item.product?.name || 'Commercial Equipment'}\nCode: ${item.product?.code || 'N/A'}\n${item.product?.category || ''}`,
-      formatCurrency(price),
+      formatCurrency(unitPrice),
+      formatCurrency(offerPrice),
       qty,
       formatCurrency(lineTotal),
     ];
@@ -143,6 +145,7 @@ export async function generateInvoicePdf({
     tableData.push([
       items.length + idx + 1,
       `[ADDITIONAL CHARGE] ${ch.description || 'Special Service / Logistics'}`,
+      formatCurrency(ch.amount),
       formatCurrency(ch.amount),
       1,
       formatCurrency(ch.amount),
@@ -168,13 +171,14 @@ export async function generateInvoicePdf({
       textColor: [15, 23, 42],
     },
     columnStyles: {
-      0: { cellWidth: 12, halign: 'center' },
+      0: { cellWidth: 10, halign: 'center' },
       1: { cellWidth: 'auto' },
-      2: { cellWidth: 26, halign: 'right' },
-      3: { cellWidth: 16, halign: 'center' },
-      4: { cellWidth: 28, halign: 'right' },
+      2: { cellWidth: 24, halign: 'right' },
+      3: { cellWidth: 24, halign: 'right' },
+      4: { cellWidth: 14, halign: 'center' },
+      5: { cellWidth: 26, halign: 'right' },
     },
-    head: [['SL', 'Product / Model & Specification', 'Unit Price (AED)', 'Qty', 'Total (AED)']],
+    head: [['SL', 'Product / Model & Specification', 'Unit Price (AED)', 'Offer Price (AED)', 'Qty', 'Total (AED)']],
     body: tableData,
   });
 
