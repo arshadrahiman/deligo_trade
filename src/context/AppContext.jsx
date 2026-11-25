@@ -48,6 +48,49 @@ const DEFAULT_BANK_ACCOUNTS = [
 
 const INITIAL_DEMO_QUOTES = [
   {
+    id: 'INV-2026-098',
+    quoteNumber: '098',
+    invoiceNumber: 'INV-2026-098',
+    type: 'sales_invoice',
+    status: 'Converted to Invoice',
+    customerName: 'Gold’s Gym Elite Jumeirah',
+    contactNumber: '+971 55 987 6543',
+    customerDetails: 'Jumeirah 1, Dubai, UAE',
+    date: '20-Nov-2026',
+    invoiceDate: '20-Nov-2026',
+    items: [
+      {
+        product: { ...initialWarehouseStock[1], purchaseRate: 3600 },
+        quantity: 2,
+        unitPrice: 5500,
+        offerPrice: 5000,
+        purchaseRate: 3600,
+        originalPrice: 5500,
+        sum: 10000,
+      },
+      {
+        product: { ...initialWarehouseStock[13], purchaseRate: 5800 },
+        quantity: 2,
+        unitPrice: 8500,
+        offerPrice: 8000,
+        purchaseRate: 5800,
+        originalPrice: 8500,
+        sum: 16000,
+      },
+    ],
+    additionalCharges: [
+      {
+        id: 'ac-demo-1',
+        description: 'Heavy Rigging & Express Placement',
+        amount: 1200,
+      },
+    ],
+    subtotal: 27200,
+    vat: 1360,
+    grandTotal: 28560,
+    createdAt: Date.now() - 86400000 * 5,
+  },
+  {
     id: 'QT-101',
     quoteNumber: '101',
     invoiceNumber: null,
@@ -56,22 +99,26 @@ const INITIAL_DEMO_QUOTES = [
     customerName: 'Titan Fitness Club Dubai',
     contactNumber: '+971 50 123 4567',
     customerDetails: 'Al Quoz Industrial Area 3, Dubai, UAE',
-    date: '28-Oct-2026',
+    date: '24-Nov-2026',
     invoiceDate: null,
     items: [
       {
-        product: initialWarehouseStock[1], // LP-045 Leg Press
+        product: { ...initialWarehouseStock[1], purchaseRate: 3600 }, // LP-045 Leg Press
         quantity: 2,
         unitPrice: 5500,
+        offerPrice: 5000,
+        purchaseRate: 3600,
         originalPrice: 5500,
-        sum: 11000,
+        sum: 10000,
       },
       {
-        product: initialWarehouseStock[8], // B069 Air Bike
+        product: { ...initialWarehouseStock[8], purchaseRate: 2900 }, // B069 Air Bike
         quantity: 3,
         unitPrice: 4500,
+        offerPrice: 4000,
+        purchaseRate: 2900,
         originalPrice: 4500,
-        sum: 13500,
+        sum: 12000,
       },
     ],
     additionalCharges: [
@@ -81,10 +128,10 @@ const INITIAL_DEMO_QUOTES = [
         amount: 850,
       },
     ],
-    subtotal: 25350,
-    vat: 1267.5,
-    grandTotal: 26617.5,
-    createdAt: Date.now() - 86400000 * 2,
+    subtotal: 22850,
+    vat: 1142.5,
+    grandTotal: 23992.5,
+    createdAt: Date.now() - 86400000 * 1,
   },
 ];
 
@@ -93,13 +140,26 @@ export function AppProvider({ children }) {
   const [currentPage, setCurrentPage] = useState('products'); // 'products'|'services'|'aboutUs'|'contact'|'support'|'invoiceBill'|'admin'
   const [isAdminView, setIsAdminView] = useState(false);
 
-  // Products State
+  // Products State (Ensuring purchaseRate is present on every product for Admin Profit calculation)
   const [products, setProducts] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-      return saved ? JSON.parse(saved) : initialWarehouseStock;
+      const rawList = saved ? JSON.parse(saved) : initialWarehouseStock;
+      return rawList.map((p) => ({
+        ...p,
+        purchaseRate:
+          p.purchaseRate !== undefined && !isNaN(Number(p.purchaseRate))
+            ? Number(p.purchaseRate)
+            : Math.round((Number(p.price) || 0) * 0.65),
+      }));
     } catch {
-      return initialWarehouseStock;
+      return initialWarehouseStock.map((p) => ({
+        ...p,
+        purchaseRate:
+          p.purchaseRate !== undefined && !isNaN(Number(p.purchaseRate))
+            ? Number(p.purchaseRate)
+            : Math.round((Number(p.price) || 0) * 0.65),
+      }));
     }
   });
 
@@ -321,14 +381,26 @@ export function AppProvider({ children }) {
       customerDetails: customerDetails.trim() || 'Dubai / UAE',
       date: quoteDate,
       invoiceDate: null,
-      items: cartItemsList.map((item) => ({
-        product: { ...item.product },
-        quantity: item.quantity,
-        unitPrice: item.product.price,
-        offerPrice: item.offerPrice || item.unitPrice || item.product.price,
-        originalPrice: item.product.price,
-        sum: (item.offerPrice || item.unitPrice || item.product.price) * item.quantity,
-      })),
+      items: cartItemsList.map((item) => {
+        const uPrice = Number(item.unitPrice || item.product.price || 0);
+        const oPrice = Math.max(0, uPrice - 500);
+        const pRate =
+          item.purchaseRate !== undefined
+            ? Number(item.purchaseRate)
+            : item.product?.purchaseRate !== undefined
+            ? Number(item.product.purchaseRate)
+            : Math.round(uPrice * 0.65);
+
+        return {
+          product: { ...item.product, purchaseRate: pRate },
+          quantity: item.quantity,
+          unitPrice: uPrice,
+          offerPrice: oPrice,
+          purchaseRate: pRate,
+          originalPrice: uPrice,
+          sum: oPrice * item.quantity,
+        };
+      }),
       additionalCharges: [...additionalCharges],
       subtotal: netTaxableSum,
       vat: totalVat,
@@ -347,11 +419,37 @@ export function AppProvider({ children }) {
       prev.map((quote) => {
         if (quote.id !== quoteId) return quote;
         const newInvoiceNum = `INV-2026-${quote.quoteNumber || quote.id.replace('QT-', '')}`;
-        const items = modifiedData.items || quote.items;
-        const addCharges = modifiedData.additionalCharges !== undefined ? modifiedData.additionalCharges : quote.additionalCharges;
-        
-        const itemsSum = items.reduce((s, it) => s + (Number(it.unitPrice) * Number(it.quantity)), 0);
-        const chargesSum = addCharges.reduce((s, ch) => s + (Number(ch.amount) || 0), 0);
+        const rawItems = modifiedData.items || quote.items;
+        const items = rawItems.map((it) => {
+          const pRate =
+            it.purchaseRate !== undefined
+              ? Number(it.purchaseRate)
+              : it.product?.purchaseRate !== undefined
+              ? Number(it.product.purchaseRate)
+              : Math.round(Number(it.unitPrice || it.product?.price || 0) * 0.65);
+          return {
+            ...it,
+            purchaseRate: pRate,
+            product: {
+              ...(it.product || {}),
+              purchaseRate: pRate,
+            },
+          };
+        });
+
+        const addCharges =
+          modifiedData.additionalCharges !== undefined
+            ? modifiedData.additionalCharges
+            : quote.additionalCharges;
+
+        const itemsSum = items.reduce(
+          (s, it) => s + Number(it.unitPrice) * Number(it.quantity),
+          0
+        );
+        const chargesSum = addCharges.reduce(
+          (s, ch) => s + (Number(ch.amount) || 0),
+          0
+        );
         const subtotal = itemsSum + chargesSum;
         const vat = subtotal * 0.05;
         const grandTotal = subtotal + vat;
@@ -383,11 +481,18 @@ export function AppProvider({ children }) {
 
   // Product CRUD
   const addProduct = (newProduct) => {
+    const priceNum = parseFloat(newProduct.price) || 0;
+    const pRateNum =
+      newProduct.purchaseRate !== undefined && !isNaN(parseFloat(newProduct.purchaseRate))
+        ? parseFloat(newProduct.purchaseRate)
+        : Math.round(priceNum * 0.65);
+
     const productWithId = {
       ...newProduct,
       id: 'prod-' + Date.now(),
       code: newProduct.code.trim().toUpperCase(),
-      price: parseFloat(newProduct.price) || 0,
+      price: priceNum,
+      purchaseRate: pRateNum,
       stockQty: parseInt(newProduct.stockQty, 10) || 1,
     };
     setProducts((prev) => [productWithId, ...prev]);
@@ -395,7 +500,25 @@ export function AppProvider({ children }) {
 
   const updateProduct = (updatedProduct) => {
     setProducts((prev) =>
-      prev.map((p) => (p.id === updatedProduct.id || p.code === updatedProduct.code ? updatedProduct : p))
+      prev.map((p) => {
+        if (p.id === updatedProduct.id || p.code === updatedProduct.code) {
+          const priceNum = parseFloat(updatedProduct.price) || p.price;
+          const pRateNum =
+            updatedProduct.purchaseRate !== undefined && !isNaN(parseFloat(updatedProduct.purchaseRate))
+              ? parseFloat(updatedProduct.purchaseRate)
+              : p.purchaseRate !== undefined
+              ? p.purchaseRate
+              : Math.round(priceNum * 0.65);
+
+          return {
+            ...p,
+            ...updatedProduct,
+            price: priceNum,
+            purchaseRate: pRateNum,
+          };
+        }
+        return p;
+      })
     );
   };
 

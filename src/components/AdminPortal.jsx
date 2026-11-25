@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Lock,
   LogOut,
@@ -24,11 +24,15 @@ import {
   Check,
   RotateCcw,
   Calendar,
+  TrendingUp,
+  BarChart3,
+  LineChart,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
 import { generateInvoicePdf } from '../utils/pdfGenerator';
 import Pagination from './Pagination';
+import FinancialDashboardGraph from './FinancialDashboardGraph';
 
 export const DEFAULT_TERMS_TEMPLATES = [
   {
@@ -282,13 +286,19 @@ export default function AdminPortal() {
     setTermsValidationError('');
     setEditingTemplateId(null);
     setEditingTemplateForm(null);
-    // clone items with custom unitPrice
+    // clone items with custom unitPrice and preserve purchaseRate
     setOverrideItems(
       quote.items.map((it) => ({
         product: { ...it.product },
         quantity: it.quantity,
         unitPrice: it.unitPrice || it.product.price,
         originalPrice: it.originalPrice || it.product.price,
+        purchaseRate:
+          it.purchaseRate !== undefined
+            ? Number(it.purchaseRate)
+            : it.product?.purchaseRate !== undefined
+            ? Number(it.product.purchaseRate)
+            : Math.round(Number(it.unitPrice || it.product?.price || 0) * 0.65),
       }))
     );
     // clone additional charges
@@ -514,6 +524,43 @@ export default function AdminPortal() {
     return matchesFilter && matchesSearch;
   });
 
+  // Profit & Revenue Calculations for Sales Invoices in Selected Date Range
+  const salesInvoices = useMemo(() => {
+    return dateFilteredQuotes.filter((q) => q.type === 'sales_invoice');
+  }, [dateFilteredQuotes]);
+
+  const totalSalesAmount = useMemo(() => {
+    return salesInvoices.reduce((sum, q) => sum + (Number(q.grandTotal) || 0), 0);
+  }, [salesInvoices]);
+
+  const totalCostAmount = useMemo(() => {
+    return salesInvoices.reduce((sum, q) => {
+      const itemsCost = (q.items || []).reduce((itemSum, it) => {
+        const itemCost = Number(
+          it.purchaseRate !== undefined
+            ? it.purchaseRate
+            : it.product?.purchaseRate !== undefined
+            ? it.product.purchaseRate
+            : products.find((p) => p.code === (it.product?.code || it.code))?.purchaseRate ||
+              Math.round((it.unitPrice || it.product?.price || 0) * 0.65)
+        );
+        const qty = Number(it.quantity || 1);
+        return itemSum + itemCost * qty;
+      }, 0);
+      return sum + itemsCost;
+    }, 0);
+  }, [salesInvoices, products]);
+
+  const totalProfitAmount = useMemo(() => {
+    return totalSalesAmount - totalCostAmount;
+  }, [totalSalesAmount, totalCostAmount]);
+
+  const profitMarginPct = useMemo(() => {
+    return totalSalesAmount > 0
+      ? ((totalProfitAmount / totalSalesAmount) * 100).toFixed(1)
+      : '0.0';
+  }, [totalSalesAmount, totalProfitAmount]);
+
   const filteredProducts = products.filter((p) => {
     const matchesCategory =
       prodCategoryFilter === 'ALL' ? true : p.category === prodCategoryFilter;
@@ -725,8 +772,8 @@ export default function AdminPortal() {
             </div>
           </div>
 
-          {/* Quotes KPI Summary (Filtered by Calendar Selection) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+          {/* Quotes & Financial KPI Summary (Filtered by Calendar Selection) */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
             <div className="p-4 rounded-xl bg-surface border border-white/10">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">
                 Total Quotes Logged
@@ -734,15 +781,23 @@ export default function AdminPortal() {
               <span className="text-2xl font-mono font-bold text-white">
                 {dateFilteredQuotes.length}
               </span>
+              <span className="text-[10px] text-slate-500 block mt-1">
+                In active calendar window
+              </span>
             </div>
+
             <div className="p-4 rounded-xl bg-surface border border-white/10">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">
-                Converted to Sales Invoices
+                Converted to Invoices
               </span>
               <span className="text-2xl font-mono font-bold text-emerald-400">
-                {dateFilteredQuotes.filter((q) => q.type === 'sales_invoice').length}
+                {salesInvoices.length}
+              </span>
+              <span className="text-[10px] text-slate-500 block mt-1">
+                Official sales orders
               </span>
             </div>
+
             <div className="p-4 rounded-xl bg-surface border border-white/10">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">
                 Pending Quotations
@@ -750,21 +805,54 @@ export default function AdminPortal() {
               <span className="text-2xl font-mono font-bold text-amber-400">
                 {dateFilteredQuotes.filter((q) => q.type !== 'sales_invoice').length}
               </span>
+              <span className="text-[10px] text-slate-500 block mt-1">
+                Open client quotes
+              </span>
             </div>
+
             <div className="p-4 rounded-xl bg-surface border border-white/10">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">
                 Total Sale Amount (AED)
               </span>
               <span className="text-2xl font-mono font-bold text-emerald-400">
-                AED{' '}
-                {formatCurrency(
-                  dateFilteredQuotes
-                    .filter((q) => q.type === 'sales_invoice')
-                    .reduce((sum, q) => sum + (Number(q.grandTotal) || 0), 0)
-                )}
+                AED {formatCurrency(totalSalesAmount)}
+              </span>
+              <span className="text-[10px] text-slate-500 block mt-1">
+                Sum of invoice grand totals
+              </span>
+            </div>
+
+            {/* TOTAL PROFIT KPI CARD */}
+            <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/15 via-surface to-cyan-500/10 border border-emerald-500/40 relative overflow-hidden shadow-lg shadow-emerald-500/5 col-span-2 sm:col-span-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-bold text-emerald-400 flex items-center gap-1">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  Total Profit (AED)
+                </span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                  +{profitMarginPct}%
+                </span>
+              </div>
+              <span className="text-2xl font-mono font-black text-cyan-300 block mt-1">
+                AED {formatCurrency(totalProfitAmount)}
+              </span>
+              <span className="text-[10px] text-emerald-400/80 font-mono block mt-1 truncate" title="Sales Invoices - Item Purchase Costs">
+                Sales − Purchase Cost (COGS)
               </span>
             </div>
           </div>
+
+          {/* Dynamic Financial Performance & Profit Analytics Graph */}
+          <FinancialDashboardGraph
+            salesInvoices={salesInvoices}
+            allFilteredQuotes={dateFilteredQuotes}
+            onResetDateRange={handleResetDateRange}
+            dateRangeLabel={
+              startDate || endDate
+                ? `${startDate || 'Start'} to ${endDate || 'End'}`
+                : 'All Time'
+            }
+          />
 
           {/* Search & Filters */}
           <div className="p-3 rounded-xl bg-surface border border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 text-xs">
@@ -1131,6 +1219,15 @@ export default function AdminPortal() {
                     <div className="font-mono font-bold text-white text-xs mt-0.5">
                       AED {formatCurrency(p.price)}
                     </div>
+                    {/* Admin Only: Cost & Margin */}
+                    <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] font-mono">
+                      <span className="text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                        Cost: AED {formatCurrency(p.purchaseRate !== undefined ? p.purchaseRate : Math.round(p.price * 0.65))}
+                      </span>
+                      <span className="text-emerald-400 font-bold">
+                        Margin: +AED {formatCurrency((p.price || 0) - (p.purchaseRate !== undefined ? p.purchaseRate : Math.round(p.price * 0.65)))}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -1190,100 +1287,130 @@ export default function AdminPortal() {
                   <th className="p-3 w-16">Image</th>
                   <th className="p-3">Code / Category</th>
                   <th className="p-3">Product Name & Specifications</th>
-                  <th className="p-3 text-right">Unit Price (AED)</th>
+                  <th className="p-3 text-right">Selling Price (AED)</th>
+                  <th className="p-3 text-right">
+                    <div className="inline-flex items-center gap-1.5 justify-end">
+                      <span>Purchase Rate (AED)</span>
+                      <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                        Admin Only
+                      </span>
+                    </div>
+                  </th>
+                  <th className="p-3 text-right">Gross Margin</th>
                   <th className="p-3 text-center w-36">Warehouse Stock (Qty)</th>
                   <th className="p-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1E2839]">
-                {paginatedAdminProducts.map((p) => (
-                  <tr key={p.code} className="hover:bg-[#070A12] transition-colors">
-                    <td className="p-3">
-                      <div className="w-12 h-12 bg-white rounded p-1 border border-slate-700 flex items-center justify-center">
-                        <img
-                          src={p.imagePath}
-                          alt={p.name}
-                          className="max-h-full max-w-full object-contain"
-                          onError={(e) => (e.target.style.display = 'none')}
-                        />
-                      </div>
-                    </td>
+                {paginatedAdminProducts.map((p) => {
+                  const cost = Number(p.purchaseRate !== undefined ? p.purchaseRate : Math.round(p.price * 0.65));
+                  const marginAed = (p.price || 0) - cost;
+                  const marginPct = p.price > 0 ? ((marginAed / p.price) * 100).toFixed(1) : '0.0';
 
-                    <td className="p-3">
-                      <span className="font-mono font-bold text-amber-400 text-xs block">
-                        #{p.code}
-                      </span>
-                      <span className="text-[10px] text-slate-400 uppercase font-semibold">
-                        {p.category}
-                      </span>
-                    </td>
+                  return (
+                    <tr key={p.code} className="hover:bg-[#070A12] transition-colors">
+                      <td className="p-3">
+                        <div className="w-12 h-12 bg-white rounded p-1 border border-slate-700 flex items-center justify-center">
+                          <img
+                            src={p.imagePath}
+                            alt={p.name}
+                            className="max-h-full max-w-full object-contain"
+                            onError={(e) => (e.target.style.display = 'none')}
+                          />
+                        </div>
+                      </td>
 
-                    <td className="p-3">
-                      <div className="font-bold text-white text-xs">
-                        {p.name}
-                      </div>
-                      <div className="text-slate-400 text-[11px] line-clamp-1">
-                        {p.description}
-                      </div>
-                    </td>
+                      <td className="p-3">
+                        <span className="font-mono font-bold text-amber-400 text-xs block">
+                          #{p.code}
+                        </span>
+                        <span className="text-[10px] text-slate-400 uppercase font-semibold">
+                          {p.category}
+                        </span>
+                      </td>
 
-                    <td className="p-3 text-right font-mono font-bold text-white">
-                      AED {formatCurrency(p.price)}
-                    </td>
+                      <td className="p-3">
+                        <div className="font-bold text-white text-xs">
+                          {p.name}
+                        </div>
+                        <div className="text-slate-400 text-[11px] line-clamp-1">
+                          {p.description}
+                        </div>
+                      </td>
 
-                    {/* Stock Qty Modifier */}
-                    <td className="p-3 text-center">
-                      <div className="inline-flex items-center gap-1.5 bg-[#070A12] border border-white/10 rounded-lg p-1">
-                        <button
-                          onClick={() => updateProductStock(p.code, (p.stockQty || 0) - 1)}
-                          className="w-6 h-6 rounded bg-[#1E2839] hover:bg-red-500 hover:text-white text-slate-200 flex items-center justify-center font-bold"
-                        >
-                          -
-                        </button>
-                        <input
-                          type="number"
-                          value={p.stockQty !== undefined ? p.stockQty : 10}
-                          onChange={(e) => updateProductStock(p.code, e.target.value)}
-                          className="w-12 text-center bg-transparent text-white font-mono font-bold text-xs focus:outline-none"
-                        />
-                        <button
-                          onClick={() => updateProductStock(p.code, (p.stockQty || 0) + 1)}
-                          className="w-6 h-6 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold hover:brightness-110 flex items-center justify-center font-bold"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </td>
+                      <td className="p-3 text-right font-mono font-bold text-white">
+                        AED {formatCurrency(p.price)}
+                      </td>
 
-                    {/* Actions */}
-                    <td className="p-3 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <button
-                          onClick={() => {
-                            setEditingProduct({ ...p });
-                            setIsAddProductOpen(true);
-                          }}
-                          className="p-1.5 rounded bg-[#1E2839] hover:bg-amber-500 hover:text-black text-slate-300"
-                          title="Edit Product"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
+                      {/* Purchase Rate (Admin Only) */}
+                      <td className="p-3 text-right font-mono text-amber-400 font-bold">
+                        AED {formatCurrency(cost)}
+                      </td>
 
-                        <button
-                          onClick={() => {
-                            if (confirm(`Delete product ${p.name} (${p.code})?`)) {
-                              deleteProduct(p.code);
-                            }
-                          }}
-                          className="p-1.5 rounded bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
-                          title="Delete Product"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      {/* Margin */}
+                      <td className="p-3 text-right font-mono">
+                        <span className="text-emerald-400 font-bold block text-xs">
+                          +AED {formatCurrency(marginAed)}
+                        </span>
+                        <span className="text-[10px] text-emerald-400/80 font-mono">
+                          ({marginPct}%)
+                        </span>
+                      </td>
+
+                      {/* Stock Qty Modifier */}
+                      <td className="p-3 text-center">
+                        <div className="inline-flex items-center gap-1.5 bg-[#070A12] border border-white/10 rounded-lg p-1">
+                          <button
+                            onClick={() => updateProductStock(p.code, (p.stockQty || 0) - 1)}
+                            className="w-6 h-6 rounded bg-[#1E2839] hover:bg-red-500 hover:text-white text-slate-200 flex items-center justify-center font-bold"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            value={p.stockQty !== undefined ? p.stockQty : 10}
+                            onChange={(e) => updateProductStock(p.code, e.target.value)}
+                            className="w-12 text-center bg-transparent text-white font-mono font-bold text-xs focus:outline-none"
+                          />
+                          <button
+                            onClick={() => updateProductStock(p.code, (p.stockQty || 0) + 1)}
+                            className="w-6 h-6 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold hover:brightness-110 flex items-center justify-center font-bold"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="p-3 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => {
+                              setEditingProduct({ ...p });
+                              setIsAddProductOpen(true);
+                            }}
+                            className="p-1.5 rounded bg-[#1E2839] hover:bg-amber-500 hover:text-black text-slate-300"
+                            title="Edit Product"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              if (confirm(`Delete product ${p.name} (${p.code})?`)) {
+                                deleteProduct(p.code);
+                              }
+                            }}
+                            className="p-1.5 rounded bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
+                            title="Delete Product"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -2253,6 +2380,11 @@ function ProductFormModal({ product, onClose, onSave }) {
   const [name, setName] = useState(product?.name || '');
   const [category, setCategory] = useState(product?.category || 'Plate Loaded');
   const [price, setPrice] = useState(product?.price || 5500);
+  const [purchaseRate, setPurchaseRate] = useState(
+    product?.purchaseRate !== undefined
+      ? product.purchaseRate
+      : Math.round((product?.price || 5500) * 0.65)
+  );
   const [stockQty, setStockQty] = useState(product?.stockQty !== undefined ? product.stockQty : 10);
   const [imagePath, setImagePath] = useState(product?.imagePath || '/assets/products/prod_1.png');
   const [description, setDescription] = useState(product?.description || '');
@@ -2277,11 +2409,16 @@ function ProductFormModal({ product, onClose, onSave }) {
       name: name.trim(),
       category,
       price: parseFloat(price) || 0,
+      purchaseRate: parseFloat(purchaseRate) || 0,
       stockQty: parseInt(stockQty, 10) || 0,
       imagePath: imagePath.trim(),
       description: description.trim(),
     });
   };
+
+  const calculatedMargin = (parseFloat(price) || 0) - (parseFloat(purchaseRate) || 0);
+  const calculatedMarginPct =
+    parseFloat(price) > 0 ? ((calculatedMargin / parseFloat(price)) * 100).toFixed(1) : '0.0';
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-3 sm:p-4 flex items-center justify-center overflow-y-auto">
@@ -2332,15 +2469,34 @@ function ProductFormModal({ product, onClose, onSave }) {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Pricing, Admin Purchase Rate & Stock */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-slate-300 font-bold block mb-1">Price (AED) *</label>
+              <label className="text-slate-300 font-bold block mb-1">Selling Price (AED) *</label>
               <input
                 type="number"
                 required
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white font-mono"
+              />
+            </div>
+
+            {/* Purchase Rate (Admin Only) */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-slate-300 font-bold block truncate">Purchase Rate *</label>
+                <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  Admin
+                </span>
+              </div>
+              <input
+                type="number"
+                required
+                value={purchaseRate}
+                onChange={(e) => setPurchaseRate(e.target.value)}
+                placeholder="e.g. 3500"
+                className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-amber-400 font-mono font-bold"
               />
             </div>
 
@@ -2352,6 +2508,19 @@ function ProductFormModal({ product, onClose, onSave }) {
                 onChange={(e) => setStockQty(e.target.value)}
                 className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white font-mono"
               />
+            </div>
+          </div>
+
+          {/* Admin Margin Calculation Indicator */}
+          <div className="p-2.5 rounded-lg bg-[#070A12] border border-white/10 flex items-center justify-between text-[11px] font-mono">
+            <span className="text-slate-400">Unit Profit Margin (Admin View):</span>
+            <div className="flex items-center gap-2">
+              <span className={calculatedMargin >= 0 ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}>
+                {calculatedMargin >= 0 ? '+' : ''}AED {formatCurrency(calculatedMargin)}
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-bold">
+                {calculatedMarginPct}%
+              </span>
             </div>
           </div>
 
