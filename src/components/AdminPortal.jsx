@@ -23,6 +23,7 @@ import {
   FileText,
   Check,
   RotateCcw,
+  Calendar,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
@@ -91,6 +92,73 @@ export default function AdminPortal() {
   // Search in Quotes
   const [quoteSearch, setQuoteSearch] = useState('');
   const [quoteFilter, setQuoteFilter] = useState('ALL'); // 'ALL' | 'quotation' | 'sales_invoice'
+
+  // Calendar Date Range Selection State
+  const [dateRangePreset, setDateRangePreset] = useState('ALL'); // 'ALL' | 'TODAY' | 'THIS_WEEK' | 'THIS_MONTH' | 'LAST_30_DAYS' | 'CUSTOM'
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  const handleApplyPreset = (preset) => {
+    setDateRangePreset(preset);
+    const now = new Date();
+    const formatDate = (d) => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    if (preset === 'ALL') {
+      setStartDate('');
+      setEndDate('');
+    } else if (preset === 'TODAY') {
+      const todayStr = formatDate(now);
+      setStartDate(todayStr);
+      setEndDate(todayStr);
+    } else if (preset === 'THIS_WEEK') {
+      const start = new Date(now.getTime() - 6 * 86400000);
+      setStartDate(formatDate(start));
+      setEndDate(formatDate(now));
+    } else if (preset === 'THIS_MONTH') {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      setStartDate(formatDate(start));
+      setEndDate(formatDate(now));
+    } else if (preset === 'LAST_30_DAYS') {
+      const start = new Date(now.getTime() - 29 * 86400000);
+      setStartDate(formatDate(start));
+      setEndDate(formatDate(now));
+    }
+  };
+
+  const handleCustomDateChange = (field, value) => {
+    setDateRangePreset('CUSTOM');
+    if (field === 'start') {
+      setStartDate(value);
+    } else {
+      setEndDate(value);
+    }
+  };
+
+  const handleResetDateRange = () => {
+    setDateRangePreset('ALL');
+    setStartDate('');
+    setEndDate('');
+  };
+
+  const parseRecordDate = (record) => {
+    if (record.createdAt && typeof record.createdAt === 'number') {
+      return new Date(record.createdAt);
+    }
+    const dateStr = record.invoiceDate || record.date;
+    if (dateStr) {
+      const clean = String(dateStr).trim().replace(/-/g, ' ');
+      const parsed = Date.parse(clean);
+      if (!isNaN(parsed)) return new Date(parsed);
+      const direct = Date.parse(dateStr);
+      if (!isNaN(direct)) return new Date(direct);
+    }
+    return null;
+  };
 
   // Search & Pagination in Products
   const [prodSearch, setProdSearch] = useState('');
@@ -416,9 +484,25 @@ export default function AdminPortal() {
   }
 
   // -------------------------------------------------------------
-  // Filtered Data
+  // Filtered Data (Calendar Date Range + Search + Type)
   // -------------------------------------------------------------
-  const filteredQuotes = quotesRecords.filter((q) => {
+  const dateFilteredQuotes = quotesRecords.filter((record) => {
+    if (!startDate && !endDate) return true;
+    const recDate = parseRecordDate(record);
+    if (!recDate) return true;
+
+    if (startDate) {
+      const start = new Date(startDate + 'T00:00:00');
+      if (recDate < start) return false;
+    }
+    if (endDate) {
+      const end = new Date(endDate + 'T23:59:59.999');
+      if (recDate > end) return false;
+    }
+    return true;
+  });
+
+  const filteredQuotes = dateFilteredQuotes.filter((q) => {
     const matchesFilter =
       quoteFilter === 'ALL' ? true : q.type === quoteFilter;
     const matchesSearch =
@@ -543,14 +627,112 @@ export default function AdminPortal() {
       {/* ========================================================= */}
       {activeTab === 'quotes' && (
         <div className="space-y-4">
-          {/* Quotes KPI Summary */}
+          {/* Calendar Range Selection Toolbar */}
+          <div className="p-4 rounded-xl bg-surface border border-white/10 space-y-3 shadow-lg">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
+                      CALENDAR TIME HORIZON & DATE RANGE
+                    </h3>
+                    {(startDate || endDate) && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    Filter dashboard KPI metrics and transaction records based on calendar range
+                  </p>
+                </div>
+              </div>
+
+              {/* Quick Presets */}
+              <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono">
+                {[
+                  { id: 'ALL', label: 'All Time' },
+                  { id: 'TODAY', label: 'Today' },
+                  { id: 'THIS_WEEK', label: 'Last 7 Days' },
+                  { id: 'THIS_MONTH', label: 'This Month' },
+                  { id: 'LAST_30_DAYS', label: 'Last 30 Days' },
+                ].map((preset) => {
+                  const isActive = dateRangePreset === preset.id;
+                  return (
+                    <button
+                      key={preset.id}
+                      onClick={() => handleApplyPreset(preset.id)}
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                        isActive
+                          ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-sm shadow-amber-500/20'
+                          : 'bg-[#070A12] border border-white/10 text-slate-300 hover:text-white hover:border-white/20'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Date Pickers Row */}
+            <div className="pt-2 border-t border-white/5 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-slate-400 text-[11px] font-mono uppercase">From:</span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => handleCustomDateChange('start', e.target.value)}
+                    className="bg-[#070A12] border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-amber-500/60 font-mono"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-slate-400 text-[11px] font-mono uppercase">To:</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => handleCustomDateChange('end', e.target.value)}
+                    className="bg-[#070A12] border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-amber-500/60 font-mono"
+                  />
+                </div>
+
+                {(startDate || endDate) && (
+                  <button
+                    onClick={handleResetDateRange}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-mono transition-colors"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Reset Range</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Status Indicator */}
+              <div className="text-[11px] font-mono text-slate-400 flex items-center gap-2">
+                {startDate || endDate ? (
+                  <span className="text-amber-400 font-medium">
+                    Range Filter Active: {startDate || 'Start'} → {endDate || 'End'} ({dateFilteredQuotes.length} records in range)
+                  </span>
+                ) : (
+                  <span className="text-slate-500">
+                    Displaying All-Time Cumulative Analytics ({quotesRecords.length} records)
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Quotes KPI Summary (Filtered by Calendar Selection) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
             <div className="p-4 rounded-xl bg-surface border border-white/10">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">
                 Total Quotes Logged
               </span>
               <span className="text-2xl font-mono font-bold text-white">
-                {quotesRecords.length}
+                {dateFilteredQuotes.length}
               </span>
             </div>
             <div className="p-4 rounded-xl bg-surface border border-white/10">
@@ -558,7 +740,7 @@ export default function AdminPortal() {
                 Converted to Sales Invoices
               </span>
               <span className="text-2xl font-mono font-bold text-emerald-400">
-                {quotesRecords.filter((q) => q.type === 'sales_invoice').length}
+                {dateFilteredQuotes.filter((q) => q.type === 'sales_invoice').length}
               </span>
             </div>
             <div className="p-4 rounded-xl bg-surface border border-white/10">
@@ -566,7 +748,7 @@ export default function AdminPortal() {
                 Pending Quotations
               </span>
               <span className="text-2xl font-mono font-bold text-amber-400">
-                {quotesRecords.filter((q) => q.type !== 'sales_invoice').length}
+                {dateFilteredQuotes.filter((q) => q.type !== 'sales_invoice').length}
               </span>
             </div>
             <div className="p-4 rounded-xl bg-surface border border-white/10">
@@ -576,7 +758,7 @@ export default function AdminPortal() {
               <span className="text-2xl font-mono font-bold text-emerald-400">
                 AED{' '}
                 {formatCurrency(
-                  quotesRecords
+                  dateFilteredQuotes
                     .filter((q) => q.type === 'sales_invoice')
                     .reduce((sum, q) => sum + (Number(q.grandTotal) || 0), 0)
                 )}
