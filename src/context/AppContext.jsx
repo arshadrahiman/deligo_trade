@@ -58,7 +58,7 @@ export const DEFAULT_ROLE_DEFINITIONS = {
       purchaseAmountModification: false,
       productionCrud: false,
       quotationApproval: false,
-      salesConversion: false,
+      salesConversion: true, // Once approved, any agent can generate invoice
       dashboardDatas: false,
       dashboardGraph: false,
       brandingManagement: false,
@@ -520,7 +520,14 @@ export function AppProvider({ children }) {
   const [roleDefinitions, setRoleDefinitions] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.ROLE_PERMISSIONS);
-      return saved ? JSON.parse(saved) : DEFAULT_ROLE_DEFINITIONS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed[ROLES.SALES_AGENT]?.permissions) {
+          parsed[ROLES.SALES_AGENT].permissions.salesConversion = true;
+        }
+        return parsed;
+      }
+      return DEFAULT_ROLE_DEFINITIONS;
     } catch {
       return DEFAULT_ROLE_DEFINITIONS;
     }
@@ -961,12 +968,8 @@ export function AppProvider({ children }) {
     return true;
   };
 
-  // Convert Quotation to Official Sales Invoice (approval, admin_agent)
+  // Convert Quotation to Official Sales Invoice (once approved, any agent can generate invoice)
   const convertQuoteToSalesInvoice = (quoteId, modifiedData = {}) => {
-    if (!currentPermissions.salesConversion) {
-      alert('Access Denied: Official Sales Conversion is strictly restricted to the Approval Role.');
-      return false;
-    }
     const target = quotesRecords.find((q) => q.id === quoteId);
     if (!target) return false;
     if (target.status !== 'Approved' && target.type !== 'sales_invoice') {
@@ -1026,6 +1029,9 @@ export function AppProvider({ children }) {
           invoiceDate: modifiedData.invoiceDate || invoiceDate,
           approvedBy: quote.approvedBy || currentAdminUser?.name || 'Finance Officer',
           approvedByRole: quote.approvedByRole || currentRole || 'finance_agent',
+          invoiceGeneratedBy: currentAdminUser?.name || currentAdminUser?.username || currentRole,
+          invoiceGeneratedByRole: currentRole,
+          invoiceGeneratedAt: Date.now(),
           subtotal,
           vat,
           grandTotal,
