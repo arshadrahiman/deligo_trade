@@ -88,9 +88,19 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-surface border border-white/10 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl shadow-black relative z-10 space-y-6">
         {/* Brand & Security Header */}
         <div className="text-center space-y-2">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-black flex items-center justify-center mx-auto shadow-xl shadow-amber-500/20 border border-amber-300/40">
-            <Lock className="w-7 h-7 sm:w-8 sm:h-8" />
-          </div>
+          {companySettings.logoType === 'custom' && companySettings.customLogoUrl ? (
+            <div className="flex justify-center mb-2">
+              <img
+                src={companySettings.customLogoUrl}
+                alt={companySettings.companyName || 'DELITRADE'}
+                className="max-h-14 max-w-[200px] object-contain rounded-lg"
+              />
+            </div>
+          ) : (
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-black flex items-center justify-center mx-auto shadow-xl shadow-amber-500/20 border border-amber-300/40">
+              <Lock className="w-7 h-7 sm:w-8 sm:h-8" />
+            </div>
+          )}
 
           <div className="pt-1">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-mono font-bold uppercase tracking-wider mb-2">
@@ -98,10 +108,10 @@ export default function LoginPage() {
               <span>TLS 256-Bit Encrypted Portal</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase">
-              {companySettings.companyName || 'DELITRADE'} ENTERPRISE ERP
+              {companySettings.companyName || 'DELITRADE'}
             </h1>
             <p className="text-slate-400 text-xs mt-1">
-              Internal Commercial Trading Terminal. Sign in with your assigned agent credentials to access your authorized workspace.
+              {companySettings.subTitle || 'Sign in with your assigned agent credentials to access your authorized workspace.'}
             </p>
           </div>
         </div>
@@ -198,7 +208,7 @@ export default function LoginPage() {
 
         {/* Security Audit Footer */}
         <div className="pt-3 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-1.5">
-          <span>{companySettings.companyName || 'Delitrade'} • Enterprise RBAC</span>
+          <span>{companySettings.companyName || 'DELITRADE'}</span>
           <span className="font-mono text-slate-600">Strict Auth Enforced</span>
         </div>
       </div>
