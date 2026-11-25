@@ -9,7 +9,112 @@ const STORAGE_KEYS = {
   SETTINGS: 'delitrade_company_settings_v1',
   BANK_DETAILS: 'delitrade_bank_details_v1',
   ADMIN_AUTH: 'delitrade_admin_auth_v1',
+  ADMIN_ROLE: 'delitrade_admin_role_v1',
+  ADMIN_USER: 'delitrade_admin_user_v1',
 };
+
+// Admin RBAC Roles and Permissions
+export const ROLES = {
+  ADMIN_AGENT: 'admin_agent',
+  FINANCE_AGENT: 'finance_agent',
+  APPROVAL: 'approval',
+};
+
+export const ROLE_DEFINITIONS = {
+  [ROLES.ADMIN_AGENT]: {
+    id: ROLES.ADMIN_AGENT,
+    name: 'Admin Agent',
+    badge: 'Master ERP Controller',
+    color: 'from-amber-500 to-amber-600',
+    textColor: 'text-amber-400',
+    borderColor: 'border-amber-500/40',
+    bgColor: 'bg-amber-500/10',
+    description:
+      'Full administrative access: Quotation modification, unit price & purchase rate modification, production CRUD, quotation approval, financial dashboard metrics, and graph analytics.',
+    permissions: {
+      quotationCreation: true,
+      quotationApproval: true,
+      quotationModification: true,
+      salesConversion: true,
+      unitPriceModification: true,
+      purchaseAmountModification: true,
+      productionCrud: true,
+      dashboardDatas: true,
+      dashboardGraph: true,
+      brandingManagement: true,
+      bankManagement: true,
+    },
+  },
+  [ROLES.FINANCE_AGENT]: {
+    id: ROLES.FINANCE_AGENT,
+    name: 'Finance Agent',
+    badge: 'Finance & Accounts',
+    color: 'from-cyan-500 to-blue-600',
+    textColor: 'text-cyan-400',
+    borderColor: 'border-cyan-500/40',
+    bgColor: 'bg-cyan-500/10',
+    description:
+      'Finance operations: Quotation creation and quotation approval authority. Sales conversion is reserved for Approval role.',
+    permissions: {
+      quotationCreation: true,
+      quotationApproval: true,
+      quotationModification: false,
+      salesConversion: false, // Sales conversion strictly requires Approval role
+      unitPriceModification: false,
+      purchaseAmountModification: false,
+      productionCrud: false,
+      dashboardDatas: false,
+      dashboardGraph: false,
+      brandingManagement: false,
+      bankManagement: false,
+    },
+  },
+  [ROLES.APPROVAL]: {
+    id: ROLES.APPROVAL,
+    name: 'Approval Officer',
+    badge: 'Sales Conversion',
+    color: 'from-emerald-500 to-emerald-600',
+    textColor: 'text-emerald-400',
+    borderColor: 'border-emerald-500/40',
+    bgColor: 'bg-emerald-500/10',
+    description:
+      'Official executive authority: Converts approved quotations into commercial sales invoices and tax invoices.',
+    permissions: {
+      quotationCreation: false,
+      quotationApproval: true,
+      quotationModification: false,
+      salesConversion: true, // Primary role responsibility
+      unitPriceModification: false,
+      purchaseAmountModification: false,
+      productionCrud: false,
+      dashboardDatas: false,
+      dashboardGraph: false,
+      brandingManagement: false,
+      bankManagement: false,
+    },
+  },
+};
+
+export const SYSTEM_ACCOUNTS = [
+  {
+    username: 'admin',
+    password: 'admin',
+    name: 'Chief Admin Agent',
+    role: ROLES.ADMIN_AGENT,
+  },
+  {
+    username: 'finance',
+    password: 'finance',
+    name: 'Senior Finance Officer',
+    role: ROLES.FINANCE_AGENT,
+  },
+  {
+    username: 'approval',
+    password: 'approval',
+    name: 'Commercial Approval Director',
+    role: ROLES.APPROVAL,
+  },
+];
 
 const DEFAULT_COMPANY_SETTINGS = {
   companyName: 'DELITRADE',
@@ -258,7 +363,7 @@ export function AppProvider({ children }) {
     }
   });
 
-  // Admin Auth State
+  // Admin Auth & Active RBAC Role State
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
     try {
       return localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true';
@@ -266,6 +371,52 @@ export function AppProvider({ children }) {
       return false;
     }
   });
+
+  const [currentRole, setCurrentRole] = useState(() => {
+    try {
+      const savedRole = localStorage.getItem(STORAGE_KEYS.ADMIN_ROLE);
+      return savedRole && ROLE_DEFINITIONS[savedRole] ? savedRole : ROLES.ADMIN_AGENT;
+    } catch {
+      return ROLES.ADMIN_AGENT;
+    }
+  });
+
+  const [currentAdminUser, setCurrentAdminUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem(STORAGE_KEYS.ADMIN_USER);
+      if (savedUser) return JSON.parse(savedUser);
+      return SYSTEM_ACCOUNTS[0];
+    } catch {
+      return SYSTEM_ACCOUNTS[0];
+    }
+  });
+
+  // Current Role Permissions Object
+  const currentPermissions = useMemo(() => {
+    return (
+      ROLE_DEFINITIONS[currentRole]?.permissions ||
+      ROLE_DEFINITIONS[ROLES.ADMIN_AGENT].permissions
+    );
+  }, [currentRole]);
+
+  // Switch Admin Role (allows switching between Admin Agent, Finance Agent, and Approval Officer)
+  const switchAdminRole = (newRole) => {
+    if (ROLE_DEFINITIONS[newRole]) {
+      setCurrentRole(newRole);
+      const matchedAccount = SYSTEM_ACCOUNTS.find((a) => a.role === newRole) || {
+        username: newRole,
+        name: ROLE_DEFINITIONS[newRole].name,
+        role: newRole,
+      };
+      setCurrentAdminUser(matchedAccount);
+      try {
+        localStorage.setItem(STORAGE_KEYS.ADMIN_ROLE, newRole);
+        localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(matchedAccount));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
 
   // Storefront search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -470,8 +621,32 @@ export function AppProvider({ children }) {
     return newRecord;
   };
 
-  // Admin: Convert Quotation to Sales Invoice
+  // Quotation Approval Workflow (finance_agent, admin_agent, approval)
+  const approveQuoteRecord = (quoteId) => {
+    if (!currentPermissions.quotationApproval) {
+      alert('Access Denied: You do not have permission to approve quotations.');
+      return false;
+    }
+    setQuotesRecords((prev) =>
+      prev.map((quote) => {
+        if (quote.id !== quoteId) return quote;
+        return {
+          ...quote,
+          status: 'Approved',
+          approvedAt: Date.now(),
+          approvedBy: currentAdminUser?.name || currentAdminUser?.username || currentRole,
+        };
+      })
+    );
+    return true;
+  };
+
+  // Convert Quotation to Official Sales Invoice (approval, admin_agent)
   const convertQuoteToSalesInvoice = (quoteId, modifiedData = {}) => {
+    if (!currentPermissions.salesConversion) {
+      alert('Access Denied: Official Sales Conversion is strictly restricted to the Approval Role.');
+      return false;
+    }
     setQuotesRecords((prev) =>
       prev.map((quote) => {
         if (quote.id !== quoteId) return quote;
@@ -529,6 +704,7 @@ export function AppProvider({ children }) {
         };
       })
     );
+    return true;
   };
 
   // Admin: Delete quote record
@@ -536,11 +712,17 @@ export function AppProvider({ children }) {
     setQuotesRecords((prev) => prev.filter((q) => q.id !== quoteId));
   };
 
-  // Product CRUD
+  // Product CRUD (Protected: Production CRUD is restricted to Admin Agent)
   const addProduct = (newProduct) => {
+    if (!currentPermissions.productionCrud) {
+      alert('Access Denied: Product / Production creation is restricted to the Admin Agent.');
+      return false;
+    }
     const priceNum = parseFloat(newProduct.price) || 0;
     const pRateNum =
-      newProduct.purchaseRate !== undefined && !isNaN(parseFloat(newProduct.purchaseRate))
+      currentPermissions.purchaseAmountModification &&
+      newProduct.purchaseRate !== undefined &&
+      !isNaN(parseFloat(newProduct.purchaseRate))
         ? parseFloat(newProduct.purchaseRate)
         : Math.round(priceNum * 0.65);
 
@@ -553,15 +735,26 @@ export function AppProvider({ children }) {
       stockQty: parseInt(newProduct.stockQty, 10) || 1,
     };
     setProducts((prev) => [productWithId, ...prev]);
+    return true;
   };
 
   const updateProduct = (updatedProduct) => {
+    if (!currentPermissions.productionCrud) {
+      alert('Access Denied: Product modification is restricted to the Admin Agent.');
+      return false;
+    }
     setProducts((prev) =>
       prev.map((p) => {
         if (p.id === updatedProduct.id || p.code === updatedProduct.code) {
-          const priceNum = parseFloat(updatedProduct.price) || p.price;
+          const priceNum =
+            currentPermissions.unitPriceModification && updatedProduct.price !== undefined
+              ? parseFloat(updatedProduct.price) || p.price
+              : p.price;
+
           const pRateNum =
-            updatedProduct.purchaseRate !== undefined && !isNaN(parseFloat(updatedProduct.purchaseRate))
+            currentPermissions.purchaseAmountModification &&
+            updatedProduct.purchaseRate !== undefined &&
+            !isNaN(parseFloat(updatedProduct.purchaseRate))
               ? parseFloat(updatedProduct.purchaseRate)
               : p.purchaseRate !== undefined
               ? p.purchaseRate
@@ -577,9 +770,14 @@ export function AppProvider({ children }) {
         return p;
       })
     );
+    return true;
   };
 
   const deleteProduct = (productCodeOrId) => {
+    if (!currentPermissions.productionCrud) {
+      alert('Access Denied: Product deletion is restricted to the Admin Agent.');
+      return false;
+    }
     setProducts((prev) => prev.filter((p) => p.code !== productCodeOrId && p.id !== productCodeOrId));
     // also remove from cart if present
     setCart((prev) => {
@@ -587,14 +785,20 @@ export function AppProvider({ children }) {
       delete copy[productCodeOrId];
       return copy;
     });
+    return true;
   };
 
   const updateProductStock = (productCode, newQty) => {
+    if (!currentPermissions.productionCrud) {
+      alert('Access Denied: Warehouse stock modification is restricted to the Admin Agent.');
+      return false;
+    }
     setProducts((prev) =>
       prev.map((p) =>
         p.code === productCode ? { ...p, stockQty: Math.max(0, parseInt(newQty, 10) || 0) } : p
       )
     );
+    return true;
   };
 
   // Bank details CRUD
@@ -616,21 +820,64 @@ export function AppProvider({ children }) {
     setBankAccounts((prev) => prev.filter((b) => b.id !== id));
   };
 
-  // Admin Auth
+  // Admin Auth with Role Based Access Control
   const adminLogin = (username, password) => {
-    // Default admin credentials: username: admin, password: admin or delitrade2026
-    if (
-      (username === 'admin' || username === 'delitrade') &&
-      (password === 'admin' || password === 'admin123' || password === 'delitrade2026')
-    ) {
+    const cleanUser = String(username).trim().toLowerCase();
+    const cleanPass = String(password).trim();
+
+    // Check system accounts
+    const account = SYSTEM_ACCOUNTS.find(
+      (acc) =>
+        acc.username.toLowerCase() === cleanUser &&
+        (acc.password === cleanPass || cleanPass === 'delitrade2026' || cleanPass === 'admin123')
+    );
+
+    if (account) {
       setIsAdminLoggedIn(true);
-      return { success: true };
+      setCurrentRole(account.role);
+      setCurrentAdminUser(account);
+      try {
+        localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
+        localStorage.setItem(STORAGE_KEYS.ADMIN_ROLE, account.role);
+        localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(account));
+      } catch (e) {
+        console.error(e);
+      }
+      return { success: true, account };
     }
-    return { success: false, message: 'Invalid username or password' };
+
+    // Default fallback: admin / delitrade with master password -> admin_agent
+    if (
+      (cleanUser === 'admin' || cleanUser === 'delitrade') &&
+      (cleanPass === 'admin' || cleanPass === 'delitrade2026' || cleanPass === 'admin123')
+    ) {
+      const fallbackAccount = SYSTEM_ACCOUNTS[0];
+      setIsAdminLoggedIn(true);
+      setCurrentRole(ROLES.ADMIN_AGENT);
+      setCurrentAdminUser(fallbackAccount);
+      try {
+        localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
+        localStorage.setItem(STORAGE_KEYS.ADMIN_ROLE, ROLES.ADMIN_AGENT);
+        localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(fallbackAccount));
+      } catch (e) {
+        console.error(e);
+      }
+      return { success: true, account: fallbackAccount };
+    }
+
+    return {
+      success: false,
+      message: 'Invalid credentials. Select a role shortcut or enter valid role username and password.',
+    };
   };
 
   const adminLogout = () => {
     setIsAdminLoggedIn(false);
+    try {
+      localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const navigateToAdmin = () => {
@@ -700,8 +947,9 @@ export function AppProvider({ children }) {
         removeAdditionalCharge,
         recordCurrentQuote,
 
-        // Quotes records
+        // Quotes records & Approval Workflow
         quotesRecords,
+        approveQuoteRecord,
         convertQuoteToSalesInvoice,
         deleteQuoteRecord,
 
@@ -715,10 +963,17 @@ export function AppProvider({ children }) {
         updateBankAccount,
         removeBankAccount,
 
-        // Admin Auth
+        // Admin Auth & RBAC Roles
         isAdminLoggedIn,
+        currentRole,
+        currentAdminUser,
+        currentPermissions,
+        switchAdminRole,
         adminLogin,
         adminLogout,
+        ROLES,
+        ROLE_DEFINITIONS,
+        SYSTEM_ACCOUNTS,
 
         // Search & Filters
         searchQuery,

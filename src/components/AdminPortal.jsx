@@ -27,6 +27,15 @@ import {
   TrendingUp,
   BarChart3,
   LineChart,
+  Shield,
+  Crown,
+  Briefcase,
+  CheckCircle2,
+  User,
+  Key,
+  ChevronDown,
+  Info,
+  Sparkles,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
@@ -68,8 +77,16 @@ export default function AdminPortal() {
     isAdminLoggedIn,
     adminLogin,
     adminLogout,
+    currentRole,
+    currentAdminUser,
+    currentPermissions,
+    switchAdminRole,
+    ROLES,
+    ROLE_DEFINITIONS,
+    SYSTEM_ACCOUNTS,
     navigateToStorefront,
     quotesRecords,
+    approveQuoteRecord,
     convertQuoteToSalesInvoice,
     deleteQuoteRecord,
     products,
@@ -422,17 +439,120 @@ export default function AdminPortal() {
         {/* Subtle background glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="w-full max-w-md bg-surface border border-white/10 rounded-2xl p-7 sm:p-9 shadow-2xl shadow-black relative z-10 space-y-6">
+        <div className="w-full max-w-lg bg-surface border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black relative z-10 space-y-5">
           <div className="text-center space-y-2">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold flex items-center justify-center mx-auto shadow-lg shadow-amber-500/20">
               <Lock className="w-7 h-7" />
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight uppercase pt-1">
-              ADMINISTRATOR LOGIN
+              ADMINISTRATOR & ROLE LOGIN
             </h1>
             <p className="text-slate-400 text-xs">
-              Delitrade Commercial Gym Equipment & Warehouse Management
+              Delitrade Commercial Machinery ERP • Role-Based Access Control
             </p>
+          </div>
+
+          {/* Role Demo Login Shortcuts */}
+          <div className="p-3.5 rounded-xl bg-[#070A12] border border-white/10 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono uppercase font-bold text-slate-400 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                Select Role Demo Account:
+              </span>
+              <span className="text-[9.5px] font-mono text-slate-500">Auto-fills credentials</span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 text-xs">
+              {/* 1. Admin Agent */}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginUsername('admin');
+                  setLoginPassword('admin');
+                  setLoginError('');
+                }}
+                className={`p-2.5 rounded-xl border text-left transition-all flex items-start gap-2.5 ${
+                  loginUsername === 'admin'
+                    ? 'bg-amber-500/10 border-amber-500/50 shadow-md shadow-amber-500/10 ring-1 ring-amber-500/40'
+                    : 'bg-surface/50 border-white/10 hover:border-amber-500/30 hover:bg-surface'
+                }`}
+              >
+                <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Crown className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white text-xs">Admin Agent</span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                      Master ERP
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
+                    Quotation modification, unit price & purchase rate modification, production CRUD, approvals, dashboard & graphs.
+                  </p>
+                </div>
+              </button>
+
+              {/* 2. Finance Agent */}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginUsername('finance');
+                  setLoginPassword('finance');
+                  setLoginError('');
+                }}
+                className={`p-2.5 rounded-xl border text-left transition-all flex items-start gap-2.5 ${
+                  loginUsername === 'finance'
+                    ? 'bg-cyan-500/10 border-cyan-500/50 shadow-md shadow-cyan-500/10 ring-1 ring-cyan-500/40'
+                    : 'bg-surface/50 border-white/10 hover:border-cyan-500/30 hover:bg-surface'
+                }`}
+              >
+                <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white text-xs">Finance Agent</span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">
+                      Quotes & Approvals
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
+                    Quotation creation & quotation approval authority.
+                  </p>
+                </div>
+              </button>
+
+              {/* 3. Approval Role */}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginUsername('approval');
+                  setLoginPassword('approval');
+                  setLoginError('');
+                }}
+                className={`p-2.5 rounded-xl border text-left transition-all flex items-start gap-2.5 ${
+                  loginUsername === 'approval'
+                    ? 'bg-emerald-500/10 border-emerald-500/50 shadow-md shadow-emerald-500/10 ring-1 ring-emerald-500/40'
+                    : 'bg-surface/50 border-white/10 hover:border-emerald-500/30 hover:bg-surface'
+                }`}
+              >
+                <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white text-xs">Approval Officer</span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                      Sales Conversion
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
+                    Authorized executive: Official sales conversion of quotations to commercial invoices.
+                  </p>
+                </div>
+              </button>
+            </div>
           </div>
 
           {loginError && (
@@ -445,21 +565,21 @@ export default function AdminPortal() {
           <form onSubmit={handleLoginSubmit} className="space-y-4 text-xs">
             <div>
               <label className="text-slate-300 font-bold block mb-1">
-                Admin Username
+                Account Username
               </label>
               <input
                 type="text"
                 required
                 value={loginUsername}
                 onChange={(e) => setLoginUsername(e.target.value)}
-                placeholder="Enter username"
-                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-500/60 text-sm"
+                placeholder="admin / finance / approval"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-500/60 text-sm font-mono"
               />
             </div>
 
             <div>
               <label className="text-slate-300 font-bold block mb-1">
-                Admin Password
+                Account Password
               </label>
               <input
                 type="password"
@@ -467,7 +587,7 @@ export default function AdminPortal() {
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-500/60 text-sm"
+                className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-500/60 text-sm font-mono"
               />
             </div>
 
@@ -487,6 +607,7 @@ export default function AdminPortal() {
               <ArrowLeft className="w-4 h-4" />
               <span>Return to Storefront</span>
             </button>
+            <span className="text-[10px] font-mono text-slate-500">Delitrade v2.4 RBAC</span>
           </div>
         </div>
       </div>
@@ -584,22 +705,89 @@ export default function AdminPortal() {
       {/* Admin Top Navigation & Header */}
       <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-white/10 flex flex-wrap items-center justify-between gap-4 shadow-xl">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold shadow-md shadow-amber-500/20">
-            <Lock className="w-5 h-5" />
+          <div
+            className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold shadow-md border ${
+              currentRole === ROLES.ADMIN_AGENT
+                ? 'bg-gradient-to-br from-amber-500/20 to-amber-600/10 border-amber-500/40 text-amber-400 shadow-amber-500/20'
+                : currentRole === ROLES.FINANCE_AGENT
+                ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 border-cyan-500/40 text-cyan-400 shadow-cyan-500/20'
+                : 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border-emerald-500/40 text-emerald-400 shadow-emerald-500/20'
+            }`}
+          >
+            {currentRole === ROLES.ADMIN_AGENT && <Crown className="w-5 h-5" />}
+            {currentRole === ROLES.FINANCE_AGENT && <Briefcase className="w-5 h-5" />}
+            {currentRole === ROLES.APPROVAL && <ShieldCheck className="w-5 h-5" />}
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight leading-none">
                 DELITRADE TRADING TERMINAL • ADMIN ERP
               </h1>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${
+                  currentRole === ROLES.ADMIN_AGENT
+                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                    : currentRole === ROLES.FINANCE_AGENT
+                    ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
+                    : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                }`}
+              >
+                {ROLE_DEFINITIONS[currentRole]?.name || currentRole}
+              </span>
             </div>
             <p className="text-slate-400 text-xs mt-1">
-              Commercial Operations • Quotes, Sales Invoices, Machinery Catalog & Stock
+              {currentAdminUser?.name || 'Authorized ERP Officer'} • {ROLE_DEFINITIONS[currentRole]?.description}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Quick Role Switcher & Nav Actions */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Role Switcher Toolbar */}
+          <div className="flex items-center bg-[#070A12] border border-white/10 rounded-xl p-1 text-[11px] font-mono">
+            <span className="text-slate-500 px-2 py-0.5 uppercase font-bold text-[10px] hidden md:inline">
+              Role:
+            </span>
+            <button
+              onClick={() => switchAdminRole(ROLES.ADMIN_AGENT)}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+                currentRole === ROLES.ADMIN_AGENT
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-sm shadow-amber-500/20'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              title="Admin Agent: Master access (CRUD, unit price & purchase rate modification, quotation modification, approval, dashboard data & graphs)"
+            >
+              <Crown className="w-3 h-3" />
+              <span>Admin Agent</span>
+            </button>
+
+            <button
+              onClick={() => switchAdminRole(ROLES.FINANCE_AGENT)}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+                currentRole === ROLES.FINANCE_AGENT
+                  ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 font-black shadow-sm shadow-cyan-500/20'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              title="Finance Agent: Quotation creation and quotation approval"
+            >
+              <Briefcase className="w-3 h-3" />
+              <span>Finance Agent</span>
+            </button>
+
+            <button
+              onClick={() => switchAdminRole(ROLES.APPROVAL)}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+                currentRole === ROLES.APPROVAL
+                  ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 font-black shadow-sm shadow-emerald-500/20'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              title="Approval Role: Authorized executive for sales conversion"
+            >
+              <ShieldCheck className="w-3 h-3" />
+              <span>Approval</span>
+            </button>
+          </div>
+
           <button
             onClick={() => navigateToStorefront('products')}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#070A12] border border-white/10 text-xs font-bold text-slate-300 hover:text-white"
@@ -641,32 +829,39 @@ export default function AdminPortal() {
           }`}
         >
           <Package className="w-4 h-4" />
-          <span>Products & Stock ({products.length})</span>
+          <span>
+            Products & Stock ({products.length})
+            {!currentPermissions.productionCrud && ' [Read-Only]'}
+          </span>
         </button>
 
-        <button
-          onClick={() => setActiveTab('branding')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
-            activeTab === 'branding'
-              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
-              : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
-          }`}
-        >
-          <Building className="w-4 h-4" />
-          <span>Edit Logo & Brand Info</span>
-        </button>
+        {currentPermissions.brandingManagement && (
+          <button
+            onClick={() => setActiveTab('branding')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+              activeTab === 'branding'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+                : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
+            }`}
+          >
+            <Building className="w-4 h-4" />
+            <span>Edit Logo & Brand Info</span>
+          </button>
+        )}
 
-        <button
-          onClick={() => setActiveTab('banks')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
-            activeTab === 'banks'
-              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
-              : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
-          }`}
-        >
-          <CreditCard className="w-4 h-4" />
-          <span>Bank Details ({bankAccounts.length})</span>
-        </button>
+        {currentPermissions.bankManagement && (
+          <button
+            onClick={() => setActiveTab('banks')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+              activeTab === 'banks'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+                : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
+            }`}
+          >
+            <CreditCard className="w-4 h-4" />
+            <span>Bank Details ({bankAccounts.length})</span>
+          </button>
+        )}
       </div>
 
       {/* ========================================================= */}
@@ -772,8 +967,14 @@ export default function AdminPortal() {
             </div>
           </div>
 
-          {/* Quotes & Financial KPI Summary (Filtered by Calendar Selection) */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+          {/* Quotes & Financial KPI Summary (Filtered by Calendar Selection & Protected by Role) */}
+          <div
+            className={`grid gap-2.5 sm:gap-3 ${
+              currentPermissions.dashboardDatas
+                ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
+                : 'grid-cols-1 sm:grid-cols-3'
+            }`}
+          >
             <div className="p-4 rounded-xl bg-surface border border-white/10">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">
                 Total Quotes Logged
@@ -810,51 +1011,83 @@ export default function AdminPortal() {
               </span>
             </div>
 
-            <div className="p-4 rounded-xl bg-surface border border-white/10">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">
-                Total Sale Amount (AED)
-              </span>
-              <span className="text-2xl font-mono font-bold text-emerald-400">
-                AED {formatCurrency(totalSalesAmount)}
-              </span>
-              <span className="text-[10px] text-slate-500 block mt-1">
-                Sum of invoice grand totals
-              </span>
-            </div>
+            {/* Admin Agent Only: Total Sales and Total Profit KPIs */}
+            {currentPermissions.dashboardDatas && (
+              <>
+                <div className="p-4 rounded-xl bg-surface border border-white/10">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                    Total Sale Amount (AED)
+                  </span>
+                  <span className="text-2xl font-mono font-bold text-emerald-400">
+                    AED {formatCurrency(totalSalesAmount)}
+                  </span>
+                  <span className="text-[10px] text-slate-500 block mt-1">
+                    Sum of invoice grand totals
+                  </span>
+                </div>
 
-            {/* TOTAL PROFIT KPI CARD */}
-            <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/15 via-surface to-cyan-500/10 border border-emerald-500/40 relative overflow-hidden shadow-lg shadow-emerald-500/5 col-span-2 sm:col-span-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase font-bold text-emerald-400 flex items-center gap-1">
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  Total Profit (AED)
-                </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
-                  +{profitMarginPct}%
-                </span>
-              </div>
-              <span className="text-2xl font-mono font-black text-cyan-300 block mt-1">
-                AED {formatCurrency(totalProfitAmount)}
-              </span>
-              <span className="text-[10px] text-emerald-400/80 font-mono block mt-1 truncate" title="Sales Invoices - Item Purchase Costs">
-                Sales − Purchase Cost (COGS)
-              </span>
-            </div>
+                {/* TOTAL PROFIT KPI CARD */}
+                <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/15 via-surface to-cyan-500/10 border border-emerald-500/40 relative overflow-hidden shadow-lg shadow-emerald-500/5 col-span-2 sm:col-span-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold text-emerald-400 flex items-center gap-1">
+                      <TrendingUp className="w-3.5 h-3.5" />
+                      Total Profit (AED)
+                    </span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                      +{profitMarginPct}%
+                    </span>
+                  </div>
+                  <span className="text-2xl font-mono font-black text-cyan-300 block mt-1">
+                    AED {formatCurrency(totalProfitAmount)}
+                  </span>
+                  <span
+                    className="text-[10px] text-emerald-400/80 font-mono block mt-1 truncate"
+                    title="Sales Invoices - Item Purchase Costs"
+                  >
+                    Sales − Purchase Cost (COGS)
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Dynamic Financial Performance & Profit Analytics Graph */}
-          <FinancialDashboardGraph
-            salesInvoices={salesInvoices}
-            allFilteredQuotes={dateFilteredQuotes}
-            onResetDateRange={handleResetDateRange}
-            dateRangeLabel={
-              startDate || endDate
-                ? `${startDate || 'Start'} to ${endDate || 'End'}`
-                : 'All Time'
-            }
-          />
+          {/* Dynamic Financial Performance & Profit Analytics Graph (Admin Agent Role Only) */}
+          {currentPermissions.dashboardGraph ? (
+            <FinancialDashboardGraph
+              salesInvoices={salesInvoices}
+              allFilteredQuotes={dateFilteredQuotes}
+              onResetDateRange={handleResetDateRange}
+              dateRangeLabel={
+                startDate || endDate
+                  ? `${startDate || 'Start'} to ${endDate || 'End'}`
+                  : 'All Time'
+              }
+            />
+          ) : (
+            <div className="p-3.5 sm:p-4 rounded-xl bg-[#070A12] border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 flex-shrink-0">
+                  <Info className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="font-bold text-white block">
+                    Operational View Active ({ROLE_DEFINITIONS[currentRole]?.name})
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    Real-time net profit analytics, acquisition wholesale rates, and financial trend curves are restricted to the Admin Agent role.
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => switchAdminRole(ROLES.ADMIN_AGENT)}
+                className="px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono text-[11px] font-bold hover:bg-amber-500/25 transition-colors whitespace-nowrap"
+              >
+                Switch to Admin Agent
+              </button>
+            </div>
+          )}
 
-          {/* Search & Filters */}
+          {/* Search & Actions Toolbar */}
           <div className="p-3 rounded-xl bg-surface border border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 text-xs">
             <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
               <Search className="w-4 h-4 text-slate-400 ml-1 flex-shrink-0" />
@@ -866,6 +1099,18 @@ export default function AdminPortal() {
                 className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-amber-500/60"
               />
             </div>
+
+            {/* Quotation Creation Action (Finance Agent & Admin Agent) */}
+            {currentPermissions.quotationCreation && (
+              <button
+                onClick={() => navigateToStorefront('products')}
+                className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black uppercase text-xs flex items-center justify-center gap-1.5 hover:brightness-110 shadow-sm shadow-amber-500/20 whitespace-nowrap active:scale-95"
+                title="Finance Agent / Admin Agent: Create a new quotation in Storefront Terminal"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Create Quotation</span>
+              </button>
+            )}
 
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-slate-400 font-bold">Type:</span>
@@ -921,15 +1166,23 @@ export default function AdminPortal() {
                         <div className="font-mono font-bold text-white text-xs">
                           {isInvoice ? rec.invoiceNumber || rec.id : rec.id}
                         </div>
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded text-[9.5px] font-bold uppercase mt-1 ${
-                            isInvoice
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                              : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                          }`}
-                        >
-                          {isInvoice ? 'SALES INVOICE' : 'QUOTATION'}
-                        </span>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded text-[9.5px] font-bold uppercase ${
+                              isInvoice
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                : rec.status === 'Approved'
+                                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                                : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                            }`}
+                          >
+                            {isInvoice
+                              ? 'SALES INVOICE'
+                              : rec.status === 'Approved'
+                              ? 'APPROVED'
+                              : 'PENDING QUOTE'}
+                          </span>
+                        </div>
                       </div>
                       <div className="text-right">
                         <div className="font-mono font-black text-amber-400 text-sm">
@@ -956,17 +1209,40 @@ export default function AdminPortal() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 pt-1">
-                      {!isInvoice ? (
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      {/* Quotation Approval button */}
+                      {!isInvoice && rec.status !== 'Approved' && currentPermissions.quotationApproval && (
                         <button
-                          onClick={() => openInvoicePreview(rec)}
-                          className="flex-1 py-2 px-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20 active:scale-95"
+                          onClick={() => {
+                            approveQuoteRecord(rec.id);
+                            alert(`Quotation #${rec.id} has been Approved.`);
+                          }}
+                          className="py-1.5 px-2.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 font-bold text-xs uppercase tracking-wider flex items-center gap-1"
+                          title="Approve Quotation"
                         >
-                          <Percent className="w-3.5 h-3.5" />
-                          <span>Convert to Invoice</span>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>Approve</span>
                         </button>
+                      )}
+
+                      {/* Convert to Sales Invoice button (Approval role & Admin) */}
+                      {!isInvoice ? (
+                        currentPermissions.salesConversion ? (
+                          <button
+                            onClick={() => openInvoicePreview(rec)}
+                            className="flex-1 py-1.5 px-2.5 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 hover:brightness-110 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-95"
+                          >
+                            <Percent className="w-3.5 h-3.5" />
+                            <span>Convert to Invoice</span>
+                          </button>
+                        ) : (
+                          <span className="flex-1 py-1.5 px-2.5 rounded-lg bg-[#070A12] border border-white/10 text-slate-500 text-[10px] font-mono flex items-center justify-center gap-1 cursor-not-allowed">
+                            <Lock className="w-3 h-3 text-slate-500" />
+                            <span>Conversion (Approval Required)</span>
+                          </span>
+                        )
                       ) : (
-                        <div className="flex-1 py-2 px-3 rounded-lg bg-emerald-900/30 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center justify-center gap-1.5">
+                        <div className="flex-1 py-1.5 px-2.5 rounded-lg bg-emerald-900/30 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center justify-center gap-1.5">
                           <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
                           <span>Invoice Active</span>
                         </div>
@@ -980,17 +1256,19 @@ export default function AdminPortal() {
                         <Download className="w-4 h-4" />
                       </button>
 
-                      <button
-                        onClick={() => {
-                          if (confirm(`Delete record ${rec.id}?`)) {
-                            deleteQuoteRecord(rec.id);
-                          }
-                        }}
-                        className="p-2 rounded-lg bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
-                        title="Delete Record"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {currentRole === ROLES.ADMIN_AGENT && (
+                        <button
+                          onClick={() => {
+                            if (confirm(`Delete record ${rec.id}?`)) {
+                              deleteQuoteRecord(rec.id);
+                            }
+                          }}
+                          className="p-2 rounded-lg bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
+                          title="Delete Record (Admin Agent)"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -1032,10 +1310,16 @@ export default function AdminPortal() {
                             className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1 ${
                               isInvoice
                                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                : rec.status === 'Approved'
+                                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                                 : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
                             }`}
                           >
-                            {isInvoice ? 'SALES INVOICE' : 'QUOTATION'}
+                            {isInvoice
+                              ? 'SALES INVOICE'
+                              : rec.status === 'Approved'
+                              ? 'APPROVED'
+                              : 'PENDING QUOTE'}
                           </span>
                           {isInvoice && rec.selectedTerms && (
                             <div className="mt-1 flex items-center gap-1 max-w-[190px]" title={rec.selectedTerms.name}>
@@ -1096,16 +1380,41 @@ export default function AdminPortal() {
                         {/* Actions */}
                         <td className="p-3 text-center">
                           <div className="flex items-center justify-center gap-1.5">
+                            {/* Quotation Approval button */}
+                            {!isInvoice && rec.status !== 'Approved' && currentPermissions.quotationApproval && (
+                              <button
+                                onClick={() => {
+                                  approveQuoteRecord(rec.id);
+                                  alert(`Quotation #${rec.id} has been Approved.`);
+                                }}
+                                className="px-2 py-1 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-bold text-[11px] flex items-center gap-1 shadow-sm"
+                                title="Approve Quotation"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
+                                <span>Approve</span>
+                              </button>
+                            )}
+
                             {/* Convert to Sales Invoice button */}
                             {!isInvoice ? (
-                              <button
-                                onClick={() => openInvoicePreview(rec)}
-                                className="px-2.5 py-1 rounded bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1 shadow-sm"
-                                title="Preview bill, modify price, and convert to Sales Invoice"
-                              >
-                                <Percent className="w-3.5 h-3.5" />
-                                <span>Convert to Sales Invoice</span>
-                              </button>
+                              currentPermissions.salesConversion ? (
+                                <button
+                                  onClick={() => openInvoicePreview(rec)}
+                                  className="px-2.5 py-1 rounded bg-gradient-to-r from-emerald-500 to-emerald-600 hover:brightness-110 text-slate-950 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1 shadow-sm"
+                                  title="Review bill and convert to Sales Invoice"
+                                >
+                                  <Percent className="w-3.5 h-3.5" />
+                                  <span>Convert to Invoice</span>
+                                </button>
+                              ) : (
+                                <span
+                                  className="px-2 py-1 rounded bg-[#070A12] border border-white/10 text-slate-500 font-semibold text-[10px] flex items-center gap-1 cursor-not-allowed"
+                                  title="Converting to Sales Invoice requires Approval Officer role"
+                                >
+                                  <Lock className="w-3 h-3 text-slate-500" />
+                                  <span>Approval Required</span>
+                                </span>
+                              )
                             ) : (
                               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-900/40 text-emerald-300 flex items-center gap-1">
                                 <CheckCircle className="w-3 h-3 text-emerald-400" />
@@ -1122,18 +1431,20 @@ export default function AdminPortal() {
                               <Download className="w-3.5 h-3.5" />
                             </button>
 
-                            {/* Delete Quote */}
-                            <button
-                              onClick={() => {
-                                if (confirm(`Delete record ${rec.id}?`)) {
-                                  deleteQuoteRecord(rec.id);
-                                }
-                              }}
-                              className="p-1.5 rounded bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
-                              title="Delete Record"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            {/* Delete Quote (Admin Agent Only) */}
+                            {currentPermissions.productionCrud && (
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Delete record ${rec.id}?`)) {
+                                    deleteQuoteRecord(rec.id);
+                                  }
+                                }}
+                                className="p-1.5 rounded bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
+                                title="Delete Record (Admin Agent Only)"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -1177,16 +1488,23 @@ export default function AdminPortal() {
                 <option value="Core & Specialty">Core & Specialty</option>
               </select>
 
-              <button
-                onClick={() => {
-                  setEditingProduct(null);
-                  setIsAddProductOpen(true);
-                }}
-                className="px-3.5 py-1.5 sm:py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black uppercase text-xs flex items-center gap-1.5 hover:brightness-110 whitespace-nowrap flex-shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Product</span>
-              </button>
+              {currentPermissions.productionCrud ? (
+                <button
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setIsAddProductOpen(true);
+                  }}
+                  className="px-3.5 py-1.5 sm:py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black uppercase text-xs flex items-center gap-1.5 hover:brightness-110 whitespace-nowrap flex-shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Product</span>
+                </button>
+              ) : (
+                <div className="px-3 py-1.5 sm:py-2 rounded-lg bg-slate-800/80 border border-white/10 text-slate-400 text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+                  <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Catalog View Only</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1220,60 +1538,73 @@ export default function AdminPortal() {
                       AED {formatCurrency(p.price)}
                     </div>
                     {/* Admin Only: Cost & Margin */}
-                    <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] font-mono">
-                      <span className="text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                        Cost: AED {formatCurrency(p.purchaseRate !== undefined ? p.purchaseRate : Math.round(p.price * 0.65))}
-                      </span>
-                      <span className="text-emerald-400 font-bold">
-                        Margin: +AED {formatCurrency((p.price || 0) - (p.purchaseRate !== undefined ? p.purchaseRate : Math.round(p.price * 0.65)))}
-                      </span>
-                    </div>
+                    {currentPermissions.purchaseAmountModification && (
+                      <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] font-mono">
+                        <span className="text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                          Cost: AED {formatCurrency(p.purchaseRate !== undefined ? p.purchaseRate : Math.round(p.price * 0.65))}
+                        </span>
+                        <span className="text-emerald-400 font-bold">
+                          Margin: +AED {formatCurrency((p.price || 0) - (p.purchaseRate !== undefined ? p.purchaseRate : Math.round(p.price * 0.65)))}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-white/10">
-                  <div className="flex items-center gap-1 bg-[#070A12] border border-white/10 rounded-lg p-1">
-                    <button
-                      onClick={() => updateProductStock(p.code, (p.stockQty || 0) - 1)}
-                      className="w-7 h-7 rounded bg-[#1E2839] hover:bg-red-500 hover:text-white text-slate-200 flex items-center justify-center font-bold"
-                    >
-                      -
-                    </button>
-                    <span className="w-10 text-center font-mono font-bold text-xs text-white">
-                      {p.stockQty !== undefined ? p.stockQty : 10}
-                    </span>
-                    <button
-                      onClick={() => updateProductStock(p.code, (p.stockQty || 0) + 1)}
-                      className="w-7 h-7 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold hover:brightness-110 flex items-center justify-center font-bold"
-                    >
-                      +
-                    </button>
-                  </div>
+                  {currentPermissions.productionCrud ? (
+                    <>
+                      <div className="flex items-center gap-1 bg-[#070A12] border border-white/10 rounded-lg p-1">
+                        <button
+                          onClick={() => updateProductStock(p.code, (p.stockQty || 0) - 1)}
+                          className="w-7 h-7 rounded bg-[#1E2839] hover:bg-red-500 hover:text-white text-slate-200 flex items-center justify-center font-bold"
+                        >
+                          -
+                        </button>
+                        <span className="w-10 text-center font-mono font-bold text-xs text-white">
+                          {p.stockQty !== undefined ? p.stockQty : 10}
+                        </span>
+                        <button
+                          onClick={() => updateProductStock(p.code, (p.stockQty || 0) + 1)}
+                          className="w-7 h-7 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold hover:brightness-110 flex items-center justify-center font-bold"
+                        >
+                          +
+                        </button>
+                      </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        setEditingProduct({ ...p });
-                        setIsAddProductOpen(true);
-                      }}
-                      className="p-2 rounded-lg bg-[#1E2839] hover:bg-amber-500 hover:text-black text-slate-300"
-                      title="Edit Product"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingProduct({ ...p });
+                            setIsAddProductOpen(true);
+                          }}
+                          className="p-2 rounded-lg bg-[#1E2839] hover:bg-amber-500 hover:text-black text-slate-300"
+                          title="Edit Product"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
 
-                    <button
-                      onClick={() => {
-                        if (confirm(`Delete product ${p.name} (${p.code})?`)) {
-                          deleteProduct(p.code);
-                        }
-                      }}
-                      className="p-2 rounded-lg bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
-                      title="Delete Product"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Delete product ${p.name} (${p.code})?`)) {
+                              deleteProduct(p.code);
+                            }
+                          }}
+                          className="p-2 rounded-lg bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
+                          title="Delete Product"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="w-full flex items-center justify-between text-xs">
+                      <span className="text-slate-400">Stock Available:</span>
+                      <span className="font-mono font-bold text-slate-200">
+                        {p.stockQty !== undefined ? p.stockQty : 10} units
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -1288,15 +1619,19 @@ export default function AdminPortal() {
                   <th className="p-3">Code / Category</th>
                   <th className="p-3">Product Name & Specifications</th>
                   <th className="p-3 text-right">Selling Price (AED)</th>
-                  <th className="p-3 text-right">
-                    <div className="inline-flex items-center gap-1.5 justify-end">
-                      <span>Purchase Rate (AED)</span>
-                      <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                        Admin Only
-                      </span>
-                    </div>
-                  </th>
-                  <th className="p-3 text-right">Gross Margin</th>
+                  {currentPermissions.purchaseAmountModification && (
+                    <>
+                      <th className="p-3 text-right">
+                        <div className="inline-flex items-center gap-1.5 justify-end">
+                          <span>Purchase Rate (AED)</span>
+                          <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                            Admin Only
+                          </span>
+                        </div>
+                      </th>
+                      <th className="p-3 text-right">Gross Margin</th>
+                    </>
+                  )}
                   <th className="p-3 text-center w-36">Warehouse Stock (Qty)</th>
                   <th className="p-3 text-center">Actions</th>
                 </tr>
@@ -1342,71 +1677,83 @@ export default function AdminPortal() {
                         AED {formatCurrency(p.price)}
                       </td>
 
-                      {/* Purchase Rate (Admin Only) */}
-                      <td className="p-3 text-right font-mono text-amber-400 font-bold">
-                        AED {formatCurrency(cost)}
-                      </td>
-
-                      {/* Margin */}
-                      <td className="p-3 text-right font-mono">
-                        <span className="text-emerald-400 font-bold block text-xs">
-                          +AED {formatCurrency(marginAed)}
-                        </span>
-                        <span className="text-[10px] text-emerald-400/80 font-mono">
-                          ({marginPct}%)
-                        </span>
-                      </td>
+                      {/* Purchase Rate & Margin (Admin Agent Only) */}
+                      {currentPermissions.purchaseAmountModification && (
+                        <>
+                          <td className="p-3 text-right font-mono text-amber-400 font-bold">
+                            AED {formatCurrency(cost)}
+                          </td>
+                          <td className="p-3 text-right font-mono">
+                            <span className="text-emerald-400 font-bold block text-xs">
+                              +AED {formatCurrency(marginAed)}
+                            </span>
+                            <span className="text-[10px] text-emerald-400/80 font-mono">
+                              ({marginPct}%)
+                            </span>
+                          </td>
+                        </>
+                      )}
 
                       {/* Stock Qty Modifier */}
                       <td className="p-3 text-center">
-                        <div className="inline-flex items-center gap-1.5 bg-[#070A12] border border-white/10 rounded-lg p-1">
-                          <button
-                            onClick={() => updateProductStock(p.code, (p.stockQty || 0) - 1)}
-                            className="w-6 h-6 rounded bg-[#1E2839] hover:bg-red-500 hover:text-white text-slate-200 flex items-center justify-center font-bold"
-                          >
-                            -
-                          </button>
-                          <input
-                            type="number"
-                            value={p.stockQty !== undefined ? p.stockQty : 10}
-                            onChange={(e) => updateProductStock(p.code, e.target.value)}
-                            className="w-12 text-center bg-transparent text-white font-mono font-bold text-xs focus:outline-none"
-                          />
-                          <button
-                            onClick={() => updateProductStock(p.code, (p.stockQty || 0) + 1)}
-                            className="w-6 h-6 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold hover:brightness-110 flex items-center justify-center font-bold"
-                          >
-                            +
-                          </button>
-                        </div>
+                        {currentPermissions.productionCrud ? (
+                          <div className="inline-flex items-center gap-1.5 bg-[#070A12] border border-white/10 rounded-lg p-1">
+                            <button
+                              onClick={() => updateProductStock(p.code, (p.stockQty || 0) - 1)}
+                              className="w-6 h-6 rounded bg-[#1E2839] hover:bg-red-500 hover:text-white text-slate-200 flex items-center justify-center font-bold"
+                            >
+                              -
+                            </button>
+                            <input
+                              type="number"
+                              value={p.stockQty !== undefined ? p.stockQty : 10}
+                              onChange={(e) => updateProductStock(p.code, e.target.value)}
+                              className="w-12 text-center bg-transparent text-white font-mono font-bold text-xs focus:outline-none"
+                            />
+                            <button
+                              onClick={() => updateProductStock(p.code, (p.stockQty || 0) + 1)}
+                              className="w-6 h-6 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold hover:brightness-110 flex items-center justify-center font-bold"
+                            >
+                              +
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="font-mono font-bold text-slate-300 text-xs px-2 py-1 rounded bg-[#070A12] border border-white/10">
+                            {p.stockQty !== undefined ? p.stockQty : 10} units
+                          </span>
+                        )}
                       </td>
 
                       {/* Actions */}
                       <td className="p-3 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => {
-                              setEditingProduct({ ...p });
-                              setIsAddProductOpen(true);
-                            }}
-                            className="p-1.5 rounded bg-[#1E2839] hover:bg-amber-500 hover:text-black text-slate-300"
-                            title="Edit Product"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
+                        {currentPermissions.productionCrud ? (
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => {
+                                setEditingProduct({ ...p });
+                                setIsAddProductOpen(true);
+                              }}
+                              className="p-1.5 rounded bg-[#1E2839] hover:bg-amber-500 hover:text-black text-slate-300"
+                              title="Edit Product"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
 
-                          <button
-                            onClick={() => {
-                              if (confirm(`Delete product ${p.name} (${p.code})?`)) {
-                                deleteProduct(p.code);
-                              }
-                            }}
-                            className="p-1.5 rounded bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
-                            title="Delete Product"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Delete product ${p.name} (${p.code})?`)) {
+                                  deleteProduct(p.code);
+                                }
+                              }}
+                              className="p-1.5 rounded bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
+                              title="Delete Product"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-slate-500 text-[11px] italic">Read-only</span>
+                        )}
                       </td>
                     </tr>
                   );
@@ -1813,7 +2160,9 @@ export default function AdminPortal() {
                     <span>EQUIPMENT LINE ITEMS (ADMIN PRICING CONTROL)</span>
                   </h4>
                   <span className="text-[11px] text-amber-400 font-semibold">
-                    * Edit unit prices directly to give negotiated or custom package rates
+                    {currentPermissions.unitPriceModification
+                      ? '* Edit unit prices directly to give negotiated or custom package rates'
+                      : 'Review confirmed quotation line items and pricing for commercial invoice generation'}
                   </span>
                 </div>
 
@@ -1853,17 +2202,26 @@ export default function AdminPortal() {
                         <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
                           <div>
                             <label className="text-[10px] font-bold text-amber-400 uppercase block mb-1">
-                              Unit Price (AED) *
+                              Unit Price (AED) {currentPermissions.unitPriceModification ? '*' : ''}
                             </label>
-                            <div className="flex items-center gap-1 bg-[#070A12] border border-amber-500/40 rounded-lg px-2 py-1.5">
-                              <span className="text-[10px] text-amber-400 font-bold">AED</span>
-                              <input
-                                type="number"
-                                value={item.unitPrice}
-                                onChange={(e) => handleItemPriceChange(idx, e.target.value)}
-                                className="w-full text-right bg-transparent text-white font-mono font-bold text-xs focus:outline-none"
-                              />
-                            </div>
+                            {currentPermissions.unitPriceModification ? (
+                              <div className="flex items-center gap-1 bg-[#070A12] border border-amber-500/40 rounded-lg px-2 py-1.5">
+                                <span className="text-[10px] text-amber-400 font-bold">AED</span>
+                                <input
+                                  type="number"
+                                  value={item.unitPrice}
+                                  onChange={(e) => handleItemPriceChange(idx, e.target.value)}
+                                  className="w-full text-right bg-transparent text-white font-mono font-bold text-xs focus:outline-none"
+                                />
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 bg-[#070A12] border border-white/10 rounded-lg px-2 py-1.5">
+                                <span className="text-[10px] text-slate-400">AED</span>
+                                <span className="w-full text-right text-white font-mono font-bold text-xs">
+                                  {formatCurrency(item.unitPrice)}
+                                </span>
+                              </div>
+                            )}
                             {isModified && (
                               <span className="block text-[9.5px] text-amber-400 font-bold mt-0.5">
                                 {current < original
@@ -1877,13 +2235,19 @@ export default function AdminPortal() {
                             <label className="text-[10px] font-bold text-slate-300 uppercase block mb-1">
                               Quantity
                             </label>
-                            <input
-                              type="number"
-                              min={1}
-                              value={item.quantity}
-                              onChange={(e) => handleItemQuantityChange(idx, e.target.value)}
-                              className="w-full bg-[#070A12] border border-white/10 rounded-lg py-1.5 px-2 text-center text-white font-bold text-xs focus:outline-none focus:border-amber-500/60"
-                            />
+                            {currentPermissions.quotationModification ? (
+                              <input
+                                type="number"
+                                min={1}
+                                value={item.quantity}
+                                onChange={(e) => handleItemQuantityChange(idx, e.target.value)}
+                                className="w-full bg-[#070A12] border border-white/10 rounded-lg py-1.5 px-2 text-center text-white font-bold text-xs focus:outline-none focus:border-amber-500/60"
+                              />
+                            ) : (
+                              <div className="w-full bg-[#070A12] border border-white/10 rounded-lg py-1.5 px-2 text-center text-white font-bold text-xs font-mono">
+                                {item.quantity}
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -1907,7 +2271,7 @@ export default function AdminPortal() {
                         <th className="p-3">Product Station</th>
                         <th className="p-3 text-right">Catalog Price</th>
                         <th className="p-3 text-right text-amber-400">
-                          Admin Unit Price (AED) *
+                          {currentPermissions.unitPriceModification ? 'Admin Unit Price (AED) *' : 'Confirmed Unit Price (AED)'}
                         </th>
                         <th className="p-3 text-center">Qty</th>
                         <th className="p-3 text-right">Line Total (AED)</th>
@@ -1934,31 +2298,45 @@ export default function AdminPortal() {
                               AED {formatCurrency(original)}
                             </td>
                             <td className="p-3 text-right">
-                              <div className="inline-flex items-center gap-1 bg-surface border border-amber-500/40 rounded-lg px-2 py-1">
-                                <span className="text-[10px] text-amber-400 font-bold">AED</span>
-                                <input
-                                  type="number"
-                                  value={item.unitPrice}
-                                  onChange={(e) => handleItemPriceChange(idx, e.target.value)}
-                                  className="w-24 text-right bg-transparent text-white font-mono font-bold text-xs focus:outline-none"
-                                />
-                              </div>
-                              {isModified && (
-                                <span className="block text-[10px] text-amber-400 font-bold mt-0.5">
-                                  {current < original
-                                    ? `-${Math.round(((original - current) / original) * 100)}% Discount`
-                                    : `+${Math.round(((current - original) / original) * 100)}% Override`}
+                              {currentPermissions.unitPriceModification ? (
+                                <>
+                                  <div className="inline-flex items-center gap-1 bg-surface border border-amber-500/40 rounded-lg px-2 py-1">
+                                    <span className="text-[10px] text-amber-400 font-bold">AED</span>
+                                    <input
+                                      type="number"
+                                      value={item.unitPrice}
+                                      onChange={(e) => handleItemPriceChange(idx, e.target.value)}
+                                      className="w-24 text-right bg-transparent text-white font-mono font-bold text-xs focus:outline-none"
+                                    />
+                                  </div>
+                                  {isModified && (
+                                    <span className="block text-[10px] text-amber-400 font-bold mt-0.5">
+                                      {current < original
+                                        ? `-${Math.round(((original - current) / original) * 100)}% Discount`
+                                        : `+${Math.round(((current - original) / original) * 100)}% Override`}
+                                    </span>
+                                  )}
+                                </>
+                              ) : (
+                                <span className="font-mono font-bold text-white text-xs">
+                                  AED {formatCurrency(item.unitPrice)}
                                 </span>
                               )}
                             </td>
                             <td className="p-3 text-center">
-                              <input
-                                type="number"
-                                min={1}
-                                value={item.quantity}
-                                onChange={(e) => handleItemQuantityChange(idx, e.target.value)}
-                                className="w-14 text-center bg-surface border border-white/10 rounded py-1 text-white font-bold"
-                              />
+                              {currentPermissions.quotationModification ? (
+                                <input
+                                  type="number"
+                                  min={1}
+                                  value={item.quantity}
+                                  onChange={(e) => handleItemQuantityChange(idx, e.target.value)}
+                                  className="w-14 text-center bg-surface border border-white/10 rounded py-1 text-white font-bold"
+                                />
+                              ) : (
+                                <span className="font-mono font-bold text-white text-xs">
+                                  {item.quantity}
+                                </span>
+                              )}
                             </td>
                             <td className="p-3 text-right font-mono font-bold text-white">
                               AED {formatCurrency(item.unitPrice * item.quantity)}
@@ -1983,19 +2361,23 @@ export default function AdminPortal() {
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={handleAddPreviewCharge}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black text-xs uppercase hover:brightness-110"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>+ Add Additional Charge</span>
-                  </button>
+                  {currentPermissions.quotationModification && (
+                    <button
+                      type="button"
+                      onClick={handleAddPreviewCharge}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black text-xs uppercase hover:brightness-110"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Add Additional Charge</span>
+                    </button>
+                  )}
                 </div>
 
                 {overrideCharges.length === 0 ? (
                   <p className="text-xs text-slate-500 italic">
-                    No additional charges added. Click "+ Add Additional Charge" above to add delivery or service fees.
+                    {currentPermissions.quotationModification
+                      ? 'No additional charges added. Click "+ Add Additional Charge" above to add delivery or service fees.'
+                      : 'No additional charges attached to this quotation.'}
                   </p>
                 ) : (
                   <div className="space-y-2 pt-1">
@@ -2004,34 +2386,43 @@ export default function AdminPortal() {
                         key={ch.id}
                         className="flex items-center gap-2 bg-surface p-2 rounded-lg border border-white/10"
                       >
-                        <input
-                          type="text"
-                          value={ch.description}
-                          onChange={(e) =>
-                            handleUpdatePreviewCharge(ch.id, 'description', e.target.value)
-                          }
-                          placeholder="Charge Description (e.g. Delivery & Rigging across Dubai)"
-                          className="flex-1 bg-[#070A12] border border-white/10 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60"
-                        />
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs font-bold text-amber-400">AED</span>
-                          <input
-                            type="number"
-                            value={ch.amount}
-                            onChange={(e) =>
-                              handleUpdatePreviewCharge(ch.id, 'amount', e.target.value)
-                            }
-                            placeholder="500"
-                            className="w-24 bg-[#070A12] border border-white/10 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemovePreviewCharge(ch.id)}
-                          className="p-1.5 text-slate-400 hover:text-red-400"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {currentPermissions.quotationModification ? (
+                          <>
+                            <input
+                              type="text"
+                              value={ch.description}
+                              onChange={(e) =>
+                                handleUpdatePreviewCharge(ch.id, 'description', e.target.value)
+                              }
+                              placeholder="Charge Description (e.g. Delivery & Rigging across Dubai)"
+                              className="flex-1 bg-[#070A12] border border-white/10 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60"
+                            />
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs font-bold text-amber-400">AED</span>
+                              <input
+                                type="number"
+                                value={ch.amount}
+                                onChange={(e) =>
+                                  handleUpdatePreviewCharge(ch.id, 'amount', e.target.value)
+                                }
+                                placeholder="500"
+                                className="w-24 bg-[#070A12] border border-white/10 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePreviewCharge(ch.id)}
+                              className="p-1.5 text-slate-400 hover:text-red-400"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        ) : (
+                          <div className="flex-1 flex items-center justify-between text-xs px-2 py-1">
+                            <span className="text-slate-200">{ch.description}</span>
+                            <span className="font-mono font-bold text-amber-400">AED {formatCurrency(ch.amount)}</span>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -2227,17 +2618,19 @@ export default function AdminPortal() {
                               </p>
                             </div>
 
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleStartEditTemplate(template);
-                              }}
-                              className="p-1.5 rounded-lg bg-[#070A12] border border-white/10 text-slate-400 hover:text-white hover:border-amber-500/40 transition-colors"
-                              title="Edit this template clauses"
-                            >
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
+                            {currentPermissions.quotationModification && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStartEditTemplate(template);
+                                }}
+                                className="p-1.5 rounded-lg bg-[#070A12] border border-white/10 text-slate-400 hover:text-white hover:border-amber-500/40 transition-colors"
+                                title="Edit this template clauses"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
 
                           {/* Clauses List */}
@@ -2324,14 +2717,21 @@ export default function AdminPortal() {
                 Cancel
               </button>
 
-              <button
-                type="button"
-                onClick={handleConfirmSalesInvoice}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95"
-              >
-                <CheckCircle className="w-4 h-4 text-black" />
-                <span>Confirm & Generate Official Sales Invoice</span>
-              </button>
+              {currentPermissions.salesConversion ? (
+                <button
+                  type="button"
+                  onClick={handleConfirmSalesInvoice}
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95"
+                >
+                  <CheckCircle className="w-4 h-4 text-black" />
+                  <span>Confirm & Generate Official Sales Invoice</span>
+                </button>
+              ) : (
+                <div className="px-4 py-2.5 rounded-lg bg-slate-800 border border-white/10 text-slate-400 text-xs font-semibold flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-slate-500" />
+                  <span>Sales Conversion Restricted (Approval Role Required)</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -2376,6 +2776,7 @@ export default function AdminPortal() {
 // Sub-Modal: Add / Edit Product
 // -------------------------------------------------------------
 function ProductFormModal({ product, onClose, onSave }) {
+  const { currentPermissions } = useApp();
   const [code, setCode] = useState(product?.code || '');
   const [name, setName] = useState(product?.name || '');
   const [category, setCategory] = useState(product?.category || 'Plate Loaded');
@@ -2470,7 +2871,7 @@ function ProductFormModal({ product, onClose, onSave }) {
           </div>
 
           {/* Pricing, Admin Purchase Rate & Stock */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className={`grid grid-cols-1 ${currentPermissions?.purchaseAmountModification ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-3`}>
             <div>
               <label className="text-slate-300 font-bold block mb-1">Selling Price (AED) *</label>
               <input
@@ -2483,22 +2884,24 @@ function ProductFormModal({ product, onClose, onSave }) {
             </div>
 
             {/* Purchase Rate (Admin Only) */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-slate-300 font-bold block truncate">Purchase Rate *</label>
-                <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                  Admin
-                </span>
+            {currentPermissions?.purchaseAmountModification && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-slate-300 font-bold block truncate">Purchase Rate *</label>
+                  <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                    Admin
+                  </span>
+                </div>
+                <input
+                  type="number"
+                  required
+                  value={purchaseRate}
+                  onChange={(e) => setPurchaseRate(e.target.value)}
+                  placeholder="e.g. 3500"
+                  className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-amber-400 font-mono font-bold"
+                />
               </div>
-              <input
-                type="number"
-                required
-                value={purchaseRate}
-                onChange={(e) => setPurchaseRate(e.target.value)}
-                placeholder="e.g. 3500"
-                className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-amber-400 font-mono font-bold"
-              />
-            </div>
+            )}
 
             <div>
               <label className="text-slate-300 font-bold block mb-1">Warehouse Stock (Qty)</label>
@@ -2512,17 +2915,19 @@ function ProductFormModal({ product, onClose, onSave }) {
           </div>
 
           {/* Admin Margin Calculation Indicator */}
-          <div className="p-2.5 rounded-lg bg-[#070A12] border border-white/10 flex items-center justify-between text-[11px] font-mono">
-            <span className="text-slate-400">Unit Profit Margin (Admin View):</span>
-            <div className="flex items-center gap-2">
-              <span className={calculatedMargin >= 0 ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}>
-                {calculatedMargin >= 0 ? '+' : ''}AED {formatCurrency(calculatedMargin)}
-              </span>
-              <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-bold">
-                {calculatedMarginPct}%
-              </span>
+          {currentPermissions?.purchaseAmountModification && (
+            <div className="p-2.5 rounded-lg bg-[#070A12] border border-white/10 flex items-center justify-between text-[11px] font-mono">
+              <span className="text-slate-400">Unit Profit Margin (Admin View):</span>
+              <div className="flex items-center gap-2">
+                <span className={calculatedMargin >= 0 ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}>
+                  {calculatedMargin >= 0 ? '+' : ''}AED {formatCurrency(calculatedMargin)}
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-bold">
+                  {calculatedMarginPct}%
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
           <div>
             <label className="text-slate-300 font-bold block mb-1">Image Path / URL</label>
