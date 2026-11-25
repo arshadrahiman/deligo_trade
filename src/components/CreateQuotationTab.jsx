@@ -72,6 +72,7 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
     setQuoteDate,
     additionalCharges,
     addAdditionalCharge,
+    toggleAdditionalCharge,
     removeAdditionalCharge,
     recordCurrentQuote,
     companySettings,
@@ -181,41 +182,87 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
     }
   }, [filteredProducts, sortBy]);
 
+  // Preset commercial services
+  const PRESET_CHARGES = useMemo(
+    () => [
+      {
+        id: 'preset-delivery',
+        desc: 'Commercial Delivery & Ground Floor Assembly',
+        label: 'Commercial Delivery',
+        amount: 850,
+      },
+      {
+        id: 'preset-rigging',
+        desc: 'Heavy Rigging & Express Placement',
+        label: 'Heavy Rigging',
+        amount: 1200,
+      },
+      {
+        id: 'preset-amc',
+        desc: 'Preventative AMC 6-Month Inspection',
+        label: 'Preventative AMC (6-Mo)',
+        amount: 1500,
+      },
+      {
+        id: 'preset-turnkey',
+        desc: 'Turnkey Club Installation & Calibration',
+        label: 'Turnkey Installation',
+        amount: 2500,
+      },
+    ],
+    []
+  );
+
   // Financial calculations
   const quoteItemsSubtotal = useMemo(() => {
     return cartItemsList.reduce((sum, item) => {
       const unitPrice = Number(item.unitPrice || item.product?.price || 0);
       const offerPrice = Math.max(0, unitPrice - 500);
-      return sum + offerPrice * item.quantity;
+      return sum + offerPrice * (Number(item.quantity) || 1);
     }, 0);
   }, [cartItemsList]);
 
-  const quoteAdditionalTotal = useMemo(() => {
-    return additionalCharges.reduce(
-      (sum, c) => sum + (parseFloat(c.amount) || 0),
-      0
+  const validAdditionalCharges = useMemo(() => {
+    return additionalCharges.filter(
+      (c) => c && c.description && !isNaN(Number(c.amount)) && Number(c.amount) > 0
     );
   }, [additionalCharges]);
 
-  const quoteNetTaxableSum = quoteItemsSubtotal + quoteAdditionalTotal;
-  const quoteTotalVat = quoteNetTaxableSum * 0.05;
-  const quoteGrandTotal = quoteNetTaxableSum + quoteTotalVat;
+  const quoteAdditionalTotal = useMemo(() => {
+    return validAdditionalCharges.reduce(
+      (sum, c) => sum + Number(c.amount),
+      0
+    );
+  }, [validAdditionalCharges]);
+
+  const quoteNetTaxableSum = useMemo(() => {
+    return Math.round((quoteItemsSubtotal + quoteAdditionalTotal) * 100) / 100;
+  }, [quoteItemsSubtotal, quoteAdditionalTotal]);
+
+  const quoteTotalVat = useMemo(() => {
+    return Math.round(quoteNetTaxableSum * 0.05 * 100) / 100;
+  }, [quoteNetTaxableSum]);
+
+  const quoteGrandTotal = useMemo(() => {
+    return Math.round((quoteNetTaxableSum + quoteTotalVat) * 100) / 100;
+  }, [quoteNetTaxableSum, quoteTotalVat]);
 
   // Handle adding custom charge
   const handleAddCustomCharge = (e) => {
     e.preventDefault();
-    const cleanDesc = sanitizeInput(customChargeDesc);
-    if (!cleanDesc || !customChargeAmount || isNaN(customChargeAmount)) {
+    const cleanDesc = sanitizeInput(customChargeDesc).trim();
+    const amt = parseFloat(customChargeAmount);
+    if (!cleanDesc || isNaN(amt) || amt <= 0) {
       return;
     }
-    addAdditionalCharge(cleanDesc, Math.abs(parseFloat(customChargeAmount)));
+    addAdditionalCharge(cleanDesc, Math.round(amt * 100) / 100);
     setCustomChargeDesc('');
     setCustomChargeAmount('');
   };
 
-  // Quick preset charges
-  const handleAddPresetCharge = (desc, amount) => {
-    addAdditionalCharge(sanitizeInput(desc), Math.abs(parseFloat(amount)));
+  // Quick preset charge toggle
+  const handleTogglePresetCharge = (preset) => {
+    toggleAdditionalCharge(preset.desc, preset.amount);
   };
 
   // Submit Quotation for Review (Story flow step 1)
@@ -780,46 +827,79 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
               )}
             </div>
 
-            {/* Additional Charges Section */}
-            <div className="space-y-2 pt-2 border-t border-white/10">
-              <label className="text-[11px] font-mono uppercase text-slate-400 font-bold block">
-                Additional Services & Delivery
-              </label>
+            {/* Additional Services & Delivery Section */}
+            <div className="space-y-2.5 pt-2 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-mono uppercase text-slate-400 font-bold flex items-center gap-1.5">
+                  <span>Additional Services & Delivery</span>
+                  {validAdditionalCharges.length > 0 && (
+                    <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      {validAdditionalCharges.length} active
+                    </span>
+                  )}
+                </label>
+                {quoteAdditionalTotal > 0 && (
+                  <span className="text-[11px] font-mono text-amber-400 font-bold">
+                    + AED {formatCurrency(quoteAdditionalTotal)}
+                  </span>
+                )}
+              </div>
 
-              {/* Preset buttons */}
+              {/* Preset Quick-Toggle Buttons */}
               <div className="flex flex-wrap gap-1.5">
-                {[
-                  { desc: 'Commercial Delivery & Ground Floor Assembly', amount: 850 },
-                  { desc: 'Heavy Rigging & Express Placement', amount: 1200 },
-                  { desc: 'Preventative AMC 6-Month Inspection', amount: 1500 },
-                ].map((preset, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleAddPresetCharge(preset.desc, preset.amount)}
-                    className="px-2 py-1 rounded bg-[#070A12] border border-white/10 hover:border-amber-500/40 text-[10px] font-mono text-slate-300 hover:text-white transition-colors"
-                  >
-                    + {preset.desc.split('&')[0]} (AED {preset.amount})
-                  </button>
-                ))}
+                {PRESET_CHARGES.map((preset) => {
+                  const isSelected = additionalCharges.some(
+                    (c) =>
+                      c &&
+                      c.description &&
+                      (c.description.toLowerCase() === preset.desc.toLowerCase() ||
+                        c.description.toLowerCase().includes(preset.label.toLowerCase()))
+                  );
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => handleTogglePresetCharge(preset)}
+                      title={isSelected ? `Click to remove ${preset.label}` : `Click to add ${preset.label}`}
+                      className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-mono transition-all flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-amber-500/20 border-amber-500/60 text-amber-300 font-bold shadow-sm shadow-amber-500/20'
+                          : 'bg-[#070A12] border-white/10 hover:border-amber-500/40 text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      <span className={isSelected ? 'text-amber-400 font-black' : 'text-slate-500'}>
+                        {isSelected ? '✓' : '+'}
+                      </span>
+                      <span>{preset.label}</span>
+                      <span className={isSelected ? 'text-amber-200 font-semibold' : 'text-slate-400'}>
+                        (AED {formatCurrency(preset.amount)})
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Added charges list */}
-              {additionalCharges.length > 0 && (
+              {validAdditionalCharges.length > 0 && (
                 <div className="space-y-1.5 pt-1">
-                  {additionalCharges.map((ch) => (
+                  {validAdditionalCharges.map((ch) => (
                     <div
                       key={ch.id}
-                      className="px-2.5 py-1.5 rounded-lg bg-[#070A12] border border-white/10 flex items-center justify-between text-xs font-mono"
+                      className="px-2.5 py-1.5 rounded-lg bg-[#070A12] border border-white/10 flex items-center justify-between text-xs font-mono group hover:border-white/20 transition-all"
                     >
-                      <span className="text-slate-300 text-[11px] truncate">{ch.description}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-amber-400 font-bold">
+                      <div className="flex items-center gap-2 min-w-0 pr-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+                        <span className="text-slate-200 text-[11px] truncate">{ch.description}</span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-amber-400 font-bold text-xs">
                           AED {formatCurrency(ch.amount)}
                         </span>
                         <button
+                          type="button"
                           onClick={() => removeAdditionalCharge(ch.id)}
-                          className="text-slate-400 hover:text-red-400"
+                          title="Remove service"
+                          className="w-5 h-5 rounded flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                         >
                           ✕
                         </button>
@@ -835,19 +915,27 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
                   type="text"
                   value={customChargeDesc}
                   onChange={(e) => setCustomChargeDesc(e.target.value)}
-                  placeholder="Custom service description..."
+                  placeholder="Custom service description (e.g. Staircase Logistics)..."
                   className="flex-1 bg-[#070A12] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/60"
                 />
-                <input
-                  type="number"
-                  value={customChargeAmount}
-                  onChange={(e) => setCustomChargeAmount(e.target.value)}
-                  placeholder="AED"
-                  className="w-20 bg-[#070A12] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/60 font-mono"
-                />
+                <div className="relative w-28 flex-shrink-0">
+                  <span className="absolute left-2.5 top-1.5 text-[11px] font-mono text-slate-500 pointer-events-none">
+                    AED
+                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    step="any"
+                    value={customChargeAmount}
+                    onChange={(e) => setCustomChargeAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full bg-[#070A12] border border-white/10 rounded-lg pl-9 pr-2 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/60 font-mono text-right"
+                  />
+                </div>
                 <button
                   type="submit"
-                  className="px-3 py-1.5 rounded-lg bg-surface border border-white/10 hover:border-amber-500/40 text-amber-400 text-xs font-mono font-bold"
+                  disabled={!customChargeDesc.trim() || !customChargeAmount || Number(customChargeAmount) <= 0}
+                  className="px-3.5 py-1.5 rounded-lg bg-surface border border-white/10 hover:border-amber-500/40 text-amber-400 text-xs font-mono font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-amber-500/10 flex-shrink-0"
                 >
                   Add
                 </button>
@@ -858,15 +946,18 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
             <div className="p-3.5 rounded-xl bg-[#070A12] border border-white/10 space-y-2 font-mono text-xs">
               <div className="flex justify-between text-slate-400 text-[11px]">
                 <span>Equipment Subtotal:</span>
-                <span className="text-white">AED {formatCurrency(quoteItemsSubtotal)}</span>
+                <span className="text-white font-medium">AED {formatCurrency(quoteItemsSubtotal)}</span>
               </div>
               {quoteAdditionalTotal > 0 && (
                 <div className="flex justify-between text-slate-400 text-[11px]">
-                  <span>Additional Services:</span>
-                  <span className="text-white">AED {formatCurrency(quoteAdditionalTotal)}</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
+                    Additional Services:
+                  </span>
+                  <span className="text-amber-400 font-bold">+ AED {formatCurrency(quoteAdditionalTotal)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-slate-400 text-[11px] pt-1 border-t border-white/5">
+              <div className="flex justify-between text-slate-400 text-[11px] pt-1.5 border-t border-white/5">
                 <span>Net Taxable Amount:</span>
                 <span className="text-white font-bold">AED {formatCurrency(quoteNetTaxableSum)}</span>
               </div>
@@ -878,7 +969,7 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
                 <span>Grand Total:</span>
                 <span>AED {formatCurrency(quoteGrandTotal)}</span>
               </div>
-              <div className="text-[10px] text-slate-500 italic text-right">
+              <div className="text-[10px] text-slate-500 italic text-right pt-0.5">
                 {numberToWords(quoteGrandTotal)}
               </div>
             </div>

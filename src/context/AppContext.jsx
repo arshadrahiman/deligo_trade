@@ -701,28 +701,89 @@ export function AppProvider({ children }) {
     [cartItemsList]
   );
   const cartItemsSubtotal = useMemo(
-    () => cartItemsList.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
+    () =>
+      cartItemsList.reduce((sum, item) => {
+        const uPrice = Number(item.unitPrice || item.product?.price || 0);
+        const oPrice = Math.max(0, uPrice - 500);
+        return sum + oPrice * (Number(item.quantity) || 1);
+      }, 0),
     [cartItemsList]
   );
   const additionalChargesTotal = useMemo(
-    () => additionalCharges.reduce((sum, ch) => sum + (parseFloat(ch.amount) || 0), 0),
+    () =>
+      additionalCharges.reduce((sum, ch) => {
+        const amt = Number(ch && ch.amount);
+        return sum + (amt > 0 ? amt : 0);
+      }, 0),
     [additionalCharges]
   );
   const netTaxableSum = useMemo(
-    () => cartItemsSubtotal + additionalChargesTotal,
+    () => Math.round((cartItemsSubtotal + additionalChargesTotal) * 100) / 100,
     [cartItemsSubtotal, additionalChargesTotal]
   );
-  const totalVat = useMemo(() => netTaxableSum * 0.05, [netTaxableSum]);
-  const grandTotal = useMemo(() => netTaxableSum + totalVat, [netTaxableSum, totalVat]);
+  const totalVat = useMemo(
+    () => Math.round(netTaxableSum * 0.05 * 100) / 100,
+    [netTaxableSum]
+  );
+  const grandTotal = useMemo(
+    () => Math.round((netTaxableSum + totalVat) * 100) / 100,
+    [netTaxableSum, totalVat]
+  );
 
   // Additional charges handlers
-  const addAdditionalCharge = (chargeObj) => {
-    const newCharge = chargeObj || {
-      id: 'charge-' + Date.now() + Math.random().toString(36).substr(2, 4),
-      description: 'Logistics & Assembly Delivery',
-      amount: 500,
+  const addAdditionalCharge = (chargeOrDesc, maybeAmount) => {
+    let desc = '';
+    let amt = 0;
+    let customId = null;
+
+    if (chargeOrDesc && typeof chargeOrDesc === 'object') {
+      desc = (chargeOrDesc.description || chargeOrDesc.desc || '').trim();
+      amt = Number(chargeOrDesc.amount) || 0;
+      customId = chargeOrDesc.id || null;
+    } else {
+      desc = (chargeOrDesc ? String(chargeOrDesc) : '').trim();
+      amt = Number(maybeAmount) || 0;
+    }
+
+    if (!desc || isNaN(amt) || amt <= 0) {
+      return null;
+    }
+
+    const newCharge = {
+      id: customId || `charge-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      description: desc,
+      amount: Math.round(amt * 100) / 100,
     };
-    setAdditionalCharges((prev) => [...prev, newCharge]);
+
+    setAdditionalCharges((prev) => [
+      ...prev.filter((c) => c && c.id !== newCharge.id && c.description !== newCharge.description),
+      newCharge,
+    ]);
+    return newCharge;
+  };
+
+  const toggleAdditionalCharge = (desc, amount) => {
+    const cleanDesc = (desc ? String(desc) : '').trim();
+    const cleanAmt = Number(amount) || 0;
+    if (!cleanDesc || cleanAmt <= 0 || isNaN(cleanAmt)) return;
+
+    setAdditionalCharges((prev) => {
+      const exists = prev.some(
+        (c) => c && c.description && c.description.toLowerCase() === cleanDesc.toLowerCase()
+      );
+      if (exists) {
+        return prev.filter(
+          (c) => !(c && c.description && c.description.toLowerCase() === cleanDesc.toLowerCase())
+        );
+      } else {
+        const newCharge = {
+          id: `charge-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          description: cleanDesc,
+          amount: Math.round(cleanAmt * 100) / 100,
+        };
+        return [...prev, newCharge];
+      }
+    });
   };
 
   const updateAdditionalCharge = (id, field, value) => {
@@ -732,7 +793,7 @@ export function AppProvider({ children }) {
   };
 
   const removeAdditionalCharge = (id) => {
-    setAdditionalCharges((prev) => prev.filter((c) => c.id !== id));
+    setAdditionalCharges((prev) => prev.filter((c) => c && c.id !== id));
   };
 
   // Save Quote into Records (using auto-generated clean sequence code)
@@ -776,7 +837,13 @@ export function AppProvider({ children }) {
           sum: oPrice * item.quantity,
         };
       }),
-      additionalCharges: [...additionalCharges],
+      additionalCharges: additionalCharges
+        .filter((c) => c && c.description && Number(c.amount) > 0)
+        .map((c) => ({
+          id: c.id,
+          description: c.description,
+          amount: Math.round(Number(c.amount) * 100) / 100,
+        })),
       subtotal: netTaxableSum,
       vat: totalVat,
       grandTotal: grandTotal,
@@ -1378,6 +1445,7 @@ export function AppProvider({ children }) {
         setHasGeneratedQuote,
         additionalCharges,
         addAdditionalCharge,
+        toggleAdditionalCharge,
         updateAdditionalCharge,
         removeAdditionalCharge,
         recordCurrentQuote,

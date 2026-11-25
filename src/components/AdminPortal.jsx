@@ -357,7 +357,15 @@ export default function AdminPortal() {
       }))
     );
     setReviewCharges(
-      quote.additionalCharges ? quote.additionalCharges.map((c) => ({ ...c })) : []
+      Array.isArray(quote.additionalCharges)
+        ? quote.additionalCharges
+            .filter((c) => c && typeof c === 'object' && Number(c.amount) > 0)
+            .map((c) => ({
+              id: c.id || 'ch-rev-' + Math.random().toString(36).substring(2, 7),
+              description: String(c.description || 'Logistics & Assembly Delivery').trim(),
+              amount: Math.round(Number(c.amount) * 100) / 100,
+            }))
+        : []
     );
   };
 
@@ -473,7 +481,15 @@ export default function AdminPortal() {
     );
     // clone additional charges
     setOverrideCharges(
-      quote.additionalCharges ? quote.additionalCharges.map((c) => ({ ...c })) : []
+      Array.isArray(quote.additionalCharges)
+        ? quote.additionalCharges
+            .filter((c) => c && typeof c === 'object' && Number(c.amount) > 0)
+            .map((c) => ({
+              id: c.id || 'ch-' + Math.random().toString(36).substring(2, 7),
+              description: String(c.description || 'Logistics & Assembly Delivery').trim(),
+              amount: Math.round(Number(c.amount) * 100) / 100,
+            }))
+        : []
     );
     const today = new Date();
     setOverrideInvoiceDate(
