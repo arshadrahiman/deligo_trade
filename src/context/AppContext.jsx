@@ -47,8 +47,7 @@ export const DEFAULT_ROLE_DEFINITIONS = {
     textColor: 'text-purple-400',
     borderColor: 'border-purple-500/40',
     bgColor: 'bg-purple-500/10',
-    description:
-      'Commercial Heavy-Duty Treadmills, Cardio Machinery, Strength Stations & Free Weights Proposals • UAE WH-1',
+    description: '',
     permissions: {
       quotationCreation: true,
       productListing: true,
@@ -74,8 +73,7 @@ export const DEFAULT_ROLE_DEFINITIONS = {
     textColor: 'text-cyan-400',
     borderColor: 'border-cyan-500/40',
     bgColor: 'bg-cyan-500/10',
-    description:
-      'Commercial Fitness Equipment Invoicing, Valuation & Heavy Machinery Accounts • UAE WH-1',
+    description: '',
     permissions: {
       quotationCreation: true,
       productListing: true,
@@ -101,8 +99,7 @@ export const DEFAULT_ROLE_DEFINITIONS = {
     textColor: 'text-amber-400',
     borderColor: 'border-amber-500/40',
     bgColor: 'bg-amber-500/10',
-    description:
-      'Commercial Gym Equipment Catalog, Strength & Cardio Inventory, Wholesale Rates & Logistics • UAE WH-1',
+    description: '',
     permissions: {
       quotationCreation: true,
       productListing: true,
@@ -128,8 +125,7 @@ export const DEFAULT_ROLE_DEFINITIONS = {
     textColor: 'text-red-400',
     borderColor: 'border-red-500/40',
     bgColor: 'bg-red-500/10',
-    description:
-      'Enterprise Commercial Fitness Machinery, Warehouse Inventory Systems & Club Fitout Solutions • Root Control',
+    description: '',
     permissions: {
       quotationCreation: true,
       productListing: true,

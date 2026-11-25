@@ -877,10 +877,6 @@ export default function AdminPortal() {
               <span className="font-semibold text-slate-200">
                 {currentAdminUser?.name || 'Terminal Officer'}
               </span>
-              <span className="text-slate-600 hidden sm:inline">•</span>
-              <span className="text-amber-400/90 font-mono text-[11px]">
-                {ROLE_DEFINITIONS[currentRole]?.description}
-              </span>
             </p>
           </div>
         </div>

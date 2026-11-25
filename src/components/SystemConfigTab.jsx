@@ -602,9 +602,11 @@ export default function SystemConfigTab() {
                     {isSelected && <span className="w-2 h-2 rounded-full bg-emerald-400" />}
                   </div>
                   <h4 className="text-sm font-bold text-white">{rDef.name}</h4>
-                  <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                    {rDef.description}
-                  </p>
+                  {rDef.description && (
+                    <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
+                      {rDef.description}
+                    </p>
+                  )}
                 </button>
               );
             })}
@@ -623,9 +625,11 @@ export default function SystemConfigTab() {
                     {currentSelectedRole.badge}
                   </span>
                 </div>
-                <p className="text-xs text-amber-400/90 font-mono mt-1">
-                  Product Scope: {currentSelectedRole.description}
-                </p>
+                {currentSelectedRole.description && (
+                  <p className="text-xs text-amber-400/90 font-mono mt-1">
+                    Product Scope: {currentSelectedRole.description}
+                  </p>
+                )}
               </div>
 
               <button
