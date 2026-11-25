@@ -18,6 +18,7 @@ export const ROLES = {
   ADMIN_AGENT: 'admin_agent',
   FINANCE_AGENT: 'finance_agent',
   APPROVAL: 'approval',
+  SALES_AGENT: 'sales_agent',
 };
 
 export const ROLE_DEFINITIONS = {
@@ -30,7 +31,7 @@ export const ROLE_DEFINITIONS = {
     borderColor: 'border-amber-500/40',
     bgColor: 'bg-amber-500/10',
     description:
-      'Full administrative access: Quotation modification, unit price & purchase rate modification, production CRUD, quotation approval, financial dashboard metrics, and graph analytics.',
+      'Full administrative access: Quotation modification, unit price & purchase rate modification, production CRUD, quotation approval, product listing, financial dashboard metrics, and graph analytics.',
     permissions: {
       quotationCreation: true,
       quotationApproval: true,
@@ -39,6 +40,7 @@ export const ROLE_DEFINITIONS = {
       unitPriceModification: true,
       purchaseAmountModification: true,
       productionCrud: true,
+      productListing: true,
       dashboardDatas: true,
       dashboardGraph: true,
       brandingManagement: true,
@@ -54,7 +56,7 @@ export const ROLE_DEFINITIONS = {
     borderColor: 'border-cyan-500/40',
     bgColor: 'bg-cyan-500/10',
     description:
-      'Finance operations: Quotation creation and quotation approval authority. Sales conversion is reserved for Approval role.',
+      'Finance operations: Quotation creation, quotation approval authority, and product listing catalog view. Sales conversion is reserved for Approval role.',
     permissions: {
       quotationCreation: true,
       quotationApproval: true,
@@ -63,6 +65,7 @@ export const ROLE_DEFINITIONS = {
       unitPriceModification: false,
       purchaseAmountModification: false,
       productionCrud: false,
+      productListing: true,
       dashboardDatas: false,
       dashboardGraph: false,
       brandingManagement: false,
@@ -78,12 +81,38 @@ export const ROLE_DEFINITIONS = {
     borderColor: 'border-emerald-500/40',
     bgColor: 'bg-emerald-500/10',
     description:
-      'Official executive authority: Converts approved quotations into commercial sales invoices and tax invoices.',
+      'Official executive authority: Converts approved quotations into commercial sales invoices and tax invoices, with product listing catalog view.',
     permissions: {
       quotationCreation: false,
       quotationApproval: true,
       quotationModification: false,
       salesConversion: true, // Primary role responsibility
+      unitPriceModification: false,
+      purchaseAmountModification: false,
+      productionCrud: false,
+      productListing: true,
+      dashboardDatas: false,
+      dashboardGraph: false,
+      brandingManagement: false,
+      bankManagement: false,
+    },
+  },
+  [ROLES.SALES_AGENT]: {
+    id: ROLES.SALES_AGENT,
+    name: 'Sales Agent',
+    badge: 'Quotes & Product Listing',
+    color: 'from-purple-500 to-indigo-600',
+    textColor: 'text-purple-400',
+    borderColor: 'border-purple-500/40',
+    bgColor: 'bg-purple-500/10',
+    description:
+      'Sales Agent operations: Quotation creation and access to equipment product listing catalog. Financial approvals, pricing overrides, and production CRUD are restricted.',
+    permissions: {
+      quotationCreation: true,
+      productListing: true,
+      quotationApproval: false,
+      quotationModification: false,
+      salesConversion: false,
       unitPriceModification: false,
       purchaseAmountModification: false,
       productionCrud: false,
@@ -113,6 +142,12 @@ export const SYSTEM_ACCOUNTS = [
     password: 'approval',
     name: 'Commercial Approval Director',
     role: ROLES.APPROVAL,
+  },
+  {
+    username: 'sales',
+    password: 'sales',
+    name: 'Field Sales Representative',
+    role: ROLES.SALES_AGENT,
   },
 ];
 

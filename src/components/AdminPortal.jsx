@@ -36,6 +36,7 @@ import {
   ChevronDown,
   Info,
   Sparkles,
+  Tag,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
@@ -462,7 +463,7 @@ export default function AdminPortal() {
               <span className="text-[9.5px] font-mono text-slate-500">Auto-fills credentials</span>
             </div>
 
-            <div className="grid grid-cols-1 gap-2 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
               {/* 1. Admin Agent */}
               <button
                 type="button"
@@ -552,6 +553,36 @@ export default function AdminPortal() {
                   </p>
                 </div>
               </button>
+
+              {/* 4. Sales Agent */}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginUsername('sales');
+                  setLoginPassword('sales');
+                  setLoginError('');
+                }}
+                className={`p-2.5 rounded-xl border text-left transition-all flex items-start gap-2.5 ${
+                  loginUsername === 'sales'
+                    ? 'bg-purple-500/10 border-purple-500/50 shadow-md shadow-purple-500/10 ring-1 ring-purple-500/40'
+                    : 'bg-surface/50 border-white/10 hover:border-purple-500/30 hover:bg-surface'
+                }`}
+              >
+                <div className="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Tag className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white text-xs">Sales Agent</span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">
+                      Quotes & Listing
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
+                    Quotation creation & equipment product listing catalog view.
+                  </p>
+                </div>
+              </button>
             </div>
           </div>
 
@@ -572,7 +603,7 @@ export default function AdminPortal() {
                 required
                 value={loginUsername}
                 onChange={(e) => setLoginUsername(e.target.value)}
-                placeholder="admin / finance / approval"
+                placeholder="admin / finance / approval / sales"
                 className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-500/60 text-sm font-mono"
               />
             </div>
@@ -711,12 +742,15 @@ export default function AdminPortal() {
                 ? 'bg-gradient-to-br from-amber-500/20 to-amber-600/10 border-amber-500/40 text-amber-400 shadow-amber-500/20'
                 : currentRole === ROLES.FINANCE_AGENT
                 ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 border-cyan-500/40 text-cyan-400 shadow-cyan-500/20'
-                : 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border-emerald-500/40 text-emerald-400 shadow-emerald-500/20'
+                : currentRole === ROLES.APPROVAL
+                ? 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border-emerald-500/40 text-emerald-400 shadow-emerald-500/20'
+                : 'bg-gradient-to-br from-purple-500/20 to-indigo-600/10 border-purple-500/40 text-purple-400 shadow-purple-500/20'
             }`}
           >
             {currentRole === ROLES.ADMIN_AGENT && <Crown className="w-5 h-5" />}
             {currentRole === ROLES.FINANCE_AGENT && <Briefcase className="w-5 h-5" />}
             {currentRole === ROLES.APPROVAL && <ShieldCheck className="w-5 h-5" />}
+            {currentRole === ROLES.SALES_AGENT && <Tag className="w-5 h-5" />}
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -729,7 +763,9 @@ export default function AdminPortal() {
                     ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
                     : currentRole === ROLES.FINANCE_AGENT
                     ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
-                    : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                    : currentRole === ROLES.APPROVAL
+                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                    : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
                 }`}
               >
                 {ROLE_DEFINITIONS[currentRole]?.name || currentRole}
@@ -786,6 +822,19 @@ export default function AdminPortal() {
               <ShieldCheck className="w-3 h-3" />
               <span>Approval</span>
             </button>
+
+            <button
+              onClick={() => switchAdminRole(ROLES.SALES_AGENT)}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+                currentRole === ROLES.SALES_AGENT
+                  ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-sm shadow-purple-500/20'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              title="Sales Agent: Quotation creation and equipment product listing"
+            >
+              <Tag className="w-3 h-3" />
+              <span>Sales Agent</span>
+            </button>
           </div>
 
           <button
@@ -820,20 +869,22 @@ export default function AdminPortal() {
           <span>Created Quotes & Invoices ({quotesRecords.length})</span>
         </button>
 
-        <button
-          onClick={() => setActiveTab('products')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
-            activeTab === 'products'
-              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
-              : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
-          }`}
-        >
-          <Package className="w-4 h-4" />
-          <span>
-            Products & Stock ({products.length})
-            {!currentPermissions.productionCrud && ' [Read-Only]'}
-          </span>
-        </button>
+        {currentPermissions.productListing && (
+          <button
+            onClick={() => setActiveTab('products')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+              activeTab === 'products'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+                : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
+            }`}
+          >
+            <Package className="w-4 h-4" />
+            <span>
+              Products & Stock ({products.length})
+              {!currentPermissions.productionCrud && ' [Listing Only]'}
+            </span>
+          </button>
+        )}
 
         {currentPermissions.brandingManagement && (
           <button
