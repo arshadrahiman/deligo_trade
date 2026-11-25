@@ -678,9 +678,9 @@ export default function AdminPortal() {
             {currentRole === ROLES.SALES_AGENT && <Tag className="w-5 h-5" />}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight leading-none">
-                DELITRADE TRADING TERMINAL • ADMIN ERP
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight leading-none uppercase">
+                DELITRADE • COMMERCIAL GYM EQUIPMENT & MACHINERY ERP
               </h1>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${
@@ -696,8 +696,14 @@ export default function AdminPortal() {
                 {ROLE_DEFINITIONS[currentRole]?.name || currentRole}
               </span>
             </div>
-            <p className="text-slate-400 text-xs mt-1">
-              {currentAdminUser?.name || 'Authorized ERP Officer'} • {ROLE_DEFINITIONS[currentRole]?.description}
+            <p className="text-slate-400 text-xs mt-1.5 flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-slate-200">
+                {currentAdminUser?.name || 'Terminal Officer'}
+              </span>
+              <span className="text-slate-600 hidden sm:inline">•</span>
+              <span className="text-amber-400/90 font-mono text-[11px]">
+                {ROLE_DEFINITIONS[currentRole]?.description}
+              </span>
             </p>
           </div>
         </div>

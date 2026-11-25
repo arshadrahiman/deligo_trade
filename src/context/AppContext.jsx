@@ -45,7 +45,7 @@ export const ROLE_DEFINITIONS = {
     borderColor: 'border-purple-500/40',
     bgColor: 'bg-purple-500/10',
     description:
-      'Sales Agent operations: Initial quotation creation and access to equipment product listing catalog. Quotation modifications, pricing overrides, and approvals are handed to Finance.',
+      'Commercial Heavy-Duty Treadmills, Cardio Machinery, Strength Stations & Free Weights Proposals • UAE WH-1',
     permissions: {
       quotationCreation: true,
       productListing: true,
@@ -72,7 +72,7 @@ export const ROLE_DEFINITIONS = {
     borderColor: 'border-cyan-500/40',
     bgColor: 'bg-cyan-500/10',
     description:
-      'Finance operations: Quotation creation, quotation review & modification before approval, unit price adjustments, quotation approval, and generating sales invoice.',
+      'Commercial Fitness Equipment Invoicing, Valuation & Heavy Machinery Accounts • UAE WH-1',
     permissions: {
       quotationCreation: true,
       productListing: true,
@@ -99,7 +99,7 @@ export const ROLE_DEFINITIONS = {
     borderColor: 'border-amber-500/40',
     bgColor: 'bg-amber-500/10',
     description:
-      'Administrative authority: Quotation modification, unit price & purchase rate modification, production CRUD, quotation approval, sales conversion, full dashboard metrics (Total Sales, Total Profit), and interactive performance graphs.',
+      'Commercial Gym Equipment Catalog, Strength & Cardio Inventory, Wholesale Rates & Logistics • UAE WH-1',
     permissions: {
       quotationCreation: true,
       productListing: true,
@@ -126,7 +126,7 @@ export const ROLE_DEFINITIONS = {
     borderColor: 'border-red-500/40',
     bgColor: 'bg-red-500/10',
     description:
-      'Developer team root control: Full unrestricted access across all ERP business logic, developer overrides, wholesale acquisition cost management, system reset, and diagnostics.',
+      'Enterprise Commercial Fitness Machinery, Warehouse Inventory Systems & Club Fitout Solutions • Root Control',
     permissions: {
       quotationCreation: true,
       productListing: true,
@@ -150,31 +150,31 @@ export const SYSTEM_ACCOUNTS = [
   {
     username: 'sales',
     password: 'sales',
-    name: 'Sales Representative',
+    name: 'Commercial Equipment Sales Agent',
     role: ROLES.SALES_AGENT,
   },
   {
     username: 'finance',
     password: 'finance',
-    name: 'Senior Finance Officer',
+    name: 'Finance & Invoicing Officer',
     role: ROLES.FINANCE_AGENT,
   },
   {
     username: 'admin',
     password: 'admin',
-    name: 'Chief Admin Agent',
+    name: 'Equipment Inventory & Operations Admin',
     role: ROLES.ADMIN_AGENT,
   },
   {
     username: 'superadmin',
     password: 'superadmin',
-    name: 'Developer Team Super Admin',
+    name: 'Enterprise Machinery Systems Admin',
     role: ROLES.SUPER_ADMIN,
   },
   {
     username: 'dev',
     password: 'dev',
-    name: 'Developer Team Super Admin',
+    name: 'Enterprise Machinery Systems Admin',
     role: ROLES.SUPER_ADMIN,
   },
 ];
