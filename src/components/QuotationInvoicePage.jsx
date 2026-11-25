@@ -687,9 +687,8 @@ export default function QuotationInvoicePage() {
 
           {/* BANK DETAILS Section */}
           <div className="mt-4">
-            <div className="w-full bg-slate-900 text-white px-3 py-1 font-mono font-bold text-[10px] sm:text-[11px] tracking-wider uppercase rounded-t-sm flex items-center justify-between">
-              <span>OFFICIAL WIRE TRANSFER & BANK SETTLEMENT</span>
-              <span className="text-[9px] text-amber-400">FTA COMPLIANT</span>
+            <div className="w-full bg-slate-900 text-white px-3 py-1 font-mono font-bold text-[10px] sm:text-[11px] tracking-wider uppercase rounded-t-sm">
+              OFFICIAL WIRE TRANSFER & BANK SETTLEMENT
             </div>
             <div className="p-3 bg-slate-50 border border-slate-300 text-[10px] sm:text-[11px] font-mono space-y-1.5 break-words">
               {bankAccounts.length > 0 ? (

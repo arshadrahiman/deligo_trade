@@ -30,9 +30,9 @@ export default function ServicesPage() {
     {
       title: 'Real-Time B2B Invoicing & Corporate Finance',
       badge: 'FINANCIAL ERP',
-      desc: 'Instant UAE FTA-compliant commercial tax invoicing with 5% VAT itemization, corporate purchase order routing, and direct bank wire advice.',
+      desc: 'Instant commercial invoicing with 5% VAT itemization, corporate purchase order routing, and direct bank wire advice.',
       icon: Receipt,
-      sla: 'Official Tax Reference Provided',
+      sla: 'Official VAT Invoice Provided',
     },
   ];
 

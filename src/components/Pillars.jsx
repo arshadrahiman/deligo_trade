@@ -26,7 +26,7 @@ export default function Pillars() {
     },
     {
       badge: 'FISCAL COMPLIANCE',
-      title: 'FTA TAX INVOICE SUITE',
+      title: 'COMMERCIAL VAT SUITE',
       desc: 'Official 5% UAE VAT billing, automated quotations, and compliant accounting invoices.',
       icon: ReceiptText,
       color: 'indigo',

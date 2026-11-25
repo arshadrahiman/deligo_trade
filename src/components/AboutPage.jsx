@@ -24,7 +24,7 @@ export default function AboutPage() {
         <div className="flex items-center justify-between border-b border-white/5 pb-3">
           <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400 flex items-center gap-2">
             <ShieldCheck className="w-4 h-4" />
-            Corporate Credentials & FTA Tax Registration
+            Corporate Credentials & VAT Registration
           </span>
           <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -44,7 +44,7 @@ export default function AboutPage() {
           <div className="flex items-start gap-2.5 p-2 rounded-lg bg-[#070A12] border border-white/5">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
             <div>
-              <span className="text-slate-400 text-[11px] block font-mono">UAE Federal Tax Authority TRN</span>
+              <span className="text-slate-400 text-[11px] block font-mono">UAE TRN / VAT Number</span>
               <strong className="font-mono text-amber-400 tracking-wider">{companySettings.trn || '100569744400003'}</strong>
             </div>
           </div>

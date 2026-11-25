@@ -1448,7 +1448,7 @@ export default function AdminPortal() {
             </div>
 
             <div>
-              <label className="text-slate-300 font-bold block mb-1">FTA TRN Number</label>
+              <label className="text-slate-300 font-bold block mb-1">TRN / VAT Number</label>
               <input
                 type="text"
                 value={companySettings.trn || ''}
