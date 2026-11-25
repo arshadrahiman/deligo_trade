@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { initialWarehouseStock } from '../data/products';
+import { updateDynamicFavicon } from '../utils/favicon';
 
 const AppContext = createContext();
 
@@ -625,6 +626,7 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(companySettings));
+    updateDynamicFavicon(companySettings);
   }, [companySettings]);
 
   useEffect(() => {
