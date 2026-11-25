@@ -35,6 +35,5 @@ npm run deploy
 
 echo ""
 echo "✅ Auto-deploy completed successfully!"
-echo "🔗 Storefront: https://arshadrahiman.github.io/deligo_trade/"
-echo "🔐 Admin:      https://arshadrahiman.github.io/deligo_trade/#admin"
+echo "🔗 Webapp: https://arshadrahiman.github.io/deligo_trade/"
 

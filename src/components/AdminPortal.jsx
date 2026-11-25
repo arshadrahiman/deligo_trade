@@ -46,6 +46,7 @@ import { generateInvoicePdf } from '../utils/pdfGenerator';
 import Pagination from './Pagination';
 import FinancialDashboardGraph from './FinancialDashboardGraph';
 import LoginPage from './LoginPage';
+import CreateQuotationTab from './CreateQuotationTab';
 
 export const DEFAULT_TERMS_TEMPLATES = [
   {
@@ -107,8 +108,23 @@ export default function AdminPortal() {
     removeBankAccount,
   } = useApp();
 
-  // Admin active sub-tab
-  const [activeTab, setActiveTab] = useState('quotes'); // 'quotes' | 'products' | 'branding' | 'banks'
+  // Active sub-tab based on logged-in role ('dashboard' | 'create_quote' | 'quotes' | 'products' | 'branding' | 'banks')
+  const [activeTab, setActiveTab] = useState(() => {
+    if (currentRole === ROLES.SALES_AGENT) return 'create_quote';
+    if (currentRole === ROLES.FINANCE_AGENT) return 'quotes';
+    return 'dashboard';
+  });
+
+  const handleSwitchRole = (newRole) => {
+    switchAdminRole(newRole);
+    if (newRole === ROLES.SALES_AGENT) {
+      setActiveTab('create_quote');
+    } else if (newRole === ROLES.FINANCE_AGENT) {
+      setActiveTab('quotes');
+    } else {
+      setActiveTab('dashboard');
+    }
+  };
 
   // Admin Login Form State
   const [loginUsername, setLoginUsername] = useState('');
@@ -723,7 +739,7 @@ export default function AdminPortal() {
               Role:
             </span>
             <button
-              onClick={() => switchAdminRole(ROLES.SALES_AGENT)}
+              onClick={() => handleSwitchRole(ROLES.SALES_AGENT)}
               className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
                 currentRole === ROLES.SALES_AGENT
                   ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-sm shadow-purple-500/20'
@@ -736,7 +752,7 @@ export default function AdminPortal() {
             </button>
 
             <button
-              onClick={() => switchAdminRole(ROLES.FINANCE_AGENT)}
+              onClick={() => handleSwitchRole(ROLES.FINANCE_AGENT)}
               className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
                 currentRole === ROLES.FINANCE_AGENT
                   ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 font-black shadow-sm shadow-cyan-500/20'
@@ -749,7 +765,7 @@ export default function AdminPortal() {
             </button>
 
             <button
-              onClick={() => switchAdminRole(ROLES.ADMIN_AGENT)}
+              onClick={() => handleSwitchRole(ROLES.ADMIN_AGENT)}
               className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
                 currentRole === ROLES.ADMIN_AGENT
                   ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-sm shadow-amber-500/20'
@@ -762,7 +778,7 @@ export default function AdminPortal() {
             </button>
 
             <button
-              onClick={() => switchAdminRole(ROLES.SUPER_ADMIN)}
+              onClick={() => handleSwitchRole(ROLES.SUPER_ADMIN)}
               className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
                 currentRole === ROLES.SUPER_ADMIN
                   ? 'bg-gradient-to-r from-red-500 via-amber-500 to-yellow-500 text-slate-950 font-black shadow-sm shadow-red-500/20'
@@ -776,16 +792,8 @@ export default function AdminPortal() {
           </div>
 
           <button
-            onClick={() => navigateToStorefront('products')}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#070A12] border border-white/10 text-xs font-bold text-slate-300 hover:text-white"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Storefront</span>
-          </button>
-
-          <button
             onClick={adminLogout}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-500/15 border border-red-500/30 text-xs font-bold text-red-400 hover:bg-red-500/25"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-500/15 border border-red-500/30 text-xs font-bold text-red-400 hover:bg-red-500/25 transition-all"
           >
             <LogOut className="w-4 h-4" />
             <span>Logout</span>
@@ -793,8 +801,39 @@ export default function AdminPortal() {
         </div>
       </div>
 
-      {/* Admin Tabs */}
+      {/* Unified Portal Navigation Tabs (Role & Permission Based) */}
       <div className="flex items-center gap-2 border-b border-white/10 pb-3 overflow-x-auto no-scrollbar sm:flex-wrap">
+        {/* Tab 1: Dashboard & Analytics (Admin Agent & Super Admin) */}
+        {currentPermissions.dashboardDatas && (
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+              activeTab === 'dashboard'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+                : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
+            }`}
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            <span>Dashboard & Analytics</span>
+          </button>
+        )}
+
+        {/* Tab 2: Create Quotation (Sales, Finance, Admin, Super Admin) */}
+        {currentPermissions.quotationCreation && (
+          <button
+            onClick={() => setActiveTab('create_quote')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+              activeTab === 'create_quote'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+                : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
+            }`}
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Quotation</span>
+          </button>
+        )}
+
+        {/* Tab 3: Created Quotes & Invoices */}
         <button
           onClick={() => setActiveTab('quotes')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
@@ -804,9 +843,14 @@ export default function AdminPortal() {
           }`}
         >
           <Receipt className="w-4 h-4" />
-          <span>Created Quotes & Invoices ({quotesRecords.length})</span>
+          <span>
+            {currentRole === ROLES.SALES_AGENT
+              ? `My Quotations (${quotesRecords.length})`
+              : `Quotes & Invoices (${quotesRecords.length})`}
+          </span>
         </button>
 
+        {/* Tab 4: Products & Stock */}
         {currentPermissions.productListing && (
           <button
             onClick={() => setActiveTab('products')}
@@ -824,6 +868,7 @@ export default function AdminPortal() {
           </button>
         )}
 
+        {/* Tab 5: Branding (Admin & Super Admin) */}
         {currentPermissions.brandingManagement && (
           <button
             onClick={() => setActiveTab('branding')}
@@ -838,6 +883,7 @@ export default function AdminPortal() {
           </button>
         )}
 
+        {/* Tab 6: Bank Accounts (Admin & Super Admin) */}
         {currentPermissions.bankManagement && (
           <button
             onClick={() => setActiveTab('banks')}
@@ -854,9 +900,9 @@ export default function AdminPortal() {
       </div>
 
       {/* ========================================================= */}
-      {/* TAB 1: CREATED QUOTES & INVOICES RECORDS                  */}
+      {/* TAB 0: EXECUTIVE DASHBOARD & FINANCIAL ANALYTICS          */}
       {/* ========================================================= */}
-      {activeTab === 'quotes' && (
+      {activeTab === 'dashboard' && (
         <div className="space-y-4">
           {/* Calendar Range Selection Toolbar */}
           <div className="p-4 rounded-xl bg-surface border border-white/10 space-y-3 shadow-lg">
@@ -1137,6 +1183,86 @@ export default function AdminPortal() {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TAB 1: CREATED QUOTES & INVOICES RECORDS                  */}
+      {/* ========================================================= */}
+      {activeTab === 'quotes' && (
+        <div className="space-y-4">
+          {/* Quotes Quick KPI Summary Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
+            {/* 1. Total Quotations */}
+            <div
+              onClick={() => setQuoteFilter('ALL')}
+              className={`p-3.5 rounded-xl bg-surface border transition-all cursor-pointer ${
+                quoteFilter === 'ALL' ? 'border-white/40 ring-1 ring-white/20' : 'border-white/10 hover:border-white/30'
+              }`}
+            >
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Quotations</span>
+              <span className="text-xl font-mono font-bold text-white">{quotesRecords.length}</span>
+              <span className="text-[10px] text-slate-500 block mt-0.5">All registered proposals</span>
+            </div>
+
+            {/* 2. Pending Review */}
+            <div
+              onClick={() => setQuoteFilter(quoteFilter === 'pending' ? 'ALL' : 'pending')}
+              className={`p-3.5 rounded-xl bg-surface border transition-all cursor-pointer ${
+                quoteFilter === 'pending'
+                  ? 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-500/40'
+                  : 'border-white/10 hover:border-amber-500/40'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-bold text-amber-400">Pending Review</span>
+                {pendingQuotes.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    Review
+                  </span>
+                )}
+              </div>
+              <span className="text-xl font-mono font-bold text-amber-300">{pendingQuotes.length}</span>
+              <span className="text-[10px] text-slate-500 block mt-0.5">Awaiting Finance review</span>
+            </div>
+
+            {/* 3. Approved Quotes */}
+            <div
+              onClick={() => setQuoteFilter(quoteFilter === 'approved' ? 'ALL' : 'approved')}
+              className={`p-3.5 rounded-xl bg-surface border transition-all cursor-pointer ${
+                quoteFilter === 'approved'
+                  ? 'border-cyan-500 bg-cyan-500/10 ring-1 ring-cyan-500/40'
+                  : 'border-white/10 hover:border-cyan-500/40'
+              }`}
+            >
+              <span className="text-[10px] uppercase font-bold text-cyan-400 block">Approved Quotes</span>
+              <span className="text-xl font-mono font-bold text-cyan-300">{approvedQuotes.length}</span>
+              <span className="text-[10px] text-slate-500 block mt-0.5">Ready to invoice</span>
+            </div>
+
+            {/* 4. Converted Sales Invoices */}
+            <div
+              onClick={() => setQuoteFilter(quoteFilter === 'sales_invoice' ? 'ALL' : 'sales_invoice')}
+              className={`p-3.5 rounded-xl bg-surface border transition-all cursor-pointer ${
+                quoteFilter === 'sales_invoice'
+                  ? 'border-emerald-500 bg-emerald-500/10 ring-1 ring-emerald-500/40'
+                  : 'border-white/10 hover:border-emerald-500/40'
+              }`}
+            >
+              <span className="text-[10px] uppercase font-bold text-emerald-400 block">Converted Invoices</span>
+              <span className="text-xl font-mono font-bold text-emerald-400">{salesInvoices.length}</span>
+              <span className="text-[10px] text-slate-500 block mt-0.5">Official commercial invoices</span>
+            </div>
+
+            {/* 5. Total Sales Value */}
+            {currentPermissions.dashboardDatas && (
+              <div className="p-3.5 rounded-xl bg-surface border border-white/10 col-span-2 sm:col-span-1">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Sale Amount</span>
+                <span className="text-xl font-mono font-bold text-emerald-400">AED {formatCurrency(totalSalesAmount)}</span>
+                <span className="text-[10px] text-slate-500 block mt-0.5">Sum of invoices</span>
+              </div>
+            )}
+          </div>
 
           {/* Search & Actions Toolbar */}
           <div className="p-3 rounded-xl bg-surface border border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 text-xs">
@@ -1151,12 +1277,12 @@ export default function AdminPortal() {
               />
             </div>
 
-            {/* Quotation Creation Action (Finance Agent & Admin Agent) */}
+            {/* Quotation Creation Action */}
             {currentPermissions.quotationCreation && (
               <button
-                onClick={() => navigateToStorefront('products')}
+                onClick={() => setActiveTab('create_quote')}
                 className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black uppercase text-xs flex items-center justify-center gap-1.5 hover:brightness-110 shadow-sm shadow-amber-500/20 whitespace-nowrap active:scale-95"
-                title="Finance Agent / Admin Agent: Create a new quotation in Storefront Terminal"
+                title="Create a new quotation"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>+ Create Quotation</span>
@@ -1594,6 +1720,13 @@ export default function AdminPortal() {
             </table>
           </div>
         </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TAB: CREATE QUOTATION TERMINAL                           */}
+      {/* ========================================================= */}
+      {activeTab === 'create_quote' && (
+        <CreateQuotationTab onQuotationCreated={() => setActiveTab('quotes')} />
       )}
 
       {/* ========================================================= */}
