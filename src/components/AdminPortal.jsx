@@ -581,19 +581,17 @@ export default function AdminPortal() {
     setTermsValidationError('');
   };
 
-  // Download PDF from Admin (Restricted: Approved Quotations & Sales Invoices Only)
+  // Download PDF from Admin (Restricted: Generated Sales Invoices Only)
   const handleDownloadInvoicePdf = async (quoteOrInvoice) => {
-    const isApproved =
-      quoteOrInvoice.status === 'Approved' || quoteOrInvoice.type === 'sales_invoice';
-    if (!isApproved) {
+    const isInvoice = quoteOrInvoice.type === 'sales_invoice';
+    if (!isInvoice) {
       alert(
-        'Access Policy: PDF download is strictly allowed only for records with "Approved" status or converted Sales Invoices.'
+        'Access Policy: PDF download is strictly available once the official Sales Invoice has been generated.'
       );
       return;
     }
-    const isInvoice = quoteOrInvoice.type === 'sales_invoice';
     const doc = await generateInvoicePdf({
-      type: isInvoice ? 'SALES INVOICE' : 'QUOTATION',
+      type: 'SALES INVOICE',
       documentNumber:
         quoteOrInvoice.invoiceNumber || quoteOrInvoice.quoteNumber || quoteOrInvoice.id,
       date: quoteOrInvoice.invoiceDate || quoteOrInvoice.date,
@@ -609,23 +607,21 @@ export default function AdminPortal() {
       bankAccounts,
       terms: quoteOrInvoice.selectedTerms?.terms || quoteOrInvoice.terms || null,
     });
-    doc.save(`Delitrade_${isInvoice ? 'Sales_Invoice' : 'Quotation'}_${quoteOrInvoice.id}.pdf`);
+    doc.save(`Delitrade_Sales_Invoice_${quoteOrInvoice.invoiceNumber || quoteOrInvoice.id}.pdf`);
   };
 
-  // Preview PDF in Live Modal (Restricted: Approved Quotations & Sales Invoices Only)
+  // Preview PDF in Live Modal (Restricted: Generated Sales Invoices Only)
   const handlePreviewInvoicePdf = async (quoteOrInvoice) => {
-    const isApproved =
-      quoteOrInvoice.status === 'Approved' || quoteOrInvoice.type === 'sales_invoice';
-    if (!isApproved) {
+    const isInvoice = quoteOrInvoice.type === 'sales_invoice';
+    if (!isInvoice) {
       alert(
-        'Access Policy: PDF preview is strictly allowed only for records with "Approved" status or converted Sales Invoices.'
+        'Access Policy: PDF preview is strictly available once the official Sales Invoice has been generated.'
       );
       return;
     }
     try {
-      const isInvoice = quoteOrInvoice.type === 'sales_invoice';
       const doc = await generateInvoicePdf({
-        type: isInvoice ? 'SALES INVOICE' : 'QUOTATION',
+        type: 'SALES INVOICE',
         documentNumber:
           quoteOrInvoice.invoiceNumber || quoteOrInvoice.quoteNumber || quoteOrInvoice.id,
         date: quoteOrInvoice.invoiceDate || quoteOrInvoice.date,
@@ -644,12 +640,10 @@ export default function AdminPortal() {
       const blob = doc.output('blob');
       const blobUrl = URL.createObjectURL(blob);
       setPdfPreviewModal({
-        title: isInvoice
-          ? `Sales Invoice #${quoteOrInvoice.invoiceNumber || quoteOrInvoice.id}`
-          : `Quotation #${quoteOrInvoice.id}`,
+        title: `Sales Invoice #${quoteOrInvoice.invoiceNumber || quoteOrInvoice.id}`,
         url: blobUrl,
         record: quoteOrInvoice,
-        isInvoice,
+        isInvoice: true,
       });
     } catch (err) {
       console.error('Error generating PDF preview:', err);
@@ -1544,14 +1538,14 @@ export default function AdminPortal() {
                         </div>
                       )}
 
-                      {/* If Approved or Sales Invoice: Show Preview & Download */}
-                      {isApproved || isInvoice ? (
+                      {/* Once generated invoice, then only show Preview & Download */}
+                      {isInvoice && (
                         <>
                           {/* Preview PDF */}
                           <button
                             onClick={() => handlePreviewInvoicePdf(rec)}
                             className="p-2 rounded-lg bg-[#1E2839] hover:bg-emerald-600 text-slate-200 hover:text-white transition-colors"
-                            title={isInvoice ? 'Preview Sales Invoice PDF' : 'Preview Approved Quotation PDF'}
+                            title="Preview Official Sales Invoice PDF"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -1560,19 +1554,11 @@ export default function AdminPortal() {
                           <button
                             onClick={() => handleDownloadInvoicePdf(rec)}
                             className="p-2 rounded-lg bg-[#1E2839] hover:bg-blue-600 text-slate-200 hover:text-white transition-colors"
-                            title={isInvoice ? 'Download Sales Invoice PDF' : 'Download Approved Quotation PDF'}
+                            title="Download Official Sales Invoice PDF"
                           >
                             <Download className="w-4 h-4" />
                           </button>
                         </>
-                      ) : (
-                        <div
-                          className="px-2.5 py-1.5 rounded-lg bg-[#070A12] border border-white/5 text-slate-500 text-[10px] font-mono flex items-center justify-center gap-1 cursor-not-allowed"
-                          title="PDF Preview & Download is strictly locked until Quotation is Approved by Finance"
-                        >
-                          <Lock className="w-3 h-3 text-slate-500" />
-                          <span>PDF Locked (Requires Approval)</span>
-                        </div>
                       )}
 
                       {currentPermissions.productionCrud && (
@@ -1821,14 +1807,14 @@ export default function AdminPortal() {
                               </span>
                             )}
 
-                            {/* If Approved or Sales Invoice: Show Preview & Download */}
-                            {isApproved || isInvoice ? (
+                            {/* Once generated invoice, then only show Preview & Download */}
+                            {isInvoice && (
                               <>
                                 {/* Preview PDF */}
                                 <button
                                   onClick={() => handlePreviewInvoicePdf(rec)}
                                   className="p-1.5 rounded bg-[#1E2839] hover:bg-emerald-600 text-slate-200 hover:text-white transition-colors"
-                                  title={isInvoice ? 'Preview Sales Invoice PDF' : 'Preview Approved Quotation PDF'}
+                                  title="Preview Official Sales Invoice PDF"
                                 >
                                   <Eye className="w-3.5 h-3.5" />
                                 </button>
@@ -1837,19 +1823,11 @@ export default function AdminPortal() {
                                 <button
                                   onClick={() => handleDownloadInvoicePdf(rec)}
                                   className="p-1.5 rounded bg-[#1E2839] hover:bg-blue-600 text-slate-200 hover:text-white transition-colors"
-                                  title={isInvoice ? 'Download Sales Invoice PDF' : 'Download Approved Quotation PDF'}
+                                  title="Download Official Sales Invoice PDF"
                                 >
                                   <Download className="w-3.5 h-3.5" />
                                 </button>
                               </>
-                            ) : (
-                              <span
-                                className="px-2 py-1 rounded bg-[#070A12] border border-white/5 text-slate-500 text-[10px] font-mono flex items-center gap-1 cursor-not-allowed"
-                                title="PDF Preview & Download is strictly locked until Quotation is Approved by Finance"
-                              >
-                                <Lock className="w-3 h-3 text-slate-500" />
-                                <span>PDF Locked</span>
-                              </span>
                             )}
 
                             {/* Delete Quote (Admin Agent Only) */}

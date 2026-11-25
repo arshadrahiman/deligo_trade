@@ -315,10 +315,10 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
     }
   };
 
-  // Handle PDF Export (Restricted to Approved Status)
+  // Handle PDF Export (Restricted to Generated Sales Invoices)
   const handleDownloadPdf = () => {
     alert(
-      'Access Policy: Quotations must be submitted and Approved by Finance before downloading or previewing official PDF documents. Once approved, the PDF will be unlocked in the Quotations & Invoices Ledger.'
+      'Access Policy: Quotations must be approved and converted into an official Sales Invoice before downloading or previewing the PDF document. Once the invoice is generated, the PDF is unlocked in the Quotations & Invoices Ledger.'
     );
   };
 
@@ -963,10 +963,10 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
                   type="button"
                   onClick={handleDownloadPdf}
                   className="py-2 rounded-xl bg-[#070A12] border border-white/10 text-slate-500 font-mono text-xs font-bold flex items-center justify-center gap-1.5 cursor-not-allowed opacity-70 hover:opacity-100 transition-all"
-                  title="PDF Download is locked until Quotation is submitted and Approved by Finance"
+                  title="PDF Download is available once the Quotation is approved and generated into a Sales Invoice"
                 >
                   <Lock className="w-3.5 h-3.5 text-slate-500" />
-                  <span>PDF (Approved Only)</span>
+                  <span>PDF (Invoice Only)</span>
                 </button>
                 <button
                   type="button"
