@@ -44,10 +44,12 @@ import {
   Users,
   ExternalLink,
   X,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { useApp, sanitizeInput } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
 import { generateInvoicePdf } from '../utils/pdfGenerator';
+import { exportQuotesToExcel } from '../utils/excelExport';
 import Pagination from './Pagination';
 import FinancialDashboardGraph from './FinancialDashboardGraph';
 import LoginPage from './LoginPage';
@@ -736,6 +738,26 @@ export default function AdminPortal() {
     return matchesFilter && matchesSearch;
   });
 
+  // Export Quotations & Invoices to Excel (.xlsx) for all agents
+  const handleExportQuotesToExcel = (targetRecords = filteredQuotes) => {
+    if (!targetRecords || targetRecords.length === 0) {
+      alert('No quotation or sales invoice records found to export.');
+      return;
+    }
+    const filterLabelsMap = {
+      ALL: 'All_Records',
+      pending: 'Pending_Review',
+      approved: 'Approved',
+      sales_invoice: 'Sales_Invoices',
+      quotation: 'Quotations',
+    };
+    const activeLabel = quoteSearch.trim()
+      ? `Search_${quoteSearch.trim()}`
+      : filterLabelsMap[quoteFilter] || quoteFilter;
+
+    exportQuotesToExcel(targetRecords, companySettings, activeLabel);
+  };
+
   const totalSalesAmount = useMemo(() => {
     return salesInvoices.reduce((sum, q) => sum + (Number(q.grandTotal) || 0), 0);
   }, [salesInvoices]);
@@ -1297,8 +1319,8 @@ export default function AdminPortal() {
       {activeTab === 'quotes' && (
         <div className="space-y-4">
           {/* Search & Actions Toolbar */}
-          <div className="p-3 rounded-xl bg-surface border border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 text-xs">
-            <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
+          <div className="p-3 rounded-xl bg-surface border border-white/10 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3 text-xs">
+            <div className="flex items-center gap-2 flex-1 w-full min-w-[240px]">
               <Search className="w-4 h-4 text-slate-400 ml-1 flex-shrink-0" />
               <input
                 type="text"
@@ -1309,17 +1331,29 @@ export default function AdminPortal() {
               />
             </div>
 
-            {/* Quotation Creation Action */}
-            {currentPermissions.quotationCreation && (
+            {/* Quick Actions (Create Quote + Export to Excel for All Agents) */}
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+              {currentPermissions.quotationCreation && (
+                <button
+                  onClick={() => setActiveTab('create_quote')}
+                  className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black uppercase text-xs flex items-center justify-center gap-1.5 hover:brightness-110 shadow-sm shadow-amber-500/20 whitespace-nowrap active:scale-95 flex-1 sm:flex-initial"
+                  title="Create a new quotation"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Create Quotation</span>
+                </button>
+              )}
+
+              {/* Export to Excel for ALL Agents */}
               <button
-                onClick={() => setActiveTab('create_quote')}
-                className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black uppercase text-xs flex items-center justify-center gap-1.5 hover:brightness-110 shadow-sm shadow-amber-500/20 whitespace-nowrap active:scale-95"
-                title="Create a new quotation"
+                onClick={() => handleExportQuotesToExcel(filteredQuotes)}
+                className="px-3.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 whitespace-nowrap flex-1 sm:flex-initial"
+                title={`Export quotation & invoice list (${filteredQuotes.length} records) to Excel (.xlsx)`}
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>+ Create Quotation</span>
+                <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                <span>Export to Excel</span>
               </button>
-            )}
+            </div>
 
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-slate-400 font-bold">Filter:</span>
@@ -1368,6 +1402,19 @@ export default function AdminPortal() {
 
           {/* Mobile Quotes & Invoices Cards (sm:hidden) */}
           <div className="sm:hidden space-y-3">
+            <div className="flex items-center justify-between px-1 text-xs">
+              <span className="text-slate-400 font-bold text-[11px] uppercase tracking-wider">
+                {filteredQuotes.length} records shown
+              </span>
+              <button
+                onClick={() => handleExportQuotesToExcel(filteredQuotes)}
+                className="px-2.5 py-1 rounded-md bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 active:scale-95"
+                title="Export list to Excel (.xlsx)"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Export Excel</span>
+              </button>
+            </div>
             {filteredQuotes.length === 0 ? (
               <div className="p-6 rounded-xl bg-surface border border-white/10 text-center text-slate-400 text-xs">
                 No quotation or sales invoice records found.
@@ -1549,6 +1596,26 @@ export default function AdminPortal() {
 
           {/* Records Table (Desktop / Tablet) */}
           <div className="hidden sm:block overflow-x-auto rounded-xl border border-white/10 bg-surface">
+            {/* Table Header Bar with Live Record Count & Excel Export for All Agents */}
+            <div className="p-2.5 px-4 bg-[#0A0D14] border-b border-white/10 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <Receipt className="w-3.5 h-3.5 text-amber-400" />
+                <span className="font-bold text-white uppercase text-[11px] tracking-wider">
+                  Quotes & Invoices Ledger
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 font-mono text-slate-300">
+                  {filteredQuotes.length} records shown
+                </span>
+              </div>
+              <button
+                onClick={() => handleExportQuotesToExcel(filteredQuotes)}
+                className="px-2.5 py-1 rounded-md bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                title="Export this list to Excel (.xlsx)"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Export List to Excel</span>
+              </button>
+            </div>
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-[#0A0D14] text-slate-400 font-bold uppercase border-b border-white/10 text-[11px]">
@@ -2962,6 +3029,17 @@ export default function AdminPortal() {
                 </button>
 
                 <div className="flex flex-wrap items-center gap-2">
+                  {/* Export This Quotation to Excel */}
+                  <button
+                    type="button"
+                    onClick={() => handleExportQuotesToExcel([reviewingQuote])}
+                    className="px-3.5 py-2.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95"
+                    title={`Export quotation #${reviewingQuote.id} to Excel (.xlsx)`}
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                    <span>Export to Excel</span>
+                  </button>
+
                   {/* Save changes button (before approval) */}
                   {canModify && (
                     <button
@@ -3551,6 +3629,16 @@ export default function AdminPortal() {
 
               <button
                 type="button"
+                onClick={() => handleExportQuotesToExcel([previewingQuote])}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95"
+                title="Export this record to Excel (.xlsx)"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                <span>Export to Excel</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={handleConfirmSalesInvoice}
                 className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95"
               >
@@ -3613,6 +3701,17 @@ export default function AdminPortal() {
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">New Tab</span>
                 </a>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleExportQuotesToExcel([pdfPreviewModal.record])
+                  }
+                  className="px-2.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/40 text-xs font-mono font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                  title="Export this record to Excel (.xlsx)"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="hidden sm:inline">Excel</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => handleDownloadInvoicePdf(pdfPreviewModal.record)}
