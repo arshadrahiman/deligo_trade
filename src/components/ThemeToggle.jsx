@@ -53,14 +53,14 @@ export default function ThemeToggle({ className = '' }) {
 
   return (
     <div
-      className={`relative inline-flex items-center p-1 rounded-full bg-[#070A12] border border-white/10 shadow-inner select-none backdrop-blur-md w-[112px] sm:w-[198px] h-8 ${className}`}
+      className={`relative inline-flex items-center p-0.5 rounded-full bg-[#070A12] border border-white/10 shadow-inner select-none backdrop-blur-md w-[108px] sm:w-[185px] h-8 flex-shrink-0 ${className}`}
       role="radiogroup"
       aria-label="Terminal Theme Toggle Switch"
-      title={`Active: ${theme.toUpperCase()} • Click any position or toggle to cycle`}
+      title={`Theme: ${theme.toUpperCase()} • Click any position or toggle to cycle`}
     >
       {/* Precision Sliding Capsule Thumb */}
       <div
-        className="absolute top-1 bottom-1 left-1 w-[calc((100%-8px)/3)] rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 shadow-md shadow-amber-500/30 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none z-0"
+        className="absolute top-0.5 bottom-0.5 left-0.5 w-[calc((100%-4px)/3)] rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 shadow-md shadow-amber-500/25 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none z-0"
         style={{
           transform: `translateX(${safeIndex * 100}%)`,
         }}
@@ -86,11 +86,11 @@ export default function ThemeToggle({ className = '' }) {
               aria-checked={isActive}
             >
               <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-              <span className="hidden sm:inline text-[11px] font-sans font-bold leading-none">
+              <span className="hidden sm:inline text-[10.5px] font-sans font-bold leading-none">
                 {opt.label}
               </span>
               {opt.badge && isActive && (
-                <span className="hidden md:inline text-[8.5px] px-1 py-0.2 rounded-full bg-black/20 text-slate-950 font-mono font-bold leading-none">
+                <span className="hidden md:inline text-[8px] px-1 py-0.2 rounded-full bg-black/20 text-slate-950 font-mono font-bold leading-none">
                   {opt.badge}
                 </span>
               )}
