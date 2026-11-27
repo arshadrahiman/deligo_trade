@@ -155,3 +155,279 @@ html, body {
     print-color-adjust: exact !important;
   }
 }
+
+/* ========================================================= */
+/* LIGHT MODE THEME OVERRIDES                               */
+/* Activated when html has class "light"                     */
+/* ========================================================= */
+
+html.light,
+html.light body,
+html.light #root {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
+/* Base Surfaces & Cards */
+html.light .bg-surface,
+html.light [class*="bg-surface"] {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Nested Dark Containers Mapped to Crisp Clean Light */
+html.light .bg-\[\#070A12\],
+html.light .bg-\[\#090D17\],
+html.light .bg-\[\#0A0D14\] {
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
+  border-color: #E2E8F0 !important;
+}
+
+html.light .bg-\[\#0D121F\] {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+html.light .bg-\[\#1E2839\] {
+  background-color: #E2E8F0 !important;
+  color: #1E293B !important;
+  border-color: #CBD5E1 !important;
+}
+
+/* Hover States */
+html.light .hover\:bg-\[\#070A12\]:hover,
+html.light .hover\:bg-\[\#0A0D14\]:hover {
+  background-color: #E2E8F0 !important;
+}
+
+html.light .hover\:bg-\[\#1E2839\]:hover {
+  background-color: #CBD5E1 !important;
+}
+
+/* Glass Panels */
+html.light .pos-glass {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06) !important;
+}
+
+html.light .pos-glass-card {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light .pos-glass-card:hover {
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.08), 0 0 15px -3px rgba(245, 158, 11, 0.15) !important;
+}
+
+/* Text Hierarchy */
+html.light .text-white {
+  color: #0F172A !important;
+}
+
+html.light .text-slate-100 {
+  color: #1E293B !important;
+}
+
+html.light .text-slate-200 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-300 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-400 {
+  color: #64748B !important;
+}
+
+html.light .text-slate-500 {
+  color: #94A3B8 !important;
+}
+
+/* Preserve White text on colored primary/action buttons */
+html.light button.bg-emerald-600,
+html.light button.bg-emerald-500,
+html.light button.bg-blue-600,
+html.light button.bg-red-600,
+html.light button.bg-red-500,
+html.light .bg-emerald-600,
+html.light .bg-blue-600,
+html.light .bg-red-600,
+html.light .bg-red-500 {
+  color: #FFFFFF !important;
+}
+
+html.light .bg-gradient-to-r.from-amber-500,
+html.light .bg-amber-500 {
+  color: #020617 !important;
+}
+
+/* Borders & Dividers */
+html.light .border-white\/5,
+html.light .border-white\/10,
+html.light .border-white\/15,
+html.light .border-white\/20,
+html.light .border-white\/30,
+html.light .border-white\/40 {
+  border-color: #E2E8F0 !important;
+}
+
+html.light .divide-\[\#1E2839\],
+html.light .divide-white\/10,
+html.light .divide-white\/5 {
+  border-color: #E2E8F0 !important;
+}
+
+/* Form Controls, Inputs, Selects */
+html.light input:not([type="checkbox"]):not([type="radio"]),
+html.light select,
+html.light textarea {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  background-color: #FFFFFF !important;
+  border-color: #F59E0B !important;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2) !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94A3B8 !important;
+}
+
+/* Tables */
+html.light table thead tr {
+  background-color: #F1F5F9 !important;
+  border-bottom: 1px solid #CBD5E1 !important;
+}
+
+html.light table thead th {
+  color: #475569 !important;
+}
+
+html.light table tbody tr {
+  background-color: #FFFFFF;
+  color: #0F172A;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+
+html.light table tbody tr:hover {
+  background-color: #F8FAFC !important;
+}
+
+/* Modals & Backdrops */
+html.light .bg-black\/85,
+html.light .bg-black\/80,
+html.light .bg-black\/75,
+html.light .bg-black\/70,
+html.light .bg-black\/60 {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Badges & Status Indicators (High contrast in Light theme) */
+html.light .bg-emerald-500\/20,
+html.light .bg-emerald-500\/15,
+html.light .bg-emerald-500\/10 {
+  background-color: #ECFDF5 !important;
+  color: #047857 !important;
+  border-color: #A7F3D0 !important;
+}
+
+html.light .text-emerald-400,
+html.light .text-emerald-300 {
+  color: #047857 !important;
+}
+
+html.light .bg-cyan-500\/20,
+html.light .bg-cyan-500\/15,
+html.light .bg-cyan-500\/10 {
+  background-color: #ECFEFF !important;
+  color: #0E7490 !important;
+  border-color: #A5F3FC !important;
+}
+
+html.light .text-cyan-400,
+html.light .text-cyan-300 {
+  color: #0E7490 !important;
+}
+
+html.light .bg-amber-500\/20,
+html.light .bg-amber-500\/15,
+html.light .bg-amber-500\/10 {
+  background-color: #FFFBEB !important;
+  color: #B45309 !important;
+  border-color: #FDE68A !important;
+}
+
+html.light .text-amber-400,
+html.light .text-amber-300 {
+  color: #B45309 !important;
+}
+
+html.light .bg-purple-500\/20,
+html.light .bg-purple-500\/15,
+html.light .bg-purple-500\/10 {
+  background-color: #FAF5FF !important;
+  color: #6D28D9 !important;
+  border-color: #D8B4FE !important;
+}
+
+html.light .text-purple-400,
+html.light .text-purple-300 {
+  color: #6D28D9 !important;
+}
+
+html.light .bg-red-500\/20,
+html.light .bg-red-500\/15,
+html.light .bg-red-500\/10 {
+  background-color: #FEF2F2 !important;
+  color: #B91C1C !important;
+  border-color: #FECACA !important;
+}
+
+html.light .text-red-400,
+html.light .text-red-300 {
+  color: #B91C1C !important;
+}
+
+/* Scrollbars in Light Mode */
+html.light ::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+html.light ::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Background Grids */
+html.light .bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+}
+
+/* SVG Chart Typography & Lines */
+html.light svg text {
+  fill: #475569 !important;
+}
+html.light svg line {
+  stroke: #E2E8F0 !important;
+}
+

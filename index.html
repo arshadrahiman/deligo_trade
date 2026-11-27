@@ -5,6 +5,27 @@
     <link id="dynamic-favicon" rel="icon" type="image/png" href="./favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Delitrade • Commercial Gym Machinery Trading Terminal & POS</title>
+    <!-- Instant Theme Initialization (System Default / Anti-Flicker) -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('delitrade_theme_mode_v1') || 'system';
+          var isDark = saved === 'dark' || (saved === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var root = document.documentElement;
+          if (isDark) {
+            root.classList.add('dark');
+            root.classList.remove('light');
+            root.setAttribute('data-theme', 'dark');
+            root.style.colorScheme = 'dark';
+          } else {
+            root.classList.add('light');
+            root.classList.remove('dark');
+            root.setAttribute('data-theme', 'light');
+            root.style.colorScheme = 'light';
+          }
+        } catch (e) {}
+      })();
+    </script>
     <!-- Prevent Pinch-to-Zoom on touch devices -->
     <script>
       (function() {

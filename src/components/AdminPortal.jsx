@@ -56,6 +56,7 @@ import LoginPage from './LoginPage';
 import CreateQuotationTab from './CreateQuotationTab';
 import SystemConfigTab from './SystemConfigTab';
 import CompanyLogo from './CompanyLogo';
+import ThemeToggle from './ThemeToggle';
 
 export const DEFAULT_TERMS_TEMPLATES = [
   {
@@ -895,6 +896,9 @@ export default function AdminPortal() {
 
         {/* Authenticated Session Badge & Secure Logout */}
         <div className="flex items-center gap-3">
+          {/* Header Theme Switcher */}
+          <ThemeToggle variant="header" />
+
           <div className="hidden sm:flex flex-col items-end text-right">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />

@@ -18,6 +18,7 @@ const STORAGE_KEYS = {
   SYSTEM_ACCOUNTS: 'delitrade_accounts_v2',
   ROLE_PERMISSIONS: 'delitrade_role_perms_v2',
   SYSTEM_CONFIG: 'delitrade_sys_config_v2',
+  THEME: 'delitrade_theme_mode_v1',
 };
 
 // Input sanitization to prevent XSS / script injection attacks
@@ -429,6 +430,84 @@ export const getNextQuotationNumber = (records = []) => {
 };
 
 export function AppProvider({ children }) {
+  // Theme Settings ('system' | 'light' | 'dark' - System as default)
+  const [theme, setThemeState] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.THEME);
+      return saved === 'light' || saved === 'dark' || saved === 'system' ? saved : 'system';
+    } catch {
+      return 'system';
+    }
+  });
+
+  const [resolvedTheme, setResolvedTheme] = useState(() => {
+    if (typeof window === 'undefined') return 'dark';
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.THEME) || 'system';
+      if (saved === 'dark') return 'dark';
+      if (saved === 'light') return 'light';
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  const setTheme = (newTheme) => {
+    const val =
+      newTheme === 'light' || newTheme === 'dark' || newTheme === 'system' ? newTheme : 'system';
+    setThemeState(val);
+    try {
+      localStorage.setItem(STORAGE_KEYS.THEME, val);
+    } catch (e) {
+      console.warn('Could not save theme preference:', e);
+    }
+  };
+
+  useEffect(() => {
+    const applyTheme = () => {
+      let active = theme;
+      if (theme === 'system') {
+        const isSystemDark =
+          typeof window !== 'undefined' &&
+          window.matchMedia &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches;
+        active = isSystemDark ? 'dark' : 'light';
+      }
+      setResolvedTheme(active);
+
+      if (typeof document !== 'undefined') {
+        const root = document.documentElement;
+        if (active === 'dark') {
+          root.classList.add('dark');
+          root.classList.remove('light');
+          root.setAttribute('data-theme', 'dark');
+          root.style.colorScheme = 'dark';
+        } else {
+          root.classList.add('light');
+          root.classList.remove('dark');
+          root.setAttribute('data-theme', 'light');
+          root.style.colorScheme = 'light';
+        }
+      }
+    };
+
+    applyTheme();
+
+    if (theme === 'system' && typeof window !== 'undefined' && window.matchMedia) {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = () => applyTheme();
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+      } else if (mediaQuery.addListener) {
+        mediaQuery.addListener(handleChange);
+        return () => mediaQuery.removeListener(handleChange);
+      }
+    }
+  }, [theme]);
+
   // Products State (Ensuring purchaseRate is present on every product for Admin Profit calculation)
   const [products, setProducts] = useState(() => {
     try {
@@ -1515,6 +1594,11 @@ export function AppProvider({ children }) {
         setSearchQuery,
         selectedCategory,
         setSelectedCategory,
+
+        // Theme Settings (Light, Dark, System)
+        theme,
+        resolvedTheme,
+        setTheme,
       }}
     >
       {children}

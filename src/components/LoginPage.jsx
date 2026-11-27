@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import CompanyLogo from './CompanyLogo';
+import ThemeToggle from './ThemeToggle';
 
 export default function LoginPage() {
   const { adminLogin, companySettings, checkLockout } = useApp();
@@ -82,6 +83,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen w-full bg-[#070A12] flex flex-col items-center justify-center px-4 py-8 sm:py-12 relative overflow-hidden select-none">
+      {/* Top right corner theme switcher */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+        <ThemeToggle variant="header" />
+      </div>
+
       {/* Background ambient security lighting */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 sm:w-[500px] sm:h-[500px] bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
