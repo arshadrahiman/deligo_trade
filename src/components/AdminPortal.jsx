@@ -1344,29 +1344,17 @@ export default function AdminPortal() {
               />
             </div>
 
-            {/* Quick Actions (Create Quote + Export to Excel for All Agents) */}
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
-              {currentPermissions.quotationCreation && (
-                <button
-                  onClick={() => setActiveTab('create_quote')}
-                  className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black uppercase text-xs flex items-center justify-center gap-1.5 hover:brightness-110 shadow-sm shadow-amber-500/20 whitespace-nowrap active:scale-95 flex-1 sm:flex-initial"
-                  title="Create a new quotation"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>+ Create Quotation</span>
-                </button>
-              )}
-
-              {/* Export to Excel for ALL Agents */}
+            {/* Quick Action: Create Quotation */}
+            {currentPermissions.quotationCreation && (
               <button
-                onClick={() => handleExportQuotesToExcel(filteredQuotes)}
-                className="px-3.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 whitespace-nowrap flex-1 sm:flex-initial"
-                title={`Export quotation & invoice list (${filteredQuotes.length} records) to Excel (.xlsx)`}
+                onClick={() => setActiveTab('create_quote')}
+                className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold font-black uppercase text-xs flex items-center justify-center gap-1.5 hover:brightness-110 shadow-sm shadow-amber-500/20 whitespace-nowrap active:scale-95 flex-1 sm:flex-initial"
+                title="Create a new quotation"
               >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-                <span>Export to Excel</span>
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Create Quotation</span>
               </button>
-            </div>
+            )}
 
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-slate-400 font-bold">Filter:</span>
