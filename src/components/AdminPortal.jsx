@@ -897,7 +897,7 @@ export default function AdminPortal() {
         {/* Authenticated Session Badge & Secure Logout */}
         <div className="flex items-center gap-3">
           {/* Header Theme Switcher */}
-          <ThemeToggle variant="header" />
+          <ThemeToggle />
 
           <div className="hidden sm:flex flex-col items-end text-right">
             <div className="flex items-center gap-1.5">

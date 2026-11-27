@@ -28,7 +28,6 @@ import {
   Save,
 } from 'lucide-react';
 import { useApp, sanitizeInput } from '../context/AppContext';
-import ThemeToggle from './ThemeToggle';
 
 export default function SystemConfigTab() {
   const {
@@ -820,23 +819,6 @@ export default function SystemConfigTab() {
                   onChange={(e) => setCfgCurrency(e.target.value)}
                   className="w-full bg-[#070A12] border border-white/10 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-red-500/60"
                 />
-              </div>
-            </div>
-
-            {/* UI Theme & Appearance Mode */}
-            <div className="pt-4 border-t border-white/10">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#070A12] border border-white/10">
-                <div>
-                  <h4 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
-                    Terminal Appearance & Theme Mode
-                  </h4>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Select Light, Dark, or System mode. System setting is the default and dynamically follows your device OS theme.
-                  </p>
-                </div>
-                <div>
-                  <ThemeToggle variant="header" />
-                </div>
               </div>
             </div>
 

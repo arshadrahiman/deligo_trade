@@ -85,7 +85,7 @@ export default function LoginPage() {
     <div className="min-h-screen w-full bg-[#070A12] flex flex-col items-center justify-center px-4 py-8 sm:py-12 relative overflow-hidden select-none">
       {/* Top right corner theme switcher */}
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
-        <ThemeToggle variant="header" />
+        <ThemeToggle />
       </div>
 
       {/* Background ambient security lighting */}
