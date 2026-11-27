@@ -987,10 +987,7 @@ export default function AdminPortal() {
             }`}
           >
             <Package className="w-4 h-4" />
-            <span>
-              Products & Stock ({products.length})
-              {!currentPermissions.productionCrud && ' [Listing Only]'}
-            </span>
+            <span>Products & Stock ({products.length})</span>
           </button>
         )}
 
