@@ -45,6 +45,7 @@ import {
   ExternalLink,
   X,
   FileSpreadsheet,
+  Copy,
 } from 'lucide-react';
 import { useApp, sanitizeInput } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
@@ -125,6 +126,45 @@ export default function AdminPortal() {
   // Search in Quotes
   const [quoteSearch, setQuoteSearch] = useState('');
   const [quoteFilter, setQuoteFilter] = useState('ALL'); // 'ALL' | 'quotation' | 'sales_invoice'
+
+  // Ref Code / Doc ID Copy to Clipboard State & Handler
+  const [copiedDocId, setCopiedDocId] = useState(null);
+
+  const handleCopyDocId = (code, e) => {
+    if (e) e.stopPropagation();
+    if (!code) return;
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard
+        .writeText(code)
+        .then(() => {
+          setCopiedDocId(code);
+          setTimeout(() => setCopiedDocId(null), 2000);
+        })
+        .catch(() => {
+          fallbackCopyDocId(code);
+        });
+    } else {
+      fallbackCopyDocId(code);
+    }
+  };
+
+  const fallbackCopyDocId = (text) => {
+    try {
+      const el = document.createElement('textarea');
+      el.value = text;
+      el.style.position = 'fixed';
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.focus();
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setCopiedDocId(text);
+      setTimeout(() => setCopiedDocId(null), 2000);
+    } catch (err) {
+      console.warn('Copy failed', err);
+    }
+  };
 
   // Calendar Date Range Selection State
   const [dateRangePreset, setDateRangePreset] = useState('ALL'); // 'ALL' | 'TODAY' | 'THIS_WEEK' | 'THIS_MONTH' | 'LAST_30_DAYS' | 'CUSTOM'
@@ -1429,8 +1469,20 @@ export default function AdminPortal() {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <div className="font-mono font-bold text-white text-xs">
-                          {isInvoice ? rec.invoiceNumber || rec.id : rec.id}
+                        <div
+                          onClick={(e) => handleCopyDocId(isInvoice ? rec.invoiceNumber || rec.id : rec.id, e)}
+                          className="group/copy inline-flex items-center gap-1.5 font-mono font-bold text-white text-xs cursor-pointer hover:text-amber-400 transition-colors"
+                          title="Click to copy Ref Code to clipboard"
+                        >
+                          <span>{isInvoice ? rec.invoiceNumber || rec.id : rec.id}</span>
+                          {copiedDocId === (isInvoice ? rec.invoiceNumber || rec.id : rec.id) ? (
+                            <span className="flex items-center gap-0.5 text-[10px] text-emerald-400 font-bold">
+                              <Check className="w-3 h-3 text-emerald-400" />
+                              <span className="font-sans">Copied!</span>
+                            </span>
+                          ) : (
+                            <Copy className="w-3 h-3 opacity-60 group-hover/copy:opacity-100 text-slate-400 hover:text-amber-400 transition-all" />
+                          )}
                         </div>
                         <div className="flex items-center gap-1.5 mt-1">
                           <span
@@ -1643,8 +1695,20 @@ export default function AdminPortal() {
                       <tr key={rec.id} className="hover:bg-[#070A12] transition-colors">
                         {/* Doc ID */}
                         <td className="p-3">
-                          <div className="font-mono font-bold text-white text-xs">
-                            {isInvoice ? rec.invoiceNumber || rec.id : rec.id}
+                          <div
+                            onClick={(e) => handleCopyDocId(isInvoice ? rec.invoiceNumber || rec.id : rec.id, e)}
+                            className="group/copy inline-flex items-center gap-1.5 font-mono font-bold text-white text-xs cursor-pointer hover:text-amber-400 transition-colors"
+                            title="Click to copy Ref Code to clipboard"
+                          >
+                            <span>{isInvoice ? rec.invoiceNumber || rec.id : rec.id}</span>
+                            {copiedDocId === (isInvoice ? rec.invoiceNumber || rec.id : rec.id) ? (
+                              <span className="flex items-center gap-0.5 text-[10px] text-emerald-400 font-bold">
+                                <Check className="w-3 h-3 text-emerald-400" />
+                                <span className="font-sans">Copied!</span>
+                              </span>
+                            ) : (
+                              <Copy className="w-3 h-3 opacity-0 group-hover/copy:opacity-100 text-slate-400 hover:text-amber-400 transition-all" />
+                            )}
                           </div>
                           {isInvoice && rec.selectedTerms && (
                             <div className="mt-1 flex items-center gap-1 max-w-[190px]" title={rec.selectedTerms.name}>
@@ -2594,11 +2658,28 @@ export default function AdminPortal() {
                 <div className="flex items-center gap-2.5">
                   <CompanyLogo size="sm" showText={false} />
                   <div>
-                    <h3 className="font-oswald text-lg sm:text-xl font-black text-white tracking-wide uppercase">
-                      {isApproved
-                        ? `QUOTATION #${reviewingQuote.id}`
-                        : `QUOTATION REVIEW: #${reviewingQuote.id}`}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-oswald text-lg sm:text-xl font-black text-white tracking-wide uppercase">
+                        {isApproved
+                          ? `QUOTATION #${reviewingQuote.id}`
+                          : `QUOTATION REVIEW: #${reviewingQuote.id}`}
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={(e) => handleCopyDocId(reviewingQuote.id, e)}
+                        className="p-1 rounded text-slate-400 hover:text-amber-400 hover:bg-white/10 transition-colors"
+                        title="Click to copy Ref Code"
+                      >
+                        {copiedDocId === reviewingQuote.id ? (
+                          <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-bold font-sans">
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Copied!</span>
+                          </span>
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
                     <p className="text-slate-400 text-xs">
                       Status: {isApproved ? 'Approved' : 'Pending Review'}
                     </p>

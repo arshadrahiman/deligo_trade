@@ -22,6 +22,7 @@ import {
   ArrowUpDown,
   SlidersHorizontal,
   Lock,
+  Copy,
 } from 'lucide-react';
 import { useApp, sanitizeInput } from '../context/AppContext';
 import { formatCurrency, numberToWords } from '../utils/numberToWords';
@@ -97,6 +98,44 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
   // Clean quotation reference number (e.g. "102")
   const cleanQuotationNumber =
     (quotationNumber || '').replace(/^#?QT-?(2026)?-?/i, '') || '102';
+
+  const [copiedRef, setCopiedRef] = useState(false);
+
+  const handleCopyRefCode = (codeToCopy, e) => {
+    if (e) e.stopPropagation();
+    const code = codeToCopy || `QT-2026-${cleanQuotationNumber}`;
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard
+        .writeText(code)
+        .then(() => {
+          setCopiedRef(true);
+          setTimeout(() => setCopiedRef(false), 2000);
+        })
+        .catch(() => {
+          fallbackCopyRef(code);
+        });
+    } else {
+      fallbackCopyRef(code);
+    }
+  };
+
+  const fallbackCopyRef = (text) => {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      setCopiedRef(true);
+      setTimeout(() => setCopiedRef(false), 2000);
+    } catch (e) {
+      console.warn('Copy failed', e);
+    }
+  };
 
   const categories = ['ALL', 'CARDIO', 'STRENGTH', 'FREE WEIGHTS', 'ACCESSORIES'];
 
@@ -321,14 +360,9 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
         <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
           <CompanyLogo size="md" showText={false} className="flex-shrink-0 mt-0.5" />
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-sm sm:text-base font-bold text-white uppercase tracking-tight truncate">
-                Create Commercial Quotation
-              </h2>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold flex-shrink-0">
-                Auto-Sequence Active
-              </span>
-            </div>
+            <h2 className="text-sm sm:text-base font-bold text-white uppercase tracking-tight truncate">
+              Create Commercial Quotation
+            </h2>
             <p className="text-xs text-slate-400 mt-0.5 line-clamp-2 sm:line-clamp-1">
               Select warehouse stock, specify client particulars, and submit for Finance review & approval.
             </p>
@@ -337,12 +371,36 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
 
         {/* Reference Code & Agent Info */}
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#070A12] border border-white/10 text-xs font-mono">
+          {/* Ref Code Badge with On-Hover Copy to Clipboard */}
+          <div
+            onClick={(e) => handleCopyRefCode(`QT-2026-${cleanQuotationNumber}`, e)}
+            className="group relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#070A12] border border-white/10 hover:border-amber-400/60 text-xs font-mono cursor-pointer transition-all active:scale-95 shadow-inner"
+            title="Click to copy Ref Code to clipboard"
+          >
             <span className="text-slate-400">Ref Code:</span>
-            <span className="text-amber-400 font-bold">QT-2026-{cleanQuotationNumber}</span>
+            <span className="text-amber-400 font-bold tracking-wider">
+              QT-2026-{cleanQuotationNumber}
+            </span>
+
+            {/* Copy / Copied Visual Feedback */}
+            <span className="ml-1 p-0.5 rounded text-slate-400 group-hover:text-amber-300 transition-colors flex items-center">
+              {copiedRef ? (
+                <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-bold">
+                  <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                  <span className="animate-fadeIn font-sans">Copied!</span>
+                </span>
+              ) : (
+                <Copy className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all text-amber-400/80" />
+              )}
+            </span>
+
+            {/* Auto-generate Next Sequential Code */}
             <button
-              onClick={generateNewQuotationNumber}
-              className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/10 transition-colors ml-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                generateNewQuotationNumber();
+              }}
+              className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/10 transition-colors ml-0.5"
               title="Auto-generate next unique sequential code"
             >
               <RefreshCw className="w-3.5 h-3.5" />
