@@ -408,9 +408,9 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
           </div>
 
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#070A12] border border-white/10 text-xs font-mono">
-            <span className="text-slate-400">Agent:</span>
+            <span className="text-slate-400">User:</span>
             <span className="text-emerald-400 font-bold">
-              {currentAdminUser?.name || 'Sales Representative'}
+              {currentAdminUser?.name || 'Authorized Officer'}
             </span>
           </div>
         </div>

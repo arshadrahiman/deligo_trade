@@ -939,17 +939,12 @@ export default function AdminPortal() {
 
           {/* Right Top Corner: Strictly anchored to the top-right corner */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0 self-start ml-auto">
-            {/* Active Session & Officer Badge (shown on wide screens) */}
+            {/* Active Session & User Badge (shown on wide screens) */}
             <div className="hidden xl:flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#070A12] border border-white/10 shadow-inner">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
-              <div className="flex items-center gap-1.5 font-mono text-xs">
-                <span className="font-bold text-white max-w-[110px] truncate">
-                  {currentAdminUser?.name || 'Authorized Officer'}
-                </span>
-                <span className="text-[9.5px] px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 uppercase font-bold">
-                  {ROLE_DEFINITIONS[currentRole]?.name || currentRole}
-                </span>
-              </div>
+              <span className="font-bold font-mono text-xs text-white max-w-[150px] truncate">
+                {currentAdminUser?.name || 'Authorized Officer'}
+              </span>
             </div>
 
             {/* Subtle Divider (hidden if badge is hidden) */}
