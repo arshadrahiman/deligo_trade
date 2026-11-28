@@ -437,7 +437,7 @@ export default function SystemConfigTab() {
 
           {/* Accounts List Table */}
           <div className="overflow-x-auto rounded-xl border border-white/10 bg-surface shadow-xl">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-xs border-collapse min-w-[560px]">
               <thead>
                 <tr className="border-b border-white/10 bg-[#070A12]/80 text-slate-400 font-mono text-[11px] uppercase tracking-wider">
                   <th className="p-3.5">Officer / Account</th>

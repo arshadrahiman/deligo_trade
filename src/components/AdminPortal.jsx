@@ -858,17 +858,17 @@ export default function AdminPortal() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 sm:pt-4 pb-8 space-y-6 animate-fadeIn">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4 pb-8 space-y-5 sm:space-y-6 animate-fadeIn">
       {/* Admin Top Navigation & Header */}
-      <div className="relative p-3.5 sm:p-4.5 rounded-2xl bg-surface border border-white/10 shadow-xl overflow-hidden">
+      <div className="relative p-3 sm:p-4.5 rounded-2xl bg-surface border border-white/10 shadow-xl overflow-hidden">
         {/* Strictly Anchored Top Row: Left Branding + Top-Right Utility Section */}
-        <div className="flex items-start justify-between gap-3 sm:gap-4">
+        <div className="flex items-start justify-between gap-2.5 sm:gap-4">
           {/* Left: Branding & Role Identity */}
-          <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+          <div className="flex items-start sm:items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <CompanyLogo size="md" showText={false} className="mt-0.5 flex-shrink-0" />
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-base sm:text-lg lg:text-xl font-bold text-white tracking-tight leading-snug uppercase truncate">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <h1 className="text-sm sm:text-base lg:text-xl font-bold text-white tracking-tight leading-snug uppercase truncate">
                   {companySettings.companyName || 'DELITRADE'} • COMMERCIAL GYM EQUIPMENT & MACHINERY ERP
                 </h1>
                 <span
@@ -890,7 +890,7 @@ export default function AdminPortal() {
                 </span>
               </div>
               <p className="text-slate-400 text-xs mt-0.5 flex items-center gap-2">
-                <span className="font-mono text-[11px] text-amber-400/90 font-bold tracking-wider uppercase truncate">
+                <span className="font-mono text-[10px] sm:text-[11px] text-amber-400/90 font-bold tracking-wider uppercase truncate">
                   {companySettings.subTitle || 'Warehouse Equipment Trading Terminal'}
                 </span>
               </p>
@@ -898,7 +898,7 @@ export default function AdminPortal() {
           </div>
 
           {/* Right Top Corner: Strictly anchored to the top-right corner */}
-          <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0 self-start ml-auto">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0 self-start ml-auto">
             {/* Active Session & Officer Badge (shown on wide screens) */}
             <div className="hidden xl:flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#070A12] border border-white/10 shadow-inner">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
@@ -921,23 +921,23 @@ export default function AdminPortal() {
             {/* Compact Sign Out Button */}
             <button
               onClick={adminLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-500/15 hover:bg-red-500/25 text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-500/50 text-xs font-mono font-bold transition-all shadow-sm active:scale-95 whitespace-nowrap h-7"
+              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-full bg-red-500/15 hover:bg-red-500/25 text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-500/50 text-xs font-mono font-bold transition-all shadow-sm active:scale-95 whitespace-nowrap h-7"
               title="Secure Sign Out from Terminal"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
+              <span className="hidden sm:inline">Sign Out</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Unified Portal Navigation Tabs (Role & Permission Based) */}
-      <div className="flex items-center gap-2 border-b border-white/10 pb-3 overflow-x-auto no-scrollbar sm:flex-wrap">
+      <div className="flex items-center gap-2 border-b border-white/10 pb-2.5 overflow-x-auto no-scrollbar flex-nowrap lg:flex-wrap">
         {/* Tab 1: Dashboard & Analytics (Admin Agent & Super Admin) */}
         {currentPermissions.dashboardDatas && (
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap flex-shrink-0 ${
               activeTab === 'dashboard'
                 ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
                 : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
@@ -952,7 +952,7 @@ export default function AdminPortal() {
         {currentPermissions.quotationCreation && (
           <button
             onClick={() => setActiveTab('create_quote')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap flex-shrink-0 ${
               activeTab === 'create_quote'
                 ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
                 : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
@@ -966,7 +966,7 @@ export default function AdminPortal() {
         {/* Tab 3: Created Quotes & Invoices */}
         <button
           onClick={() => setActiveTab('quotes')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap flex-shrink-0 ${
             activeTab === 'quotes'
               ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
               : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
@@ -980,7 +980,7 @@ export default function AdminPortal() {
         {currentPermissions.productListing && (
           <button
             onClick={() => setActiveTab('products')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap flex-shrink-0 ${
               activeTab === 'products'
                 ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
                 : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
@@ -995,7 +995,7 @@ export default function AdminPortal() {
         {currentPermissions.brandingManagement && (
           <button
             onClick={() => setActiveTab('branding')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap flex-shrink-0 ${
               activeTab === 'branding'
                 ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
                 : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
@@ -1010,7 +1010,7 @@ export default function AdminPortal() {
         {currentPermissions.bankManagement && (
           <button
             onClick={() => setActiveTab('banks')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap flex-shrink-0 ${
               activeTab === 'banks'
                 ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/20'
                 : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
@@ -1025,7 +1025,7 @@ export default function AdminPortal() {
         {currentRole === ROLES.SUPER_ADMIN && (
           <button
             onClick={() => setActiveTab('system_config')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap flex-shrink-0 ${
               activeTab === 'system_config'
                 ? 'bg-gradient-to-r from-red-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-red-500/20'
                 : 'bg-surface text-slate-300 border border-white/10 hover:bg-[#070A12] hover:text-white'
@@ -1065,7 +1065,7 @@ export default function AdminPortal() {
               </div>
 
               {/* Quick Presets */}
-              <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono">
+              <div className="flex items-center gap-1.5 text-xs font-mono overflow-x-auto no-scrollbar pb-1 sm:pb-0 sm:flex-wrap">
                 {[
                   { id: 'ALL', label: 'All Time' },
                   { id: 'TODAY', label: 'Today' },
@@ -1078,7 +1078,7 @@ export default function AdminPortal() {
                     <button
                       key={preset.id}
                       onClick={() => handleApplyPreset(preset.id)}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
                         isActive
                           ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-sm shadow-amber-500/20'
                           : 'bg-[#070A12] border border-white/10 text-slate-300 hover:text-white hover:border-white/20'
@@ -1092,7 +1092,7 @@ export default function AdminPortal() {
             </div>
 
             {/* Date Pickers Row */}
-            <div className="pt-2 border-t border-white/5 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="pt-2 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
               <div className="flex flex-wrap items-center gap-2.5">
                 <div className="flex items-center gap-1.5">
                   <span className="text-slate-400 text-[11px] font-mono uppercase">From:</span>
@@ -1353,11 +1353,11 @@ export default function AdminPortal() {
               </button>
             )}
 
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-slate-400 font-bold">Filter:</span>
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-nowrap sm:flex-wrap pb-0.5 sm:pb-0 w-full lg:w-auto">
+              <span className="text-slate-400 font-bold text-xs flex-shrink-0">Filter:</span>
               <button
                 onClick={() => setQuoteFilter('ALL')}
-                className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                className={`px-2.5 py-1 rounded text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                   quoteFilter === 'ALL'
                     ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-sm'
                     : 'bg-[#070A12] text-slate-300 hover:text-white'
@@ -1367,7 +1367,7 @@ export default function AdminPortal() {
               </button>
               <button
                 onClick={() => setQuoteFilter('pending')}
-                className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                className={`px-2.5 py-1 rounded text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                   quoteFilter === 'pending'
                     ? 'bg-amber-400 text-black shadow-sm font-bold'
                     : 'bg-[#070A12] text-amber-300/80 hover:text-amber-300'
@@ -1377,7 +1377,7 @@ export default function AdminPortal() {
               </button>
               <button
                 onClick={() => setQuoteFilter('approved')}
-                className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                className={`px-2.5 py-1 rounded text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                   quoteFilter === 'approved'
                     ? 'bg-cyan-400 text-black shadow-sm font-bold'
                     : 'bg-[#070A12] text-cyan-300/80 hover:text-cyan-300'
@@ -1387,7 +1387,7 @@ export default function AdminPortal() {
               </button>
               <button
                 onClick={() => setQuoteFilter('sales_invoice')}
-                className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                className={`px-2.5 py-1 rounded text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                   quoteFilter === 'sales_invoice'
                     ? 'bg-emerald-500 text-black shadow-sm font-bold'
                     : 'bg-[#070A12] text-emerald-300/80 hover:text-emerald-300'

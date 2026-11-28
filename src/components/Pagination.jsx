@@ -92,8 +92,15 @@ export default function Pagination({
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          {/* Numbered Page Buttons */}
-          <div className="flex items-center gap-1">
+          {/* Mobile Page Display (sm:hidden) */}
+          <div className="flex sm:hidden items-center px-2 py-1 rounded-lg bg-white/[0.05] border border-white/[0.08] text-xs font-mono font-bold text-white">
+            <span className="text-amber-400">{currentPage}</span>
+            <span className="text-slate-500 mx-1">/</span>
+            <span>{totalPages}</span>
+          </div>
+
+          {/* Numbered Page Buttons (Desktop / Tablet) */}
+          <div className="hidden sm:flex items-center gap-1">
             {pages.map((p, idx) => {
               if (p === '...') {
                 return (

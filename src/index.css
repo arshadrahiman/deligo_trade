@@ -27,6 +27,24 @@ html, body {
   min-height: 100vh;
 }
 
+/* Responsive Platform Optimizations */
+@media screen and (max-width: 640px) {
+  /* Prevent iOS Safari automatic auto-zoom on input focus */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Safe-area insets for notched phones & edge-to-edge displays */
+.safe-p {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
 /* Custom Sleek Scrollbar for POS Panels & Tables */
 ::-webkit-scrollbar {
   width: 6px;

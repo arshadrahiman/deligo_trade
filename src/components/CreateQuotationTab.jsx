@@ -318,18 +318,18 @@ export default function CreateQuotationTab({ onQuotationCreated }) {
     <div className="space-y-6">
       {/* Top Header Banner */}
       <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
-        <div className="flex items-center gap-3">
-          <CompanyLogo size="md" showText={false} />
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-white uppercase tracking-tight">
+        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+          <CompanyLogo size="md" showText={false} className="flex-shrink-0 mt-0.5" />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-sm sm:text-base font-bold text-white uppercase tracking-tight truncate">
                 Create Commercial Quotation
               </h2>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold flex-shrink-0">
                 Auto-Sequence Active
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-400 mt-0.5 line-clamp-2 sm:line-clamp-1">
               Select warehouse stock, specify client particulars, and submit for Finance review & approval.
             </p>
           </div>
