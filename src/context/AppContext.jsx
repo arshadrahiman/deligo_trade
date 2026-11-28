@@ -1354,6 +1354,30 @@ export function AppProvider({ children }) {
     }
   };
 
+  // Security Verification Helper: verify entered security or login password for critical modifications
+  const verifySecurityPassword = (enteredPassword) => {
+    if (!enteredPassword) return false;
+    const cleanPass = String(enteredPassword).trim();
+    if (!cleanPass) return false;
+
+    // 1. Check against currently logged in user's password
+    if (currentAdminUser && currentAdminUser.password === cleanPass) {
+      return true;
+    }
+
+    // 2. Check against any active administrator or superadmin account password
+    const match = accounts.find(
+      (acc) =>
+        acc.status === 'active' &&
+        (acc.role === ROLES.SUPER_ADMIN ||
+          acc.role === ROLES.ADMIN_AGENT ||
+          acc.username.toLowerCase() === currentAdminUser?.username?.toLowerCase()) &&
+        acc.password === cleanPass
+    );
+
+    return Boolean(match);
+  };
+
   // Super Admin: Account Creation & Management CRUD
   const createAccount = (newAccData) => {
     if (currentRole !== ROLES.SUPER_ADMIN) {
@@ -1574,6 +1598,7 @@ export function AppProvider({ children }) {
         currentPermissions,
         adminLogin,
         adminLogout,
+        verifySecurityPassword,
         ROLES,
         ROLE_DEFINITIONS: roleDefinitions,
         roleDefinitions,

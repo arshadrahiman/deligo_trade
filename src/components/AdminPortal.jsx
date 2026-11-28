@@ -17,6 +17,7 @@ import {
   Download,
   Search,
   Eye,
+  EyeOff,
   FileCheck,
   ShieldCheck,
   Percent,
@@ -108,6 +109,7 @@ export default function AdminPortal() {
     updateProduct,
     deleteProduct,
     updateProductStock,
+    verifySecurityPassword,
     companySettings,
     setCompanySettings,
     bankAccounts,
@@ -279,6 +281,23 @@ export default function AdminPortal() {
   // Modals
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+
+  // Security authorization confirmation for deleting products
+  const handleDeleteProductWithPassword = (p) => {
+    const enteredPass = window.prompt(
+      `Security Authorization Required\n\nEnter your login password to confirm deleting product "${p.name}" (${p.code}):`
+    );
+    if (enteredPass === null) return; // User cancelled
+    if (!enteredPass.trim()) {
+      alert('Security Verification Failed: Password cannot be blank. Product not deleted.');
+      return;
+    }
+    if (!verifySecurityPassword(enteredPass.trim())) {
+      alert('Security Verification Failed: Incorrect login password. Product deletion aborted.');
+      return;
+    }
+    deleteProduct(p.code);
+  };
 
   const [isAddBankOpen, setIsAddBankOpen] = useState(false);
   const [editingBank, setEditingBank] = useState(null);
@@ -2102,13 +2121,9 @@ export default function AdminPortal() {
                         </button>
 
                         <button
-                          onClick={() => {
-                            if (confirm(`Delete product ${p.name} (${p.code})?`)) {
-                              deleteProduct(p.code);
-                            }
-                          }}
+                          onClick={() => handleDeleteProductWithPassword(p)}
                           className="p-2 rounded-lg bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
-                          title="Delete Product"
+                          title="Delete Product (Requires Password)"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -2257,13 +2272,9 @@ export default function AdminPortal() {
                             </button>
 
                             <button
-                              onClick={() => {
-                                if (confirm(`Delete product ${p.name} (${p.code})?`)) {
-                                  deleteProduct(p.code);
-                                }
-                              }}
+                              onClick={() => handleDeleteProductWithPassword(p)}
                               className="p-1.5 rounded bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
-                              title="Delete Product"
+                              title="Delete Product (Requires Password)"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -3857,7 +3868,7 @@ export default function AdminPortal() {
 // Sub-Modal: Add / Edit Product
 // -------------------------------------------------------------
 function ProductFormModal({ product, onClose, onSave }) {
-  const { currentPermissions } = useApp();
+  const { currentPermissions, verifySecurityPassword } = useApp();
   const [code, setCode] = useState(product?.code || '');
   const [name, setName] = useState(product?.name || '');
   const [category, setCategory] = useState(product?.category || 'Plate Loaded');
@@ -3871,6 +3882,11 @@ function ProductFormModal({ product, onClose, onSave }) {
   const [imagePath, setImagePath] = useState(product?.imagePath || '/assets/products/prod_1.png');
   const [description, setDescription] = useState(product?.description || '');
 
+  // Security password confirmation state
+  const [securityPassword, setSecurityPassword] = useState('');
+  const [showSecurityPassword, setShowSecurityPassword] = useState(false);
+  const [securityError, setSecurityError] = useState('');
+
   const categories = [
     'Plate Loaded',
     'Strength & Cables',
@@ -3881,10 +3897,23 @@ function ProductFormModal({ product, onClose, onSave }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setSecurityError('');
+
     if (!code.trim() || !name.trim()) {
       alert('Product code and name are required.');
       return;
     }
+
+    if (!securityPassword.trim()) {
+      setSecurityError('Security confirmation required: Please enter your login password.');
+      return;
+    }
+
+    if (!verifySecurityPassword(securityPassword.trim())) {
+      setSecurityError('Authentication failed: Invalid login password. Product changes not saved.');
+      return;
+    }
+
     onSave({
       ...(product || {}),
       code: code.trim().toUpperCase(),
@@ -4030,6 +4059,54 @@ function ProductFormModal({ product, onClose, onSave }) {
               placeholder="Weight: 260kg | Size: 2400×1610×1480mm | Heavy plate loaded sled with linear bearings..."
               className="w-full bg-[#070A12] border border-white/10 rounded px-3 py-2 text-white"
             />
+          </div>
+
+          {/* Security Password Confirmation for Modifying/Adding Product */}
+          <div className="p-3 sm:p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-amber-400 font-bold flex items-center gap-1.5 text-xs">
+                <Lock className="w-3.5 h-3.5 text-amber-400" />
+                Security Password Confirmation *
+              </label>
+              <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                Authorization Required
+              </span>
+            </div>
+
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              To authorize and confirm product modifications, please enter your login password.
+            </p>
+
+            <div className="relative">
+              <input
+                type={showSecurityPassword ? 'text' : 'password'}
+                required
+                value={securityPassword}
+                onChange={(e) => {
+                  setSecurityPassword(e.target.value);
+                  if (securityError) setSecurityError('');
+                }}
+                placeholder="Enter your login password to confirm"
+                className="w-full bg-[#070A12] border border-amber-500/40 focus:border-amber-400 rounded-lg px-3 py-2 pr-10 text-white font-mono text-xs placeholder:text-slate-500 outline-none transition-colors"
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowSecurityPassword(!showSecurityPassword)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-400 transition-colors p-1"
+                title={showSecurityPassword ? 'Hide password' : 'Show password'}
+              >
+                {showSecurityPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+
+            {securityError && (
+              <div className="flex items-center gap-1.5 text-[11px] text-red-400 font-bold bg-red-950/40 border border-red-500/30 px-2.5 py-1.5 rounded-lg">
+                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{securityError}</span>
+              </div>
+            )}
           </div>
 
           <div className="pt-2 flex flex-col-reverse sm:flex-row justify-end gap-2">
