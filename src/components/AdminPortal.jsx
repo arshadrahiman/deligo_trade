@@ -1442,10 +1442,10 @@ export default function AdminPortal() {
               <button
                 onClick={() => handleExportQuotesToExcel(filteredQuotes)}
                 className="px-2.5 py-1 rounded-md bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 active:scale-95"
-                title="Export list to Excel (.xlsx)"
+                title="Export list to XLSX (.xlsx)"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Export Excel</span>
+                <span>Export to XLSX</span>
               </button>
             </div>
             {filteredQuotes.length === 0 ? (
@@ -1655,10 +1655,10 @@ export default function AdminPortal() {
               <button
                 onClick={() => handleExportQuotesToExcel(filteredQuotes)}
                 className="px-2.5 py-1 rounded-md bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
-                title="Export this list to Excel (.xlsx)"
+                title="Export this list to XLSX (.xlsx)"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Export List to Excel</span>
+                <span>Export to XLSX</span>
               </button>
             </div>
             <table className="w-full text-left text-xs border-collapse">
@@ -3103,15 +3103,15 @@ export default function AdminPortal() {
                 </button>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  {/* Export This Quotation to Excel */}
+                  {/* Export This Quotation to XLSX */}
                   <button
                     type="button"
                     onClick={() => handleExportQuotesToExcel([reviewingQuote])}
                     className="px-3.5 py-2.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95"
-                    title={`Export quotation #${reviewingQuote.id} to Excel (.xlsx)`}
+                    title={`Export quotation #${reviewingQuote.id} to XLSX (.xlsx)`}
                   >
                     <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-                    <span>Export to Excel</span>
+                    <span>Export to XLSX</span>
                   </button>
 
                   {/* Save changes button (before approval) */}
@@ -3705,10 +3705,10 @@ export default function AdminPortal() {
                 type="button"
                 onClick={() => handleExportQuotesToExcel([previewingQuote])}
                 className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95"
-                title="Export this record to Excel (.xlsx)"
+                title="Export this record to XLSX (.xlsx)"
               >
                 <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-                <span>Export to Excel</span>
+                <span>Export to XLSX</span>
               </button>
 
               <button
@@ -3781,10 +3781,10 @@ export default function AdminPortal() {
                     handleExportQuotesToExcel([pdfPreviewModal.record])
                   }
                   className="px-2.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/40 text-xs font-mono font-bold flex items-center gap-1.5 transition-colors shadow-sm"
-                  title="Export this record to Excel (.xlsx)"
+                  title="Export this record to XLSX (.xlsx)"
                 >
                   <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="hidden sm:inline">Excel</span>
+                  <span className="hidden sm:inline">XLSX</span>
                 </button>
                 <button
                   type="button"
