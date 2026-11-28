@@ -1176,6 +1176,12 @@ export function AppProvider({ children }) {
             ...updatedProduct,
             price: priceNum,
             purchaseRate: pRateNum,
+            stockQty:
+              updatedProduct.stockQty !== undefined
+                ? Math.max(0, parseInt(updatedProduct.stockQty, 10) || 0)
+                : p.stockQty !== undefined
+                ? p.stockQty
+                : 10,
           };
         }
         return p;
@@ -1199,9 +1205,13 @@ export function AppProvider({ children }) {
     return true;
   };
 
-  const updateProductStock = (productCode, newQty) => {
+  const updateProductStock = (productCode, newQty, securityPass = null) => {
     if (!currentPermissions.productionCrud) {
       alert('Access Denied: Warehouse stock modification is restricted to the Admin Agent.');
+      return false;
+    }
+    if (securityPass && !verifySecurityPassword(securityPass)) {
+      alert('Security Verification Failed: Valid password required to modify warehouse stock.');
       return false;
     }
     setProducts((prev) =>

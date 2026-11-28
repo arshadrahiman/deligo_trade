@@ -2088,54 +2088,36 @@ export default function AdminPortal() {
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <span className="text-slate-400">Stock:</span>
+                    <span className="font-mono font-bold text-slate-200 px-2 py-0.5 rounded bg-[#070A12] border border-white/10">
+                      {p.stockQty !== undefined ? p.stockQty : 10} units
+                    </span>
+                  </div>
+
                   {currentPermissions.productionCrud ? (
-                    <>
-                      <div className="flex items-center gap-1 bg-[#070A12] border border-white/10 rounded-lg p-1">
-                        <button
-                          onClick={() => updateProductStock(p.code, (p.stockQty || 0) - 1)}
-                          className="w-7 h-7 rounded bg-[#1E2839] hover:bg-red-500 hover:text-white text-slate-200 flex items-center justify-center font-bold"
-                        >
-                          -
-                        </button>
-                        <span className="w-10 text-center font-mono font-bold text-xs text-white">
-                          {p.stockQty !== undefined ? p.stockQty : 10}
-                        </span>
-                        <button
-                          onClick={() => updateProductStock(p.code, (p.stockQty || 0) + 1)}
-                          className="w-7 h-7 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold hover:brightness-110 flex items-center justify-center font-bold"
-                        >
-                          +
-                        </button>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingProduct({ ...p });
+                          setIsAddProductOpen(true);
+                        }}
+                        className="p-2 rounded-lg bg-[#1E2839] hover:bg-amber-500 hover:text-black text-slate-300 transition-colors"
+                        title="Modify Product & Stock (Requires Password)"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
 
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            setEditingProduct({ ...p });
-                            setIsAddProductOpen(true);
-                          }}
-                          className="p-2 rounded-lg bg-[#1E2839] hover:bg-amber-500 hover:text-black text-slate-300"
-                          title="Edit Product"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-
-                        <button
-                          onClick={() => handleDeleteProductWithPassword(p)}
-                          className="p-2 rounded-lg bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white"
-                          title="Delete Product (Requires Password)"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="w-full flex items-center justify-between text-xs">
-                      <span className="text-slate-400">Stock Available:</span>
-                      <span className="font-mono font-bold text-slate-200">
-                        {p.stockQty !== undefined ? p.stockQty : 10} units
-                      </span>
+                      <button
+                        onClick={() => handleDeleteProductWithPassword(p)}
+                        className="p-2 rounded-lg bg-[#1E2839] hover:bg-red-600 text-slate-400 hover:text-white transition-colors"
+                        title="Delete Product (Requires Password)"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
+                  ) : (
+                    <span className="text-slate-500 text-[11px] italic">Read-only</span>
                   )}
                 </div>
               </div>
@@ -2226,34 +2208,11 @@ export default function AdminPortal() {
                         </>
                       )}
 
-                      {/* Stock Qty Modifier */}
+                      {/* Stock Qty (Read-only on listing; modified via Edit Modal with Password) */}
                       <td className="p-3 text-center">
-                        {currentPermissions.productionCrud ? (
-                          <div className="inline-flex items-center gap-1.5 bg-[#070A12] border border-white/10 rounded-lg p-1">
-                            <button
-                              onClick={() => updateProductStock(p.code, (p.stockQty || 0) - 1)}
-                              className="w-6 h-6 rounded bg-[#1E2839] hover:bg-red-500 hover:text-white text-slate-200 flex items-center justify-center font-bold"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              value={p.stockQty !== undefined ? p.stockQty : 10}
-                              onChange={(e) => updateProductStock(p.code, e.target.value)}
-                              className="w-12 text-center bg-transparent text-white font-mono font-bold text-xs focus:outline-none"
-                            />
-                            <button
-                              onClick={() => updateProductStock(p.code, (p.stockQty || 0) + 1)}
-                              className="w-6 h-6 rounded bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold hover:brightness-110 flex items-center justify-center font-bold"
-                            >
-                              +
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="font-mono font-bold text-slate-300 text-xs px-2 py-1 rounded bg-[#070A12] border border-white/10">
-                            {p.stockQty !== undefined ? p.stockQty : 10} units
-                          </span>
-                        )}
+                        <span className="inline-flex items-center font-mono font-bold text-slate-200 text-xs px-2.5 py-1 rounded bg-[#070A12] border border-white/10">
+                          {p.stockQty !== undefined ? p.stockQty : 10} units
+                        </span>
                       </td>
 
                       {/* Actions */}
@@ -2265,8 +2224,8 @@ export default function AdminPortal() {
                                 setEditingProduct({ ...p });
                                 setIsAddProductOpen(true);
                               }}
-                              className="p-1.5 rounded bg-[#1E2839] hover:bg-amber-500 hover:text-black text-slate-300"
-                              title="Edit Product"
+                              className="p-1.5 rounded bg-[#1E2839] hover:bg-amber-500 hover:text-black text-slate-300 transition-colors"
+                              title="Modify Product & Stock (Requires Password)"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
